@@ -1,0 +1,529 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+  </PropertyGroup>
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="MinSizeRel|x64">
+      <Configuration>MinSizeRel</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="RelWithDebInfo|x64">
+      <Configuration>RelWithDebInfo</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{15FA924B-8BD4-3F96-BF8C-0730AAA45B89}</ProjectGuid>
+    <WindowsTargetPlatformVersion>10.0.18362.0</WindowsTargetPlatformVersion>
+    <Keyword>Win32Proj</Keyword>
+    <Platform>x64</Platform>
+    <ProjectName>OpenAL</ProjectName>
+    <VCProjectUpgraderObjectName>NoUpgrade</VCProjectUpgraderObjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>ClangCL</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.20506.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft-build\Debug\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">OpenAL.dir\Debug\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">OpenAL32</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.dll</TargetExt>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</GenerateManifest>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft-build\Release\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">OpenAL.dir\Release\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">OpenAL32</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.dll</TargetExt>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</GenerateManifest>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft-build\MinSizeRel\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">OpenAL.dir\MinSizeRel\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">OpenAL32</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">.dll</TargetExt>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">false</LinkIncremental>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">true</GenerateManifest>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft-build\RelWithDebInfo\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">OpenAL.dir\RelWithDebInfo\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">OpenAL32</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">.dll</TargetExt>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">true</LinkIncremental>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">true</GenerateManifest>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\include;C:\Program Files (x86)\Microsoft Visual Studio\VC98\Include;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft-build;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /w14640</AdditionalOptions>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <ConformanceMode>true</ConformanceMode>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>4065;4268;4324;5030</DisableSpecificWarnings>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <Optimization>Disabled</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <UseFullPaths>false</UseFullPaths>
+      <WarningLevel>Level4</WarningLevel>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;AL_BUILD_LIBRARY;AL_ALEXT_PROTOTYPES;_WIN32;_WIN32_WINNT=0x0502;_CRT_SECURE_NO_WARNINGS;NOMINMAX;CMAKE_INTDIR="Debug";OpenAL_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;AL_BUILD_LIBRARY;AL_ALEXT_PROTOTYPES;_WIN32;_WIN32_WINNT=0x0502;_CRT_SECURE_NO_WARNINGS;NOMINMAX;CMAKE_INTDIR=\"Debug\";OpenAL_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\include;C:\Program Files (x86)\Microsoft Visual Studio\VC98\Include;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft-build;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\include;C:\Program Files (x86)\Microsoft Visual Studio\VC98\Include;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft-build;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Link>
+      <AdditionalDependencies>Debug\common.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ImportLibrary>C:/Users/Sahil/source/repos/ConsoleApplication9/openal-soft-build/Debug/OpenAL32.lib</ImportLibrary>
+      <ProgramDataBaseFile>C:/Users/Sahil/source/repos/ConsoleApplication9/openal-soft-build/Debug/OpenAL32.pdb</ProgramDataBaseFile>
+      <SubSystem>Console</SubSystem>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\include;C:\Program Files (x86)\Microsoft Visual Studio\VC98\Include;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft-build;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /w14640</AdditionalOptions>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <ConformanceMode>true</ConformanceMode>
+      <DisableSpecificWarnings>4065;4268;4324;5030</DisableSpecificWarnings>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <LanguageStandard>stdcpp14</LanguageStandard>
+      <Optimization>MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <UseFullPaths>false</UseFullPaths>
+      <WarningLevel>Level4</WarningLevel>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;AL_BUILD_LIBRARY;AL_ALEXT_PROTOTYPES;_WIN32;_WIN32_WINNT=0x0502;_CRT_SECURE_NO_WARNINGS;NOMINMAX;CMAKE_INTDIR="Release";OpenAL_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;AL_BUILD_LIBRARY;AL_ALEXT_PROTOTYPES;_WIN32;_WIN32_WINNT=0x0502;_CRT_SECURE_NO_WARNINGS;NOMINMAX;CMAKE_INTDIR=\"Release\";OpenAL_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\include;C:\Program Files (x86)\Microsoft Visual Studio\VC98\Include;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft-build;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\include;C:\Program Files (x86)\Microsoft Visual Studio\VC98\Include;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft-build;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Link>
+      <AdditionalDependencies>Release\common.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ImportLibrary>C:/Users/Sahil/source/repos/ConsoleApplication9/openal-soft-build/Release/OpenAL32.lib</ImportLibrary>
+      <ProgramDataBaseFile>C:/Users/Sahil/source/repos/ConsoleApplication9/openal-soft-build/Release/OpenAL32.pdb</ProgramDataBaseFile>
+      <SubSystem>Console</SubSystem>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\include;C:\Program Files (x86)\Microsoft Visual Studio\VC98\Include;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft-build;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /w14640</AdditionalOptions>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <ConformanceMode>true</ConformanceMode>
+      <DisableSpecificWarnings>4065;4268;4324;5030</DisableSpecificWarnings>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <LanguageStandard>stdcpp14</LanguageStandard>
+      <Optimization>MinSpace</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <UseFullPaths>false</UseFullPaths>
+      <WarningLevel>Level4</WarningLevel>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;AL_BUILD_LIBRARY;AL_ALEXT_PROTOTYPES;_WIN32;_WIN32_WINNT=0x0502;_CRT_SECURE_NO_WARNINGS;NOMINMAX;CMAKE_INTDIR="MinSizeRel";OpenAL_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;AL_BUILD_LIBRARY;AL_ALEXT_PROTOTYPES;_WIN32;_WIN32_WINNT=0x0502;_CRT_SECURE_NO_WARNINGS;NOMINMAX;CMAKE_INTDIR=\"MinSizeRel\";OpenAL_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\include;C:\Program Files (x86)\Microsoft Visual Studio\VC98\Include;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft-build;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\include;C:\Program Files (x86)\Microsoft Visual Studio\VC98\Include;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft-build;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Link>
+      <AdditionalDependencies>MinSizeRel\common.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ImportLibrary>C:/Users/Sahil/source/repos/ConsoleApplication9/openal-soft-build/MinSizeRel/OpenAL32.lib</ImportLibrary>
+      <ProgramDataBaseFile>C:/Users/Sahil/source/repos/ConsoleApplication9/openal-soft-build/MinSizeRel/OpenAL32.pdb</ProgramDataBaseFile>
+      <SubSystem>Console</SubSystem>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\include;C:\Program Files (x86)\Microsoft Visual Studio\VC98\Include;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft-build;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /w14640</AdditionalOptions>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <ConformanceMode>true</ConformanceMode>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>4065;4268;4324;5030</DisableSpecificWarnings>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <LanguageStandard>stdcpp14</LanguageStandard>
+      <Optimization>MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <UseFullPaths>false</UseFullPaths>
+      <WarningLevel>Level4</WarningLevel>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;AL_BUILD_LIBRARY;AL_ALEXT_PROTOTYPES;_WIN32;_WIN32_WINNT=0x0502;_CRT_SECURE_NO_WARNINGS;NOMINMAX;CMAKE_INTDIR="RelWithDebInfo";OpenAL_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;AL_BUILD_LIBRARY;AL_ALEXT_PROTOTYPES;_WIN32;_WIN32_WINNT=0x0502;_CRT_SECURE_NO_WARNINGS;NOMINMAX;CMAKE_INTDIR=\"RelWithDebInfo\";OpenAL_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\include;C:\Program Files (x86)\Microsoft Visual Studio\VC98\Include;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft-build;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\include;C:\Program Files (x86)\Microsoft Visual Studio\VC98\Include;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft-build;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Link>
+      <AdditionalDependencies>RelWithDebInfo\common.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ImportLibrary>C:/Users/Sahil/source/repos/ConsoleApplication9/openal-soft-build/RelWithDebInfo/OpenAL32.lib</ImportLibrary>
+      <ProgramDataBaseFile>C:/Users/Sahil/source/repos/ConsoleApplication9/openal-soft-build/RelWithDebInfo/OpenAL32.pdb</ProgramDataBaseFile>
+      <SubSystem>Console</SubSystem>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft-build\CMakeFiles\a70a98e9698ba91fd5b2f0faee9b3e72\hrtf_default.h.rule">
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Generating hrtf_default.h</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -D "INPUT_FILE=C:/Users/Sahil/source/repos/ConsoleApplication9/openal-soft/hrtf/Default HRTF.mhr" -D OUTPUT_FILE=C:/Users/Sahil/source/repos/ConsoleApplication9/openal-soft-build/hrtf_default.h -D VARIABLE_NAME=hrtf_default -P C:/Users/Sahil/source/repos/ConsoleApplication9/openal-soft/cmake/bin2h.script.cmake
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\hrtf\Default HRTF.mhr;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\cmake\bin2h.script.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft-build\hrtf_default.h</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Generating hrtf_default.h</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -D "INPUT_FILE=C:/Users/Sahil/source/repos/ConsoleApplication9/openal-soft/hrtf/Default HRTF.mhr" -D OUTPUT_FILE=C:/Users/Sahil/source/repos/ConsoleApplication9/openal-soft-build/hrtf_default.h -D VARIABLE_NAME=hrtf_default -P C:/Users/Sahil/source/repos/ConsoleApplication9/openal-soft/cmake/bin2h.script.cmake
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\hrtf\Default HRTF.mhr;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\cmake\bin2h.script.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft-build\hrtf_default.h</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">Generating hrtf_default.h</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">setlocal
+cd C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -D "INPUT_FILE=C:/Users/Sahil/source/repos/ConsoleApplication9/openal-soft/hrtf/Default HRTF.mhr" -D OUTPUT_FILE=C:/Users/Sahil/source/repos/ConsoleApplication9/openal-soft-build/hrtf_default.h -D VARIABLE_NAME=hrtf_default -P C:/Users/Sahil/source/repos/ConsoleApplication9/openal-soft/cmake/bin2h.script.cmake
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\hrtf\Default HRTF.mhr;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\cmake\bin2h.script.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft-build\hrtf_default.h</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">Generating hrtf_default.h</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">setlocal
+cd C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -D "INPUT_FILE=C:/Users/Sahil/source/repos/ConsoleApplication9/openal-soft/hrtf/Default HRTF.mhr" -D OUTPUT_FILE=C:/Users/Sahil/source/repos/ConsoleApplication9/openal-soft-build/hrtf_default.h -D VARIABLE_NAME=hrtf_default -P C:/Users/Sahil/source/repos/ConsoleApplication9/openal-soft/cmake/bin2h.script.cmake
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\hrtf\Default HRTF.mhr;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\cmake\bin2h.script.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft-build\hrtf_default.h</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\CMakeLists.txt">
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Building Custom Rule C:/Users/Sahil/source/repos/ConsoleApplication9/openal-soft/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/Sahil/source/repos/ConsoleApplication9/openal-soft -BC:/Users/Sahil/source/repos/ConsoleApplication9/openal-soft-build --check-stamp-file C:/Users/Sahil/source/repos/ConsoleApplication9/openal-soft-build/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Program Files\CMake\share\cmake-3.16\Modules\CMakeCInformation.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CMakeCXXInformation.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CMakeCheckCompilerFlagCommonPatterns.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CMakeCommonLanguageInclude.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CMakeGenericSystem.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CMakeInitializeConfigs.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CMakeLanguageInformation.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CMakeRCInformation.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CMakeSystemSpecificInformation.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CMakeSystemSpecificInitialize.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CheckCCompilerFlag.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CheckCSourceCompiles.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CheckCXXCompilerFlag.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CheckCXXSourceCompiles.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CheckFunctionExists.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CheckIncludeFile.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CheckIncludeFileCXX.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CheckIncludeFiles.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CheckLibraryExists.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CheckStructHasMember.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CheckSymbolExists.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CheckTypeSize.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\Compiler\CMakeCommonCompilerMacros.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\Compiler\MSVC-C.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\Compiler\MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\FindGit.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\FindPackageMessage.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\FindThreads.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\FindZLIB.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\GNUInstallDirs.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\Platform\Windows-MSVC-C.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\Platform\Windows-MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\Platform\Windows-MSVC.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\Platform\Windows.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\Platform\WindowsPaths.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\SelectLibraryConfigurations.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft-build\CMakeFiles\3.16.4\CMakeCCompiler.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft-build\CMakeFiles\3.16.4\CMakeCXXCompiler.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft-build\CMakeFiles\3.16.4\CMakeRCCompiler.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft-build\CMakeFiles\3.16.4\CMakeSystem.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\cmake\FindALSA.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\cmake\FindAudioIO.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\cmake\FindDSound.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\cmake\FindJACK.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\cmake\FindMySOFA.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\cmake\FindOSS.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\cmake\FindOpenSL.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\cmake\FindPortAudio.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\cmake\FindPulseAudio.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\cmake\FindSDL2.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\cmake\FindSndFile.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\cmake\FindSoundIO.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\cmake\FindWindowsSDK.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\config.h.in;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\openal.pc.in;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft-build\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Building Custom Rule C:/Users/Sahil/source/repos/ConsoleApplication9/openal-soft/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/Sahil/source/repos/ConsoleApplication9/openal-soft -BC:/Users/Sahil/source/repos/ConsoleApplication9/openal-soft-build --check-stamp-file C:/Users/Sahil/source/repos/ConsoleApplication9/openal-soft-build/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Program Files\CMake\share\cmake-3.16\Modules\CMakeCInformation.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CMakeCXXInformation.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CMakeCheckCompilerFlagCommonPatterns.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CMakeCommonLanguageInclude.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CMakeGenericSystem.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CMakeInitializeConfigs.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CMakeLanguageInformation.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CMakeRCInformation.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CMakeSystemSpecificInformation.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CMakeSystemSpecificInitialize.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CheckCCompilerFlag.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CheckCSourceCompiles.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CheckCXXCompilerFlag.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CheckCXXSourceCompiles.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CheckFunctionExists.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CheckIncludeFile.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CheckIncludeFileCXX.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CheckIncludeFiles.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CheckLibraryExists.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CheckStructHasMember.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CheckSymbolExists.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CheckTypeSize.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\Compiler\CMakeCommonCompilerMacros.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\Compiler\MSVC-C.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\Compiler\MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\FindGit.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\FindPackageMessage.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\FindThreads.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\FindZLIB.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\GNUInstallDirs.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\Platform\Windows-MSVC-C.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\Platform\Windows-MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\Platform\Windows-MSVC.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\Platform\Windows.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\Platform\WindowsPaths.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\SelectLibraryConfigurations.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft-build\CMakeFiles\3.16.4\CMakeCCompiler.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft-build\CMakeFiles\3.16.4\CMakeCXXCompiler.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft-build\CMakeFiles\3.16.4\CMakeRCCompiler.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft-build\CMakeFiles\3.16.4\CMakeSystem.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\cmake\FindALSA.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\cmake\FindAudioIO.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\cmake\FindDSound.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\cmake\FindJACK.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\cmake\FindMySOFA.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\cmake\FindOSS.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\cmake\FindOpenSL.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\cmake\FindPortAudio.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\cmake\FindPulseAudio.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\cmake\FindSDL2.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\cmake\FindSndFile.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\cmake\FindSoundIO.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\cmake\FindWindowsSDK.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\config.h.in;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\openal.pc.in;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft-build\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">Building Custom Rule C:/Users/Sahil/source/repos/ConsoleApplication9/openal-soft/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/Sahil/source/repos/ConsoleApplication9/openal-soft -BC:/Users/Sahil/source/repos/ConsoleApplication9/openal-soft-build --check-stamp-file C:/Users/Sahil/source/repos/ConsoleApplication9/openal-soft-build/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Program Files\CMake\share\cmake-3.16\Modules\CMakeCInformation.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CMakeCXXInformation.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CMakeCheckCompilerFlagCommonPatterns.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CMakeCommonLanguageInclude.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CMakeGenericSystem.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CMakeInitializeConfigs.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CMakeLanguageInformation.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CMakeRCInformation.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CMakeSystemSpecificInformation.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CMakeSystemSpecificInitialize.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CheckCCompilerFlag.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CheckCSourceCompiles.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CheckCXXCompilerFlag.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CheckCXXSourceCompiles.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CheckFunctionExists.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CheckIncludeFile.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CheckIncludeFileCXX.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CheckIncludeFiles.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CheckLibraryExists.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CheckStructHasMember.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CheckSymbolExists.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CheckTypeSize.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\Compiler\CMakeCommonCompilerMacros.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\Compiler\MSVC-C.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\Compiler\MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\FindGit.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\FindPackageMessage.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\FindThreads.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\FindZLIB.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\GNUInstallDirs.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\Platform\Windows-MSVC-C.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\Platform\Windows-MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\Platform\Windows-MSVC.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\Platform\Windows.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\Platform\WindowsPaths.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\SelectLibraryConfigurations.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft-build\CMakeFiles\3.16.4\CMakeCCompiler.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft-build\CMakeFiles\3.16.4\CMakeCXXCompiler.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft-build\CMakeFiles\3.16.4\CMakeRCCompiler.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft-build\CMakeFiles\3.16.4\CMakeSystem.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\cmake\FindALSA.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\cmake\FindAudioIO.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\cmake\FindDSound.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\cmake\FindJACK.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\cmake\FindMySOFA.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\cmake\FindOSS.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\cmake\FindOpenSL.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\cmake\FindPortAudio.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\cmake\FindPulseAudio.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\cmake\FindSDL2.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\cmake\FindSndFile.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\cmake\FindSoundIO.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\cmake\FindWindowsSDK.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\config.h.in;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\openal.pc.in;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft-build\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">Building Custom Rule C:/Users/Sahil/source/repos/ConsoleApplication9/openal-soft/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/Sahil/source/repos/ConsoleApplication9/openal-soft -BC:/Users/Sahil/source/repos/ConsoleApplication9/openal-soft-build --check-stamp-file C:/Users/Sahil/source/repos/ConsoleApplication9/openal-soft-build/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Program Files\CMake\share\cmake-3.16\Modules\CMakeCInformation.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CMakeCXXInformation.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CMakeCheckCompilerFlagCommonPatterns.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CMakeCommonLanguageInclude.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CMakeGenericSystem.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CMakeInitializeConfigs.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CMakeLanguageInformation.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CMakeRCInformation.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CMakeSystemSpecificInformation.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CMakeSystemSpecificInitialize.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CheckCCompilerFlag.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CheckCSourceCompiles.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CheckCXXCompilerFlag.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CheckCXXSourceCompiles.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CheckFunctionExists.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CheckIncludeFile.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CheckIncludeFileCXX.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CheckIncludeFiles.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CheckLibraryExists.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CheckStructHasMember.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CheckSymbolExists.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CheckTypeSize.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\Compiler\CMakeCommonCompilerMacros.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\Compiler\MSVC-C.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\Compiler\MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\FindGit.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\FindPackageMessage.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\FindThreads.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\FindZLIB.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\GNUInstallDirs.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\Platform\Windows-MSVC-C.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\Platform\Windows-MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\Platform\Windows-MSVC.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\Platform\Windows.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\Platform\WindowsPaths.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\SelectLibraryConfigurations.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft-build\CMakeFiles\3.16.4\CMakeCCompiler.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft-build\CMakeFiles\3.16.4\CMakeCXXCompiler.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft-build\CMakeFiles\3.16.4\CMakeRCCompiler.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft-build\CMakeFiles\3.16.4\CMakeSystem.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\cmake\FindALSA.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\cmake\FindAudioIO.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\cmake\FindDSound.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\cmake\FindJACK.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\cmake\FindMySOFA.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\cmake\FindOSS.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\cmake\FindOpenSL.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\cmake\FindPortAudio.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\cmake\FindPulseAudio.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\cmake\FindSDL2.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\cmake\FindSndFile.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\cmake\FindSoundIO.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\cmake\FindWindowsSDK.cmake;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\config.h.in;C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\openal.pc.in;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft-build\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\al\auxeffectslot.cpp" />
+    <ClInclude Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\al\auxeffectslot.h" />
+    <ClCompile Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\al\buffer.cpp" />
+    <ClInclude Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\al\buffer.h" />
+    <ClCompile Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\al\effect.cpp" />
+    <ClInclude Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\al\effect.h" />
+    <ClCompile Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\al\error.cpp" />
+    <ClCompile Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\al\event.cpp" />
+    <ClInclude Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\al\event.h" />
+    <ClCompile Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\al\extension.cpp" />
+    <ClCompile Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\al\filter.cpp" />
+    <ClInclude Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\al\filter.h" />
+    <ClCompile Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\al\listener.cpp" />
+    <ClInclude Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\al\listener.h" />
+    <ClCompile Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\al\source.cpp" />
+    <ClInclude Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\al\source.h" />
+    <ClCompile Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\al\state.cpp" />
+    <ClCompile Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\alc.cpp" />
+    <ClInclude Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\alcmain.h" />
+    <ClCompile Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\alu.cpp" />
+    <ClInclude Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\alu.h" />
+    <ClCompile Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\alconfig.cpp" />
+    <ClInclude Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\alconfig.h" />
+    <ClInclude Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\alcontext.h" />
+    <ClCompile Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\ambdec.cpp" />
+    <ClInclude Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\ambdec.h" />
+    <ClInclude Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\ambidefs.h" />
+    <ClCompile Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\bformatdec.cpp" />
+    <ClInclude Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\bformatdec.h" />
+    <ClCompile Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\bs2b.cpp" />
+    <ClInclude Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\bs2b.h" />
+    <ClInclude Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\compat.h" />
+    <ClCompile Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\converter.cpp" />
+    <ClInclude Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\converter.h" />
+    <ClCompile Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\cpu_caps.cpp" />
+    <ClInclude Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\cpu_caps.h" />
+    <ClInclude Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\devformat.h" />
+    <ClInclude Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\effects\base.h" />
+    <ClCompile Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\effects\autowah.cpp" />
+    <ClCompile Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\effects\chorus.cpp" />
+    <ClCompile Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\effects\compressor.cpp" />
+    <ClCompile Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\effects\dedicated.cpp" />
+    <ClCompile Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\effects\distortion.cpp" />
+    <ClCompile Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\effects\echo.cpp" />
+    <ClCompile Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\effects\equalizer.cpp" />
+    <ClCompile Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\effects\fshifter.cpp" />
+    <ClCompile Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\effects\modulator.cpp" />
+    <ClCompile Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\effects\null.cpp">
+      <ObjectFileName>$(IntDir)/alc/effects/null.cpp.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\effects\pshifter.cpp" />
+    <ClCompile Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\effects\reverb.cpp" />
+    <ClCompile Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\effects\vmorpher.cpp" />
+    <ClInclude Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\filters\biquad.h" />
+    <ClCompile Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\filters\biquad.cpp" />
+    <ClCompile Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\filters\nfc.cpp" />
+    <ClInclude Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\filters\nfc.h" />
+    <ClCompile Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\filters\splitter.cpp" />
+    <ClInclude Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\filters\splitter.h" />
+    <ClCompile Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\fpu_ctrl.cpp" />
+    <ClInclude Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\fpu_ctrl.h" />
+    <ClInclude Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\front_stablizer.h" />
+    <ClCompile Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\helpers.cpp" />
+    <ClCompile Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\hrtf.cpp" />
+    <ClInclude Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\hrtf.h" />
+    <ClInclude Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\inprogext.h" />
+    <ClInclude Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\logging.h" />
+    <ClCompile Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\mastering.cpp" />
+    <ClInclude Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\mastering.h" />
+    <ClCompile Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\panning.cpp" />
+    <ClCompile Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\ringbuffer.cpp" />
+    <ClInclude Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\ringbuffer.h" />
+    <ClCompile Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\uhjfilter.cpp" />
+    <ClInclude Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\uhjfilter.h" />
+    <ClCompile Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\uiddefs.cpp" />
+    <ClCompile Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\voice.cpp" />
+    <ClInclude Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\voice.h" />
+    <ClInclude Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\mixer\defs.h" />
+    <ClInclude Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\mixer\hrtfbase.h" />
+    <ClCompile Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\mixer\mixer_c.cpp" />
+    <ClCompile Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\mixer\mixer_sse.cpp" />
+    <ClCompile Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\mixer\mixer_sse2.cpp" />
+    <ClCompile Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\mixer\mixer_sse3.cpp" />
+    <ClCompile Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\mixer\mixer_sse41.cpp" />
+    <ClCompile Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\backends\base.cpp" />
+    <ClInclude Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\backends\base.h" />
+    <ClCompile Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\backends\loopback.cpp" />
+    <ClInclude Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\backends\loopback.h" />
+    <ClCompile Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\backends\null.cpp">
+      <ObjectFileName>$(IntDir)/alc/backends/null.cpp.obj</ObjectFileName>
+    </ClCompile>
+    <ClInclude Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\backends\null.h" />
+    <ClCompile Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\backends\dsound.cpp" />
+    <ClInclude Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\backends\dsound.h" />
+    <ClCompile Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\backends\wasapi.cpp" />
+    <ClInclude Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\backends\wasapi.h" />
+    <ClCompile Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\backends\wave.cpp" />
+    <ClInclude Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\alc\backends\wave.h" />
+    <ClInclude Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft-build\hrtf_default.h" />
+    <ResourceCompile Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft\resources\openal32.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft-build\ZERO_CHECK.vcxproj">
+      <Project>{275483A5-93E3-35EE-AAD1-5B014A46332B}</Project>
+      <Name>ZERO_CHECK</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft-build\build_version.vcxproj">
+      <Project>{5B94DD17-5CEA-3008-8A9E-709D9333E49B}</Project>
+      <Name>build_version</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\Sahil\source\repos\ConsoleApplication9\openal-soft-build\common.vcxproj">
+      <Project>{DE1FF6AB-76AC-3524-AB76-97EBBB8F1EE6}</Project>
+      <Name>common</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

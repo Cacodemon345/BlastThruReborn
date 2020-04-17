@@ -1,0 +1,12 @@
+C:/Users/Sahil/source/repos/ConsoleApplication9/openal-soft-build/CMakeFiles/INSTALL.dir
+C:/Users/Sahil/source/repos/ConsoleApplication9/openal-soft-build/CMakeFiles/build_version.dir
+C:/Users/Sahil/source/repos/ConsoleApplication9/openal-soft-build/CMakeFiles/OpenAL.dir
+C:/Users/Sahil/source/repos/ConsoleApplication9/openal-soft-build/CMakeFiles/common.dir
+C:/Users/Sahil/source/repos/ConsoleApplication9/openal-soft-build/CMakeFiles/openal-info.dir
+C:/Users/Sahil/source/repos/ConsoleApplication9/openal-soft-build/CMakeFiles/ex-common.dir
+C:/Users/Sahil/source/repos/ConsoleApplication9/openal-soft-build/CMakeFiles/altonegen.dir
+C:/Users/Sahil/source/repos/ConsoleApplication9/openal-soft-build/CMakeFiles/alrecord.dir
+C:/Users/Sahil/source/repos/ConsoleApplication9/openal-soft-build/CMakeFiles/ALL_BUILD.dir
+C:/Users/Sahil/source/repos/ConsoleApplication9/openal-soft-build/CMakeFiles/ZERO_CHECK.dir
+C:/Users/Sahil/source/repos/ConsoleApplication9/openal-soft-build/utils/alsoft-config/CMakeFiles/INSTALL.dir
+C:/Users/Sahil/source/repos/ConsoleApplication9/openal-soft-build/utils/alsoft-config/CMakeFiles/ALL_BUILD.dir
