@@ -347,3 +347,4 @@ lev/
 LuaBridge/
 *.dll
 *.html
+sol.hpp
