@@ -3,8 +3,10 @@
 #include <direct.h>
 #include "stb_image.h"
 #include <SFML/Graphics.hpp>
+#if __has_include("windows.h")
 #include <windows.h>
 #include <mmsystem.h>
+#endif
 #include <sndfile.hh>
 #include <AL/al.h>
 #include <AL/alc.h>
@@ -16,23 +18,33 @@
 #include <numeric>
 #include <cstdlib>
 #include <random>
+#include <utility>
+#include <functional>
+#include <cmath>
+/*#include "LuaBridge/LuaBridge.h"
+#include "LuaBridge/Map.h"
+#include "LuaBridge/UnorderedMap.h"
+#include "LuaBridge/Vector.h"
+#include "LuaBridge/List.h"*/
+#include "SoundPlayback.h"
+#include <SFML/Audio.hpp>
 constexpr auto BTRWINDOWWIDTH = 640;
 constexpr auto BTRWINDOWHEIGHT = 480;
 constexpr auto pi = 3.14159265358979323846;
 class BTRPaddle;
-extern std::uniform_int_distribution<> dis;
+extern std::uniform_real_distribution<> dis;
 extern std::random_device rd;
 extern std::mt19937 gen;
 extern int wallWidth;
 extern int frameCnt;
-// This section composes the engine part. Should be usable for "Adventures with Chickens" game.
-extern void BTRPlaySound(const char* filename);
-extern BTRPaddle paddle;
 extern int score;
-
+extern int framesPassedlastPowerup;
+extern int lives;
+inline sf::Color colors[2] = { sf::Color(252,128,0),sf::Color(255,255,0) };
+// This section composes the engine part. Should be usable for "Adventures with Chickens" game.
 inline void preprocess8bitpal(stbi_uc* pixels, int width, int height)
 {
-	int64_t totalPixels = width * height;
+	int64_t totalPixels = (int64_t)width * height;
 	for (int i = 0; i < totalPixels; i++)
 	{
 		if (pixels[i * 4] == 0
@@ -43,18 +55,32 @@ inline void preprocess8bitpal(stbi_uc* pixels, int width, int height)
 		}
 	}
 }
+inline void preprocess8bitpalalpha(stbi_uc* pixels, int width, int height)
+{
+	int64_t totalPixels = width * height;
+	for (int i = 0; i < totalPixels; i++)
+	{
+		if (pixels[i * 4] == pixels[i * 4 + 1]
+			&& pixels[i * 4 + 1] == pixels[i * 4 + 2])
+		{
+			pixels[i * 4 + 3] = pixels[i * 4];
+		}
+	}
+}
 struct BTRsprite
 {
 	sf::Texture texture;
 	sf::Sprite sprite;
+	sf::IntRect intRect;
 	int width, height;
 	int realWidthPerTile, realHeightPerTile;
 	int realnumofSprites;
 	bool isVerticalFrame = false;
 	int animFramePos = 0;
 	int index = 0;
+	int x = 0, y = 0;
 	int realnumOfFrames;
-	BTRsprite(const char* filename, int numOfFrames, bool verticalFrame = false, int numofSprites = 2)
+	BTRsprite(const char* filename, int numOfFrames, bool verticalFrame = false, int numofSprites = 2, bool alphaMap = false)
 	{
 		sprite = sf::Sprite();
 		texture = sf::Texture();
@@ -69,7 +95,9 @@ struct BTRsprite
 		int heightPerTile = height / numofSprites;
 		texture.create(width, height);
 		preprocess8bitpal(retval, width, height);
+		if (alphaMap) preprocess8bitpalalpha(retval, width, height);
 		texture.update(retval);
+		free(retval);
 		sprite.setTexture(texture);
 		sprite.setPosition(sf::Vector2f(0, 0));
 		widthPerTile = width / numOfFrames;
@@ -79,11 +107,28 @@ struct BTRsprite
 		isVerticalFrame = verticalFrame;
 		realnumOfFrames = numOfFrames;
 		realnumofSprites = numofSprites;
+		texture.setRepeated(true);
 	}
 	inline void SetSpriteIndex(int index)
 	{
-		auto intRect = sf::IntRect(sf::Vector2i(realWidthPerTile * (animFramePos-1), realHeightPerTile * index), sf::Vector2i(realWidthPerTile, realHeightPerTile));
+		intRect = sf::IntRect(sf::Vector2i(realWidthPerTile * (animFramePos-1), realHeightPerTile * index), sf::Vector2i(realWidthPerTile, realHeightPerTile));
+		y = index;
 		return sprite.setTextureRect(intRect);
+	}
+	inline void SetTexRect(int x, int y)
+	{
+		intRect = sf::IntRect(sf::Vector2i(realWidthPerTile * x, realHeightPerTile * y), sf::Vector2i(realWidthPerTile, realHeightPerTile));
+		this->x = x;
+		this->y = y;
+		sprite.setTextureRect(intRect);
+	}
+	__cdecl operator sf::Sprite&()
+	{
+		return this->sprite;
+	}
+	__cdecl operator sf::Sprite*()
+	{
+		return &this->sprite;
 	}
 	void Animate()
 	{
@@ -98,7 +143,6 @@ struct BTRsprite
 		{
 			animFramePos = 0;
 		}
-		sf::IntRect intRect;
 		if (!isVerticalFrame)
 			intRect = sf::IntRect(sf::Vector2i(realWidthPerTile * animFramePos, 0), sf::Vector2i(realWidthPerTile, realHeightPerTile));
 		else
@@ -151,6 +195,23 @@ struct BTRFont
 			sprite.move(sf::Vector2f(texWH.x, 0));
 		}
 	}
+	sf::Vector2f GetSizeOfText(std::string chars)
+	{
+		sf::Vector2f totalSize;
+		for (int i = 0; i < chars.size(); i++)
+		{
+			if (font == BTR_FONTLARGE && !std::isdigit(chars[i], std::locale(""))) continue;
+			sf::Vector2i texPos;
+			texPos.x = charMaps[chars[i]].x;
+			texPos.y = charMaps[chars[i]].y;
+			sf::Vector2i texWH;
+			texWH.x = charMaps[chars[i]].width;
+			texWH.y = charMaps[chars[i]].height;
+			totalSize.x += texWH.x;
+		}
+		totalSize.y = this->genCharHeight;
+		return totalSize;
+	}
 	void RenderChars(std::string chars, float X, float Y, sf::RenderWindow* &window)
 	{
 		return RenderChars(chars, sf::Vector2f(X, Y), window);
@@ -158,8 +219,8 @@ struct BTRFont
 	BTRFont(const char* filename, FontType sFont = BTR_FONTSMALL)
 	{
 		font = sFont;
-		char* bitmapCharsSmall = " ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!?.,''|-():;0123456789\0\0";
-		char* bitmapCharsLarge = "0123456789";
+		char* bitmapCharsSmall = (char*)" ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!?.,''|-():;0123456789\0\0";
+		char* bitmapCharsLarge = (char*)"0123456789";
 		auto retval = stbi_load(filename, &width, &height, &n, 4);
 		if (!retval)
 		{
@@ -169,6 +230,7 @@ struct BTRFont
 		preprocess8bitpal(retval, width, height);
 		fontImage.create(width, height);
 		fontImage.update(retval);
+		free(retval);
 		std::string defFilename = filename;
 		defFilename.pop_back();
 		defFilename.pop_back();
@@ -214,26 +276,17 @@ struct BTRFont
 			}
 			if (font == BTR_FONTSMALL) spacebetweenChars = charMaps['\''].width;
 		}
+		if (file.is_open()) file.close();
 	}
 };
 // Gameplay related part.
 struct BTRball;
 struct BTRbrick;
+struct BTRpowerup;
+class BTRPaddle;
+class BTRPlayArea;
 
-class BTRPlayArea
-{
-	public:
-	std::vector<BTRball*> balls;
-	std::vector<BTRbrick> bricks;
-	std::vector<std::vector<BTRbrick>> newbricks;
-	std::vector<sf::IntRect> brickTexRects;
-	sf::Texture brickTexture;
-	std::string levelname;
-	int levnum;
-	bool levelEnded = false;
-	void Tick();
-	BTRPlayArea(std::string levfilename);
-};
+
 struct BTRObjectBase
 {
 	double x = 0, y = 0;
@@ -242,7 +295,7 @@ struct BTRObjectBase
 	double oldvelX = 0, oldvelY = 0;
 	bool isFireball; // used for balls and bricks.
 	int width = 0;
-	bool destroyed = false;
+	uint32_t destroyed = false;
 	int height = 0;
 	double alpha = 1.0;
 	double gravity = 0.25;
@@ -257,14 +310,188 @@ struct BTRSpark : BTRObjectBase
 	sf::Color color = sf::Color(255, 255, 255, 255);
 	sf::IntRect sparkRect = sf::IntRect(sf::Vector2i(0, 0), sf::Vector2i(3, 3));
 };
+struct BTRExplodingBricks
+{
+	sf::Vector2f pos;
+	sf::Sprite spr;
+	int frameOffset = 0;
+	int loop = 0;
+};
+extern std::vector<BTRExplodingBricks> explodingBricks;
 extern std::vector<BTRSpark> sparks;
+struct BTRpowerup;
+
+class BTRPaddle
+{
+	public:
+	double radiuses[5] = { 30,60,130,175,250 };
+	double paddleRadius = 60;
+	int curRadius = 1;
+	int missilesLeft = 0;
+	int tractorBeamPower = 240;
+	enum PaddleStateFlags
+	{
+		PADDLE_MAGNET = 1 << 0,
+		PADDLE_MISSILE = 1 << 1,
+		PADDLE_TRACTOR = 1 << 2,
+		PADDLE_BRICKFALL = 1 << 3
+	};
+	int stateFlags = 0;
+	std::shared_ptr<BTRsprite> sprite;
+	double lengthOfBall = 5;
+	BTRPaddle()
+	{
+		sprite = std::shared_ptr<BTRsprite>(new BTRsprite("./ball/rockpaddle.png", 1, true, 32));
+	}
+};
+struct BTRMissileObject;
+class BTRPlayArea
+{
+	public:
+	enum BTRPlayAreaStates
+	{
+		AREA_NOGODOWN = 1 << 0,
+		AREA_ENDOFGAME = 1 << 1,
+	};
+	std::vector<std::shared_ptr<BTRball>> balls;
+	std::vector<BTRbrick> bricks;
+	std::vector<sf::IntRect> brickTexRects;
+	std::vector<BTRpowerup> powerups;
+	std::vector<std::shared_ptr<BTRMissileObject>> missiles;
+	sf::Texture brickTexture;
+	std::string levelname;
+	BTRPaddle paddle;
+	int levnum;
+	int framePassedLowBricks = 0;
+	int rainBadPowerups = 0;
+	int rainGoodPowerups = 0;
+	int missileCooldown = 10;
+	int levStateFlags = 0;
+	// angle = 0;
+	bool levelEnded = false;
+	void Tick();
+	void LostBall();
+	void SpawnInitialBall();
+	BTRPlayArea(std::string levfilename);
+	void UpdateBrickGridPos();
+};
+struct BTRpowerup : BTRObjectBase
+{
+	int width = height = 32;
+	int powerupID = 0;
+	int aliveTick = 0;
+	bool destroyed = false;
+	BTRpowerup(sf::Vector2f pos, sf::Vector2f vel, int powerupID = 0)
+	{
+		this->x = pos.x;
+		this->y = pos.y;
+		this->velX = vel.x;
+		this->velY = vel.y;
+		this->powerupID = powerupID;
+	}
+	void Tick(BTRPlayArea& area) override;
+	static void PowerupHandle(BTRPlayArea& area, int powerupID = 0);
+};
 struct BTRbrick : BTRObjectBase
 {
 	int width = 30;
 	int height = 15;
+	int hitsNeeded = 26;
 	unsigned char brickID = 0;
+	double hitvelX = 0, hitvelY = 0;
+	bool explosionHit = false;
+	bool explosionExpanded = false;
+	bool goneThrough = false;
+	int curXPos = 0,curYPos = 0;
+	int hitTimes = 1;
+	bool BrickExistUnder(BTRPlayArea& area)
+	{
+		for (auto& curBrick : area.bricks)
+		{
+			if (curBrick.x == this->x)
+			{
+				if ((curBrick.curYPos - this->curYPos) == 1)
+				{
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	void ExplosiveBrickExpand(BTRPlayArea& area)
+	{
+		auto fireBrick = new BTRbrick();
+		fireBrick->x = this->x - this->width;
+		fireBrick->y = this->y;
+		fireBrick->curYPos = this->curYPos;
+		fireBrick->curXPos = this->curXPos - 1;
+		fireBrick->brickID = 64;
+		fireBrick->isFireball = 1;
+		fireBrick->explosionExpanded = true;
+		area.bricks.push_back(*fireBrick);
+		fireBrick->x = this->x;
+		fireBrick->y = this->y - this->height;
+		fireBrick->curYPos = this->curYPos - 1;
+		fireBrick->curXPos = this->curXPos;
+		area.bricks.push_back(*fireBrick);
+		fireBrick->y = this->y + this->height;
+		fireBrick->curYPos = this->curYPos + 1;
+		area.bricks.push_back(*fireBrick);
+		fireBrick->y = this->y;
+		fireBrick->curYPos = this->curYPos;
+		fireBrick->x = this->x + this->width;
+		fireBrick->curXPos = this->curXPos + 1;
+		area.bricks.push_back(*fireBrick);
+		delete fireBrick;
+	}
 	void Remove(BTRPlayArea& area)
 	{
+		if (framesPassedlastPowerup >= 40 * 5)
+		{
+			for (int iii = 0; iii < 30; iii++)
+			{
+				BTRSpark spark;
+				spark.velX = dis(gen);
+				spark.velY = dis(gen);
+				spark.x = this->x + this->width * 0.5;
+				spark.y = this->y + this->height * 0.5;
+				spark.color = sf::Color(255, 255, 255);
+				sparks.push_back(spark);
+			}
+			std::uniform_int_distribution<int> powerDist(0, 10);
+			std::uniform_int_distribution<int> badpowerDist(16, 22);
+			int pwrres = powerDist(rd);
+			if (hitvelX == 0) hitvelX = dis(rd);
+			/*if (hitvelY == 0) */hitvelY = -5;
+			auto liveres = rd() % 101;
+			if (liveres <= 2)
+			{
+				pwrres = 15;
+			}
+			else if (liveres >= 60)
+			{
+				pwrres = badpowerDist(rd);
+			}
+			auto powerup = BTRpowerup(sf::Vector2f(this->x, this->y), sf::Vector2f(hitvelX, hitvelY), pwrres);
+			BTRPlaySound("./ball/brickexplode.wav");
+			area.powerups.push_back(powerup);
+			framesPassedlastPowerup = 0;
+		}
+		if (this->brickID == 63)
+		{
+			for (int iii = 0; iii < 30; iii++)
+			{
+				BTRSpark spark;
+				spark.velX = dis(gen);
+				spark.velY = dis(gen);
+				spark.x = this->x + this->width * 0.5;
+				spark.y = this->y + this->height * 0.5;
+				spark.color = sf::Color(255, 255, 255);
+				sparks.push_back(spark);
+			}
+			BTRPlaySound("./ball/brickbreak.wav");
+		}
+		bool yelOrRed = 0;
 		if (this->isFireball)
 		{
 			for (int iii = 0; iii < 30; iii++)
@@ -274,8 +501,10 @@ struct BTRbrick : BTRObjectBase
 				spark.velY = dis(gen);
 				spark.x = this->x + this->width * 0.5;
 				spark.y = this->y + this->height * 0.5;
-				spark.color = sf::Color(252, 128, 0);
+				spark.color = colors[yelOrRed];
+				yelOrRed ^= 1;
 				sparks.push_back(spark);
+				this->explosionHit = true;
 			}
 			for (int i = 0; i < area.bricks.size(); i++)
 			{
@@ -283,100 +512,134 @@ struct BTRbrick : BTRObjectBase
 					&& abs(area.bricks[i].y - this->y) <= 15)
 				{
 					area.bricks[i].destroyed = true;
+					area.bricks[i].explosionHit = true;
 				}
 			}
 		}
 	}
-};
-struct BTRpowerup : BTRObjectBase
-{
-	int width = height = 32;
-	void Tick(BTRPlayArea& area) override
-	{
-
-	}
-};
-class BTRPaddle
-{
-	public:
-	double radiuses[5] = { 30,60,130,175,250 };
-	double paddleRadius = 30;
-	enum PaddleStateFlags
-	{
-		PADDLE_MAGNET = 1 << 0,
-		PADDLE_MISSILE = 1 << 1,
-		PADDLE_TRACTOR = 1 << 2
-	};
-	int stateFlags = 0;
-	BTRsprite* sprite;
 };
 struct BTRball : BTRObjectBase
 {
-	void Tick(BTRPlayArea& area) override
+	int width = height = 9;
+	bool split = false;
+	bool goThrough = false;
+	bool isFireball = false;
+	bool ballHeld = false;
+	bool invisibleSparkling = false;
+	int offsetFromPaddle = 0;
+	double angle = 0;
+//	luabridge::LuaRef* ballRef;
+	void Tick(BTRPlayArea& area) override;
+	BTRball()
 	{
-		this->x += this->velX;
-		this->y += this->velY;
-		if (this->x >= BTRWINDOWWIDTH - wallWidth / 2 - width
-			|| this->x <= 0 + wallWidth / 2)
-		{
-			BTRPlaySound("./ball/wall.wav");
-			this->velX = -this->velX;
-		}
-		if (this->y >= BTRWINDOWHEIGHT
-			|| this->y <= 0)
-		{
-			BTRPlaySound("./ball/wall.wav");
-			this->velY = -this->velY;
-		}
-		this->x = std::clamp(this->x, wallWidth / 2., BTRWINDOWWIDTH - wallWidth / 2. - width);
-		for (int i = 0; i < area.bricks.size(); i++)
-		{
-			if (this->x + this->width >= area.bricks[i].x
-				&& this->x <= area.bricks[i].x + area.bricks[i].width
-				&& this->y + this->height >= area.bricks[i].y
-				&& this->y <= area.bricks[i].y + area.bricks[i].height)
-			{
-				this->x -= this->velX;
-				this->y -= this->velY;
-				auto thishalfWidthX = this->x + this->width * 0.5;
-				auto thishalfWidthY = this->y + this->height * 0.5;
-				auto curbrickhalfWidthX = area.bricks[i].x + area.bricks[i].width * 0.5;
-				auto curbrickhalfWidthY = area.bricks[i].y + area.bricks[i].height * 0.5;
-				auto res = atan2(thishalfWidthY - curbrickhalfWidthY, thishalfWidthX - curbrickhalfWidthX) * 180 / pi;
-				//std::cout << "Res in degress: " << res << std::endl;
-				if (res >= -45 && res <= 45)
-				{
-					this->velX = -this->velX;
-				}
-				if (res >= 45 && res <= 135)
-				{
-					this->velY = -this->velY;
-				}
-				if (res >= 135 || res <= -135)
-				{
-					this->velX = -this->velX;
-				}
-				if (res <= -45 && res >= -135)
-				{
-					this->velY = -this->velY;
-				}
-				area.bricks[i].destroyed = true;
-			}
-		}
-		if (this->y + this->height >= paddle.sprite->sprite.getPosition().y
-			&& this->x + this->width >= paddle.sprite->sprite.getPosition().x
-			&& this->x <= paddle.sprite->sprite.getPosition().x + paddle.sprite->width)
-		{
-			BTRPlaySound("./ball/paddle.wav");
-			auto length = sqrt(this->velX * this->velX + this->velY * this->velY);
-			double angle;
-			if (this->x <= paddle.sprite->sprite.getPosition().x + paddle.sprite->width / 2) angle = (-90 - 30) * pi / 180;
-			else if (this->x > paddle.sprite->sprite.getPosition().x + paddle.sprite->width / 2) angle = (-90 + 30) * pi / 180;
-			this->velX = length * cos(angle);
-			this->velY = length * sin(angle);
-		}
+//		ballRef = new luabridge::LuaRef(L, this);
 	}
 };
 
+struct BTRExplosion : BTRExplodingBricks
+{
+	std::shared_ptr<BTRsprite> spr = std::shared_ptr<BTRsprite>(new BTRsprite("./ball/explosion.png",8,false,4));
+	int framesPassed = 0;
+	int spriteIndex = 0;
+	bool destroyed = false;
+	void Tick()
+	{
+		if (framesPassed > 6)
+		{
+			framesPassed = 0;
+			spriteIndex++;
+			if (spriteIndex > 3)
+			{
+				this->destroyed = true;
+			}
+		}
+		framesPassed++;
+	}
+};
+extern std::vector<BTRExplosion> explosions;
+inline void vectorLerp(sf::Vector2f &pos, sf::Vector2f &toPos, double t)
+{
+	pos.x = std::lerp(pos.x, toPos.x, 0.5f);
+	pos.y = std::lerp(pos.y, toPos.y, 0.5f);
+}
+struct BTRMovingText
+{
+	sf::Vector2f pos;
+	sf::Vector2f toPos;
+	std::string movingText;
+	void Tick()
+	{
+		vectorLerp(pos, toPos, 1 / 40.);
+	}
+};
+struct BTRChompTeeth : BTRObjectBase
+{
+	bool flip = false;
+	bool chompHard = false;
+	void Tick(BTRPlayArea &area) override
+	{
+		x += 4;
+		if (x + 32 > area.paddle.sprite->sprite.getPosition().x)
+		{
+			BTRPlaySound("./ball/chomp.wav");
+			if (chompHard)
+			{
+				area.paddle.paddleRadius = area.paddle.radiuses[0];
+				area.paddle.curRadius = 0;
+			}
+			else if (area.paddle.curRadius > 0) area.paddle.paddleRadius = area.paddle.radiuses[--area.paddle.curRadius];
+			this->destroyed = true;
+		}
+	}
+};
+struct BTRMissileObject : BTRObjectBase
+{
+	int height = 32;
+	void Tick(BTRPlayArea& area) override
+	{
+		velY -= gravity;
+		y += velY;
+		if (frameCnt % 5 == 0)
+		{
+			auto trailSpark = BTRSpark();
+			trailSpark.color = sf::Color::Yellow;
+			trailSpark.x = this->x;
+			trailSpark.y = this->y;
+			sparks.push_back(trailSpark);
+		}
+		if (this->y + this->height < 0)
+		{
+			this->destroyed = true;
+		}
+		for (auto& curBrick : area.bricks)
+		{
+			if (this->x >= curBrick.x && this->x <= curBrick.x + curBrick.width
+				&& this->y <= curBrick.y + curBrick.height && this->y + this->height / 2 >= curBrick.y)
+			{
+				this->destroyed = true;
+				curBrick.hitvelX = 0;
+				curBrick.hitvelY = this->velY;
+				curBrick.destroyed = true;
+				curBrick.isFireball = true;
+				curBrick.explosionHit = true;
+				auto expl = BTRExplosion();
+				expl.pos.x = this->x - expl.spr->realWidthPerTile * 0.5;
+				expl.pos.y = this->y - expl.spr->realHeightPerTile * 0.5;
+				explosions.push_back(expl);
+				gravity = 0;
+				BTRPlaySound("./ball/missile.wav");
+			}
+		}
+	}
+};
+extern BTRChompTeeth* chompteeth;
+struct BTRButton
+{
+	sf::Vector2f pos;
+	std::string str;
+	bool wasHeld = false;
+	std::function<void()> clickedFunc = [&,this]()
+	{
 
-
+	};
+};

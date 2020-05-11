@@ -35,5 +35,8 @@
     <ClInclude Include="SoundPlayback.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="BTRPlayArea.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

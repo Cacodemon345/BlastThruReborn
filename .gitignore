@@ -338,3 +338,12 @@ ASALocalRun/
 
 # BeatPulse healthcheck temp database
 healthchecksdb
+
+openal-soft/
+openal-soft-build/
+sound/
+ball/
+lev/
+LuaBridge/
+*.dll
+*.html

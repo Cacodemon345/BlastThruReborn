@@ -21,9 +21,10 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <ProjectGuid>{9ACD7F06-0DEE-4574-A5D2-5C2570258B85}</ProjectGuid>
-    <Keyword>Win32Proj</Keyword>
+    <Keyword>NetCoreCProj</Keyword>
     <RootNamespace>ConsoleApplication9</RootNamespace>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>BlastThruReborn</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -48,9 +49,10 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
+    <BasePlatformToolset>ClangCL</BasePlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -153,10 +155,15 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>SFML_STATIC;_CRT_SECURE_NO_WARNINGS;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>false</ConformanceMode>
-      <AdditionalIncludeDirectories>.\openal-soft\include\;C:\Users\Sahil\Downloads\SFML-2.5.1-windows-vc15-64-bit\SFML-2.5.1\include;C:\Program Files\Mega-Nerd\libsndfile\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalIncludeDirectories>.\openal-soft\include\;C:\Users\Sahil\Downloads\SFML-2.5.1-windows-vc15-64-bit\SFML-2.5.1\include;C:\Program Files\Mega-Nerd\libsndfile\include;C:\Users\Sahil\Downloads\LuaJIT-2.0.5\src;C:\Users\Sahil\source\repos\ConsoleApplication9\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <AssemblerOutput>All</AssemblerOutput>
       <UseUnicodeForAssemblerListing>false</UseUnicodeForAssemblerListing>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <AdditionalOptions>/D "_SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING" /bigobj %(AdditionalOptions)</AdditionalOptions>
+      <CompileAsManaged>false</CompileAsManaged>
+      <ExceptionHandling>Async</ExceptionHandling>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -165,10 +172,10 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <FixedBaseAddress>true</FixedBaseAddress>
-      <AdditionalDependencies>sfml-graphics-s.lib;sfml-window-s.lib;sfml-system-s.lib;sfml-audio-s.lib;opengl32.lib;winmm.lib;openal32.lib;flac.lib;vorbis.lib;vorbisenc.lib;vorbisfile.lib;ogg.lib;libsndfile-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>sfml-graphics-s.lib;sfml-window-s.lib;sfml-system-s.lib;sfml-audio-s.lib;opengl32.lib;winmm.lib;openal32.lib;flac.lib;vorbis.lib;vorbisenc.lib;vorbisfile.lib;ogg.lib;libsndfile-1.lib;lua51.lib;luajit.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ForceFileOutput>
       </ForceFileOutput>
-      <AdditionalLibraryDirectories>C:\Users\Sahil\Downloads\SFML-2.5.1-windows-vc15-64-bit\SFML-2.5.1\lib;C:\Program Files\Mega-Nerd\libsndfile\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Users\Sahil\Downloads\SFML-2.5.1-windows-vc15-64-bit\SFML-2.5.1\lib;C:\Program Files\Mega-Nerd\libsndfile\lib;C:\Users\Sahil\Downloads\LuaJIT-2.0.5\src</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -179,6 +186,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BTRCommon.h" />
+    <ClInclude Include="BTRPlayArea.h" />
     <ClInclude Include="SoundPlayback.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
