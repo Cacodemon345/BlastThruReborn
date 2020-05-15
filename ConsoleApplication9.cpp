@@ -1,6 +1,8 @@
 // ConsoleApplication9.cpp : This file contains the 'main' function. Program execution begins and ends there.
 //
-
+#if !defined(SFML_STATIC)
+#define STB_IMAGE_IMPLEMENTATION
+#endif
 #include "BTRCommon.h"
 #include "SoundPlayback.h"
 #include <random>
@@ -176,7 +178,9 @@ int main()
     }
 
     unsigned int devID = 0;
+#if defined(WIN32) || defined(WIN64)
     midiStreamOpen(&midiDev, &devID, 1, 0, 0, 0);
+#endif
     loadMusic(musics[mdsrand(gen)]);
     int x, y, n;
     auto retval = stbi_load("./ball/back.png", &x, &y, &n, 4);
@@ -384,7 +388,9 @@ int main()
     {
         paused ^= 1;
         BTRStopAllSounds();
+#if defined(WIN32) || defined(WIN64)
         midiStreamPause(midiDev);
+#endif
         if (paused)
         {
             BTRPlaySound("./sound/menu.wav", 1, 0, 1);
@@ -397,7 +403,9 @@ int main()
         else
         {
             BTRStopAllSounds();
+#if defined(WIN32) || defined(WIN64)
             midiStreamRestart(midiDev);
+#endif
             menu = false;
         }
     };
@@ -898,9 +906,11 @@ int main()
         framesPassedlastPowerup++;
     }
     eot = true;
+#if defined(WIN32) || defined(WIN64)
     midiStreamStop(midiDev);
     //if (thread->joinable()) thread->join();
     midiOutReset((HMIDIOUT)midiDev);
+#endif
     delete window;
     delete magnetSprite;
     delete winBoxImage;

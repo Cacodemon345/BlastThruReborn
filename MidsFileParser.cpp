@@ -171,6 +171,7 @@ void StopMidiPlayback()
 	midiStreamClose(midiDev);
 }
 #else
+bool eot = false;
 void ParseMidsFile(std::string filename)
 {
 

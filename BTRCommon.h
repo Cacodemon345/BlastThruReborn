@@ -1,6 +1,6 @@
 #pragma once
 #include <iostream>
-#include <direct.h>
+//#include <direct.h>
 #include "stb_image.h"
 #include <SFML/Graphics.hpp>
 #if __has_include("windows.h")
@@ -27,6 +27,7 @@
 #include "LuaBridge/Vector.h"
 #include "LuaBridge/List.h"*/
 #include "SoundPlayback.h"
+#include <cstring>
 #include <SFML/Audio.hpp>
 constexpr auto BTRWINDOWWIDTH = 640;
 constexpr auto BTRWINDOWHEIGHT = 480;
@@ -90,7 +91,7 @@ struct BTRsprite
 		if (!retval)
 		{
 			char* print = (char*)"Failed to load sprites from filename: ";
-			throw std::exception(strcat(print, filename));
+			throw std::runtime_error(strcat(print, filename));
 		}
 		int heightPerTile = height / numofSprites;
 		texture.create(width, height);
@@ -122,11 +123,11 @@ struct BTRsprite
 		this->y = y;
 		sprite.setTextureRect(intRect);
 	}
-	__cdecl operator sf::Sprite&()
+	operator sf::Sprite&()
 	{
 		return this->sprite;
 	}
-	__cdecl operator sf::Sprite*()
+	operator sf::Sprite*()
 	{
 		return &this->sprite;
 	}
@@ -225,7 +226,7 @@ struct BTRFont
 		if (!retval)
 		{
 			char* print = (char*)"Failed to load bitmapped font from filename: ";
-			throw std::exception(strcat(print, filename));
+			throw std::runtime_error(strcat(print, filename));
 		}
 		preprocess8bitpal(retval, width, height);
 		fontImage.create(width, height);
