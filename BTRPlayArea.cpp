@@ -72,7 +72,7 @@ BTRPlayArea::BTRPlayArea(std::string levfilename)
 	}
 	else
 	{
-		throw std::exception("Failed to load level");
+		throw std::runtime_error("Failed to load level");
 	}
 }
 void BTRPlayArea::UpdateBrickGridPos()
