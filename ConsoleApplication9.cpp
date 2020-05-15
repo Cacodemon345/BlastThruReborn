@@ -72,7 +72,17 @@ auto ActivatePowerup(int powerupID)
 {
     return BTRpowerup::PowerupHandle(*playArea, powerupID);
 }
-
+const std::string gammaShaderCode =
+"#version 330 core"\
+"\n"\
+""\
+"uniform sampler2D texture;" \
+"uniform float gamma; " \
+"void main()"\
+"{" \
+" vec4 pixel = texture2D(texture, gl_TexCoord[0].xy);" \
+" gl_FragColor = pow(pixel, vec4(vec3(1.0f / gamma),1.0) );" \
+"}";
 int main()
 {
     std::map<std::string, int> cheatKeys =
@@ -90,7 +100,12 @@ int main()
         {"sweet",8},
         {"funyons",30}
     };
-
+    sf::Shader gammaShader;
+    auto loaded = gammaShader.loadFromMemory(gammaShaderCode, sf::Shader::Fragment);
+    if (!loaded)
+    {
+        std::cout << "Loading gamma shader failed" << std::endl;
+    }
     /*    L = lua_open();
         luaL_openlibs(L);
         getGlobalNamespace(L)
@@ -277,12 +292,27 @@ int main()
     }
     auto fadeToColor = [&](sf::Color fadeColor)
     {
-        window->setFramerateLimit(60);
+        uint32_t framerate = 60;
+#ifdef WIN32
+        framerate = GetDeviceCaps(GetDC(window->getSystemHandle()), VREFRESH);
+#endif
+        window->setFramerateLimit(framerate);
         double alpha = 1.0;
         int localFrameCnt = 0;
 
-        while (localFrameCnt < 61)
+        while (localFrameCnt < framerate)
         {
+            if (fadeColor == sf::Color(0, 0, 0, 255))
+            {
+                gammaShader.setUniform("texture", windowTexture);
+                gammaShader.setUniform("gamma", (float)alpha);
+                window->clear();
+                window->draw(windowSprite,&gammaShader);
+                window->display();
+                alpha -= 1.f / (float)framerate;
+                localFrameCnt++;
+                continue;
+            }
             windowSprite.setColor(sf::Color(255, 255, 255, 255 * alpha));
             window->clear(fadeColor);
             window->draw(windowSprite);
@@ -670,7 +700,9 @@ int main()
             for (int posX = 0; posX < window->getSize().x; posX += x)
             {
                 sprite.setPosition(sf::Vector2f(posX, posY));
-                window->draw(sprite);
+                gammaShader.setUniform("gamma", 1.f);
+                gammaShader.setUniform("texture", tex);
+                window->draw(sprite,&gammaShader);
             }
         wallSprite.setPosition(window->getSize().x - wallWidth / 2, 0);
         window->draw(wallSprite);
