@@ -63,7 +63,28 @@ std::string& GetCurPlayingFilename()
 {
 	return curFilename;
 }
-void SelectMidiDevice() { return 0;}
+void SelectMidiDevice() {
+	for (int i = 0; i < midiOutGetNumDevs(); i++)
+	{
+		MIDIOUTCAPSA caps;
+		midiOutGetDevCapsA(i, &caps, sizeof(caps));
+		std::cout << i << ". " << caps.szPname << std::endl;
+	}
+	std::cout << "Select MIDI device: ";
+	unsigned int selection = 0;
+	while (1)
+	{
+		if (!(std::cin >> selection))
+		{
+			std::cout << "Bad string" << std::endl;
+		}
+		else
+		{
+			break;
+		}
+	}
+	midiStreamOpen(&midiDev, &selection, 1, 0, 0, 0);
+}
 void ParseMidsFile(std::string filename)
 {
 	unsigned int id = 0;

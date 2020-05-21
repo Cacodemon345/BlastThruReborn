@@ -190,7 +190,7 @@ int main()
 
     unsigned int devID = 0;
 #if defined(WIN32)
-    midiStreamOpen(&midiDev, &devID, 1, 0, 0, 0);
+    //midiStreamOpen(&midiDev, &devID, 1, 0, 0, 0);
 #endif
     int x, y, n;
     auto retval = stbi_load("./ball/back.png", &x, &y, &n, 4);
