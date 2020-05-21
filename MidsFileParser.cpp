@@ -1,5 +1,5 @@
 #include "BTRCommon.h"
-#if defined(WIN32) || defined(WIN64)
+#if defined(WIN32)
 #pragma pack(push,1)
 HMIDISTRM midiDev;
 std::string curFilename;
@@ -59,7 +59,7 @@ void CALLBACK MidiCallBack(HMIDIOUT hmo, UINT wMsg, DWORD_PTR dwInstance, DWORD_
 	}
 }
 std::vector<MIDIHDR> midiHeaders;
-std::string GetCurPlayingFilename()
+std::string& GetCurPlayingFilename()
 {
 	return curFilename;
 }

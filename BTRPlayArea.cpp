@@ -8,14 +8,14 @@ void BTRPlayArea::SpawnInitialBall()
 {
 	auto newBall = new BTRball;
 	newBall->x = paddle.sprite->sprite.getPosition().x + paddle.paddleRadius / 2;
-	newBall->y = BTRWINDOWHEIGHT - 30 - paddle.sprite->realHeightPerTile;
+	newBall->y = BTRWINDOWHEIGHT - 30ll -paddle.sprite->realHeightPerTile;
 	newBall->velX = -5;
 	newBall->velY = 5;
 	newBall->ballHeld = true;
 	newBall->offsetFromPaddle = paddle.paddleRadius / 2;
 	this->balls.push_back(std::shared_ptr<BTRball>(newBall));
 }
-BTRPlayArea::BTRPlayArea(std::string levfilename)
+BTRPlayArea::BTRPlayArea(std::string levfilename, sf::RenderWindow* window)
 {
 	auto file = std::fstream(levfilename, std::ios::in | std::ios::binary);
 	if (file.is_open())
@@ -35,8 +35,8 @@ BTRPlayArea::BTRPlayArea(std::string levfilename)
 				if (brickBytes[i] != 0 && brickBytes[i] != 255)
 				{
 					auto newBrick = BTRbrick();
-					newBrick.x = newBrick.width * i + wallWidth / 2;
-					newBrick.y = yPos * newBrick.height;
+					newBrick.x = newBrick.width * (double)i + wallWidth / 2.;
+					newBrick.y = (double)yPos * newBrick.height;
 					newBrick.curYPos = yPos;
 					newBrick.curXPos = i;
 					newBrick.brickID = brickBytes[i];
@@ -68,6 +68,7 @@ BTRPlayArea::BTRPlayArea(std::string levfilename)
 					brickTexRects.push_back(rect);
 				}
 		}
+		if (window != nullptr) paddle.sprite->sprite.setPosition((sf::Vector2f)sf::Mouse::getPosition(*window));
 		SpawnInitialBall();
 	}
 	else
@@ -293,6 +294,7 @@ void DownBricks(BTRPlayArea& area)
 		}
 	}
 }
+
 void BTRball::Tick(BTRPlayArea &area)
 {
 	if (!ballHeld)
@@ -302,10 +304,10 @@ void BTRball::Tick(BTRPlayArea &area)
 	}
 	else
 	{
-		this->x = area.paddle.sprite->sprite.getPosition().x + this->offsetFromPaddle;
-		this->y = BTRWINDOWHEIGHT - 30 - area.paddle.sprite->realHeightPerTile;
+		this->x = (double)area.paddle.sprite->sprite.getPosition().x + this->offsetFromPaddle;
+		this->y = (double)BTRWINDOWHEIGHT - 30 - area.paddle.sprite->realHeightPerTile;
 	}
-	if (this->x >= BTRWINDOWWIDTH - wallWidth / 2 - width
+	if (this->x >= (double)BTRWINDOWWIDTH - wallWidth / 2 - width
 		|| this->x <= 0 + wallWidth / 2)
 	{
 		BTRPlaySound("./ball/wall.wav");
@@ -370,36 +372,78 @@ void BTRball::Tick(BTRPlayArea &area)
 				auto res = atan2(thishalfWidthY - curbrickhalfWidthY, thishalfWidthX - curbrickhalfWidthX) * 180 / pi;
 				//std::cout << "Res in degress: " << res << std::endl;
 				int cornerHit = 0;
-				if (res >= -45 && res <= 45)
+				bool fallbackToAngle = 1;
+				int cornerHits = HitTest<BTRObjectBase>(*this, area.bricks[i]);
+				if (cornerHits && !fallbackToAngle)
+				switch (cornerHits)
 				{
+				case 0b0001:
+				case 0b0010:
+				case 0b0100:
+				case 0b1000:
 					this->velX = -this->velX;
-					cornerHit++;
-				}
-				if (res >= 45 && res <= 135)
-				{
 					this->velY = -this->velY;
-					cornerHit++;
-				}
-				if (res >= 135 || res <= -135)
-				{
+					break;
+				case 0b0011:
+				case 0b1100:
+					this->velY = -this->velY;
+					break;
+				case 0b0101:
+				case 0b1010:
 					this->velX = -this->velX;
-					cornerHit++;
+					break;
+				case 0b0111:
+				case 0b1110:
+				case 0b1011:
+				case 0b1101:
+					std::cout << "Warning: more than 2 corners checked" << std::endl;
+					break;
+				case 0b1111:
+					std::cout << "Warning: all 4 corners checked" << std::endl;
+					break;
+				default:
+					//std::cout << "Warning: Falling back to angle detection. Value: " << std::hex << cornerHits << std::dec << std::endl;
+					fallbackToAngle = true;
+					break;
 				}
-				if (res <= -45 && res >= -135)
+				if (fallbackToAngle)
 				{
-					this->velY = -this->velY;
-					cornerHit++;
-				}
-				if (cornerHit >= 2)
-				{
-					auto greater = std::max(velY, velX);
-					if (greater == velX)
-					{
-						this->velY = -this->velY;
-					}
-					if (greater == velY)
+					if (res >= -45 && res <= 45)
 					{
 						this->velX = -this->velX;
+						cornerHit++;
+					}
+					if (res >= 45 && res <= 135)
+					{
+						this->velY = -this->velY;
+						cornerHit++;
+					}
+					if (res >= 135 || res <= -135)
+					{
+						this->velX = -this->velX;
+						cornerHit++;
+					}
+					if (res <= -45 && res >= -135)
+					{
+						this->velY = -this->velY;
+						cornerHit++;
+					}
+					if (cornerHit >= 2)
+					{
+						auto greater = std::max(velY, velX);
+						if (greater == velX)
+						{
+							this->velY = -this->velY;
+						}
+						if (greater == velY)
+						{
+							this->velX = -this->velX;
+						}
+						if (area.bricks[i].brickID == 61)
+						{
+							this->x += velX;
+							this->y += velY;
+						}
 					}
 				}
 			}
@@ -434,7 +478,7 @@ void BTRball::Tick(BTRPlayArea &area)
 							 (this->x + this->width * 0.5 - this->velX) - (area.paddle.sprite->sprite.getPosition().x + area.paddle.paddleRadius * 0.5)) * 180 / pi;
 		if (this->x <= area.paddle.sprite->sprite.getPosition().x + area.paddle.paddleRadius / 2)
 		{	
-			if (this->x <= area.paddle.sprite->sprite.getPosition().x + area.paddle.paddleRadius / 2 - (area.paddle.paddleRadius * 0.35))
+			if (this->x <= (double)area.paddle.sprite->sprite.getPosition().x + 8.)
 			{
 				angle = (-90 - 60) * pi / 180;
 				lengthFactor = 0.75;
@@ -445,7 +489,7 @@ void BTRball::Tick(BTRPlayArea &area)
 		}
 		else if (this->x > area.paddle.sprite->sprite.getPosition().x + area.paddle.paddleRadius / 2)
 		{
-			if (this->x > area.paddle.sprite->sprite.getPosition().x + area.paddle.paddleRadius / 2 + (area.paddle.paddleRadius * 0.35))
+			if (this->x > area.paddle.sprite->sprite.getPosition().x + area.paddle.paddleRadius - 8)
 			{
 				angle = (-90 + 60) * pi / 180;
 				lengthFactor = 0.75;
@@ -503,16 +547,10 @@ void BTRpowerup::PowerupHandle(BTRPlayArea& area, int powerupID)
 	{
 		for (int i = 0; i < area.balls.size(); i++) if (!area.balls[i]->split)
 		{
-			auto newBall = new BTRball;
+			auto newBall = new BTRball(*area.balls[i]);
 			newBall->split = true;
-			newBall->x = area.balls[i]->x;
-			newBall->y = area.balls[i]->y;
 			newBall->velX = -area.balls[i]->velX;
-			newBall->velY = area.balls[i]->velY;
-			newBall->goThrough = area.balls[i]->goThrough;
-			newBall->isFireball = area.balls[i]->isFireball;
-			newBall->invisibleSparkling = area.balls[i]->invisibleSparkling;
-			newBall->ballHeld = area.balls[i]->ballHeld;
+			newBall->angle = std::uniform_int(0, 360)(gen);
 			area.balls.push_back(std::shared_ptr<BTRball>(newBall));
 		}
 		for (auto& curBall : area.balls)
@@ -542,7 +580,7 @@ void BTRpowerup::PowerupHandle(BTRPlayArea& area, int powerupID)
 			}
 			std::sort(area.bricks.begin(), area.bricks.end(), [](BTRbrick& curBrick, BTRbrick& curBrick2)
 					  {
-						  return std::less<int64_t>()(20 * curBrick.curYPos + curBrick.curXPos, 20 * curBrick2.curYPos + curBrick2.curXPos);
+						  return std::less<int64_t>()(20ll * curBrick.curYPos + curBrick.curXPos, 20ll * curBrick2.curYPos + curBrick2.curXPos);
 					  });
 			for (int i = 0; i < area.bricks.size(); i++)
 			{
@@ -613,16 +651,11 @@ void BTRpowerup::PowerupHandle(BTRPlayArea& area, int powerupID)
 		PowerupHandle(area, 1);
 		for (int i = 0; i < area.balls.size(); i++) if (!area.balls[i]->split)
 		{
-			auto newBall = new BTRball;
+			auto newBall = new BTRball(*area.balls[i]);
 			newBall->split = true;
-			newBall->x = area.balls[i]->x;
-			newBall->y = area.balls[i]->y;
 			newBall->velX = -area.balls[i]->velX;
 			newBall->velY = -area.balls[i]->velY;
-			newBall->goThrough = area.balls[i]->goThrough;
-			newBall->isFireball = area.balls[i]->isFireball;
-			newBall->invisibleSparkling = area.balls[i]->invisibleSparkling;
-			newBall->ballHeld = area.balls[i]->ballHeld;
+			newBall->angle = std::uniform_int(0, 360)(gen);
 			area.balls.push_back(std::shared_ptr<BTRball>(newBall));
 		}
 		for (auto& curBall : area.balls)
@@ -696,7 +729,7 @@ void BTRpowerup::Tick(BTRPlayArea &area)
 	this->x += this->velX;
 	this->y += this->velY;
 	this->velY += this->gravity;
-	if (this->x >= BTRWINDOWWIDTH - wallWidth / 2 - width
+	if (this->x >= (double)BTRWINDOWWIDTH - wallWidth / 2. - width
 		|| this->x <= 0 + wallWidth / 2)
 	{
 		BTRPlaySound("./ball/powerupbounce.wav");

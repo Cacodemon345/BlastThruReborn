@@ -29,6 +29,7 @@
 #include "SoundPlayback.h"
 #include <cstring>
 #include <SFML/Audio.hpp>
+#include <SFML/OpenGL.hpp>
 constexpr auto BTRWINDOWWIDTH = 640;
 constexpr auto BTRWINDOWHEIGHT = 480;
 constexpr auto pi = 3.14159265358979323846;
@@ -79,7 +80,7 @@ struct BTRsprite
 	bool isVerticalFrame = false;
 	int animFramePos = 0;
 	int index = 0;
-	int x = 0, y = 0;
+	int x = 0, y = 0; // positions in realnumOfFrames x realnumofSprite grids, starting at 0.
 	int realnumOfFrames;
 	BTRsprite(const char* filename, int numOfFrames, bool verticalFrame = false, int numofSprites = 2, bool alphaMap = false)
 	{
@@ -161,6 +162,7 @@ struct BTRCharBitmap
 	unsigned char character;
 	int x, y, width, height;
 };
+
 struct BTRFont
 {
 	sf::Texture fontImage;
@@ -287,6 +289,29 @@ struct BTRpowerup;
 class BTRPaddle;
 class BTRPlayArea;
 
+// Does not work currently.
+template <typename T>
+inline int HitTest(T& obj, T& obj2)
+{
+	// Build up 4 points.
+	sf::Vector2f firstCorner = sf::Vector2f(obj.x, obj.y);
+	sf::Vector2f secondCorner = sf::Vector2f(obj.x + obj.width, obj.y);
+	sf::Vector2f thirdCorner = sf::Vector2f(obj.x, obj.y + obj.height);
+	sf::Vector2f fourthCorner = sf::Vector2f(obj.x + obj.width, obj.y + obj.height);
+	int result = 0;
+	std::vector<sf::Vector2f> cornerArrays = { firstCorner,secondCorner,thirdCorner,fourthCorner };
+	for (int i = 0; i < cornerArrays.size(); i++)
+	{
+		if (cornerArrays[i].x >= obj2.x && cornerArrays[i].y >= obj2.y
+			&& cornerArrays[i].x <= obj2.x + obj2.width
+			&& cornerArrays[i].y <= obj2.y + obj2.height)
+		{
+			std::cout << "Corner hit" << std::endl;
+			result |= 1 << i;
+		}
+	}
+	return result;
+}
 
 struct BTRObjectBase
 {
@@ -327,6 +352,7 @@ class BTRPaddle
 	public:
 	double radiuses[5] = { 30,60,130,175,250 };
 	double paddleRadius = 60;
+	double drawPaddleRadius = 0;
 	int curRadius = 1;
 	int missilesLeft = 0;
 	int tractorBeamPower = 240;
@@ -373,7 +399,7 @@ class BTRPlayArea
 	void Tick();
 	void LostBall();
 	void SpawnInitialBall();
-	BTRPlayArea(std::string levfilename);
+	BTRPlayArea(std::string levfilename, sf::RenderWindow* window = nullptr);
 	void UpdateBrickGridPos();
 };
 struct BTRpowerup : BTRObjectBase
@@ -461,17 +487,17 @@ struct BTRbrick : BTRObjectBase
 			}
 			std::uniform_int_distribution<int> powerDist(0, 10);
 			std::uniform_int_distribution<int> badpowerDist(16, 22);
-			int pwrres = powerDist(rd);
-			if (hitvelX == 0) hitvelX = dis(rd);
+			int pwrres = powerDist(gen);
+			if (hitvelX == 0) hitvelX = dis(gen);
 			/*if (hitvelY == 0) */hitvelY = -5;
-			auto liveres = rd() % 101;
+			auto liveres = gen() % 101;
 			if (liveres <= 2)
 			{
 				pwrres = 15;
 			}
 			else if (liveres >= 60)
 			{
-				pwrres = badpowerDist(rd);
+				pwrres = badpowerDist(gen);
 			}
 			auto powerup = BTRpowerup(sf::Vector2f(this->x, this->y), sf::Vector2f(hitvelX, hitvelY), pwrres);
 			BTRPlaySound("./ball/brickexplode.wav");
@@ -585,10 +611,10 @@ struct BTRChompTeeth : BTRObjectBase
 			BTRPlaySound("./ball/chomp.wav");
 			if (chompHard)
 			{
-				area.paddle.paddleRadius = area.paddle.radiuses[0];
+				area.paddle.paddleRadius = area.paddle.drawPaddleRadius = area.paddle.radiuses[0];
 				area.paddle.curRadius = 0;
 			}
-			else if (area.paddle.curRadius > 0) area.paddle.paddleRadius = area.paddle.radiuses[--area.paddle.curRadius];
+			else if (area.paddle.curRadius > 0) area.paddle.paddleRadius = area.paddle.drawPaddleRadius = area.paddle.radiuses[--area.paddle.curRadius];
 			this->destroyed = true;
 		}
 	}
@@ -604,7 +630,7 @@ struct BTRMissileObject : BTRObjectBase
 		{
 			auto trailSpark = BTRSpark();
 			trailSpark.color = sf::Color::Yellow;
-			trailSpark.x = this->x;
+			trailSpark.x = this->x + 8;
 			trailSpark.y = this->y;
 			sparks.push_back(trailSpark);
 		}
