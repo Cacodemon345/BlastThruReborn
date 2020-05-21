@@ -78,6 +78,7 @@ auto ActivatePowerup(int powerupID)
     return BTRpowerup::PowerupHandle(*playArea, powerupID);
 }
 const std::string gammaShaderCode =
+<<<<<<< HEAD
 "#version 120"\
 "\n"\
 ""\
@@ -381,7 +382,38 @@ int main()
         highScoreTexture.update(highScoreImage);
         free(highScoreImage);
     }
+    auto fadeToColor = [&](sf::Color fadeColor)
+    {
+        uint32_t framerate = 60;
+#ifdef WIN32
+        framerate = GetDeviceCaps(GetDC(window->getSystemHandle()), VREFRESH);
+#endif
+        window->setFramerateLimit(framerate);
+        double alpha = 1.0;
+        int localFrameCnt = 0;
 
+        while (localFrameCnt < framerate)
+        {
+            if (fadeColor == sf::Color(0, 0, 0, 255))
+            {
+                gammaShader.setUniform("texture", windowTexture);
+                gammaShader.setUniform("gamma", (float)alpha);
+                window->clear();
+                window->draw(windowSprite,&gammaShader);
+                window->display();
+                alpha -= 1.f / (float)framerate;
+                localFrameCnt++;
+                continue;
+            }
+            windowSprite.setColor(sf::Color(255, 255, 255, 255 * alpha));
+            window->clear(fadeColor);
+            window->draw(windowSprite);
+            window->display();
+            alpha -= 1 / 60.;
+            localFrameCnt++;
+        }
+        window->setFramerateLimit(40);
+    };
     auto winBoxImage = new BTRsprite("./ball/winbox.png", 1, 0, 1);
     auto titleImage = new BTRsprite("./ball/bibleball.png", 1, false, 1);
     auto wincornerImage = new BTRsprite("./ball/wincorner.png", 14, 0, 1);
@@ -817,7 +849,6 @@ int main()
         }
         sf::Sprite sprite;
         sprite.setTexture(tex, true);
-
         DrawBackground();
         ball->Animate();
         playArea->Tick();
