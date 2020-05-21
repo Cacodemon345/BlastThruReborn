@@ -43,6 +43,9 @@ extern int score;
 extern int framesPassedlastPowerup;
 extern int lives;
 std::string& GetCurPlayingFilename();
+void PauseMidiPlayback();
+void ContinueMidiPlayback();
+void SelectMidiDevice();
 inline sf::Color colors[2] = { sf::Color(252,128,0),sf::Color(255,255,0) };
 // This section composes the engine part. Should be usable for "Adventures with Chickens" game.
 inline void preprocess8bitpal(stbi_uc* pixels, int width, int height)

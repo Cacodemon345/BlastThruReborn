@@ -78,7 +78,7 @@ auto ActivatePowerup(int powerupID)
     return BTRpowerup::PowerupHandle(*playArea, powerupID);
 }
 const std::string gammaShaderCode =
-<<<<<<< HEAD
+
 "#version 120"\
 "\n"\
 ""\
@@ -92,6 +92,7 @@ const std::string gammaShaderCode =
 
 int main()
 {
+    SelectMidiDevice();
     InitOpenAL();
     std::map<std::string, int> cheatKeys =
     {
@@ -308,9 +309,7 @@ int main()
 
     menu = true;
     paused = true;
-#ifdef WIN32
-    midiStreamPause(midiDev);
-#endif // WIN32
+    PauseMidiPlayback();
     BTRPlaySound("./sound/menu.wav", 1, 0, 1);
     auto DrawBackground = [&]()
     {
@@ -382,7 +381,7 @@ int main()
         highScoreTexture.update(highScoreImage);
         free(highScoreImage);
     }
-    auto fadeToColor = [&](sf::Color fadeColor)
+    /*auto fadeToColor = [&](sf::Color fadeColor)
     {
         uint32_t framerate = 60;
 #ifdef WIN32
@@ -413,7 +412,7 @@ int main()
             localFrameCnt++;
         }
         window->setFramerateLimit(40);
-    };
+    };*/
     auto winBoxImage = new BTRsprite("./ball/winbox.png", 1, 0, 1);
     auto titleImage = new BTRsprite("./ball/bibleball.png", 1, false, 1);
     auto wincornerImage = new BTRsprite("./ball/wincorner.png", 14, 0, 1);
@@ -476,9 +475,7 @@ int main()
     {
         paused ^= 1;
         BTRStopAllSounds();
-#if defined(WIN32)
-        midiStreamPause(midiDev);
-#endif
+        PauseMidiPlayback();
         if (paused)
         {
             BTRPlaySound("./sound/menu.wav", 1, 0, 1);
@@ -491,9 +488,7 @@ int main()
         else
         {
             BTRStopAllSounds();
-#if defined(WIN32)
-            if (musRestart) midiStreamRestart(midiDev);
-#endif
+            if (musRestart) ContinueMidiPlayback();
             menu = false;
         }
     };

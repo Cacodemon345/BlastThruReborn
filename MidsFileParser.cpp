@@ -63,6 +63,7 @@ std::string& GetCurPlayingFilename()
 {
 	return curFilename;
 }
+void SelectMidiDevice() { return 0;}
 void ParseMidsFile(std::string filename)
 {
 	unsigned int id = 0;
@@ -164,31 +165,62 @@ void StartMidiPlayback()
 	}
 	midiStreamStop(midiDev);
 }
-
+void PauseMidiPlayback()
+{
+    midiStreamPause(midiDev);
+}
+void ContinueMidiPlayback()
+{
+	midiStreamRestart(midiDev);
+}
 void StopMidiPlayback()
 {
 	midiStreamStop(midiDev);
 	midiStreamClose(midiDev);
 }
-#else
+#elif 1
+#include "AltMidsFileParser.cpp" // Better option.
+#elif 0
+#include <mqueue.h>
+#include <sys/stat.h>
 bool eot = false;
 std::string curFilename;
+mqd_t MsgQueue;
 std::string& GetCurPlayingFilename()
 {
     return curFilename;
 }
 void ParseMidsFile(std::string filename)
 {
-
+	MsgQueue = mq_open("/midsproc", O_WRONLY | O_NONBLOCK);
+	if (MsgQueue == -1)
+	{
+		std::cout << "Failed to open message queue";
+		return;
+	}
+	char* msgName = (char*)"startmsg1";
+	auto actualPath = realpath(filename.c_str(),NULL);
+	std::string actualFileName = std::string(msgName);
+	actualFileName += (char)strlen(actualPath);
+	actualFileName += actualPath;
+	msgName = (char*)actualFileName.c_str();
+	std::cout << actualFileName << std::endl;
+	mq_send(MsgQueue,msgName,strlen(msgName)+1,31);
+	curFilename = filename;
 }
 
 void StartMidiPlayback()
 {
-	while (1) if (eot) return;
+	mq_send(MsgQueue,"startmsg2",strlen("startmsg2")+1,31);
+	while (1) if (eot)
+	{
+		mq_send(MsgQueue,"startmsg5",strlen("startmsg5")+1,31);
+		return;
+	}
 }
 
 void StopMidiPlayback()
 {
-
+	mq_send(MsgQueue,"startmsg5",strlen("startmsg5")+1,31);
 }
 #endif
