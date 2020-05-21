@@ -26,6 +26,10 @@ bld/
 [Bb]in/
 [Oo]bj/
 [Ll]og/
+rtmidi17/
+settings.json
+symbolCache.db
+.ionide/
 
 # Visual Studio 2015/2017 cache/options directory
 .vs/

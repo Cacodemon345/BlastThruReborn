@@ -550,7 +550,7 @@ void BTRpowerup::PowerupHandle(BTRPlayArea& area, int powerupID)
 			auto newBall = new BTRball(*area.balls[i]);
 			newBall->split = true;
 			newBall->velX = -area.balls[i]->velX;
-			newBall->angle = std::uniform_int(0, 360)(gen);
+			newBall->angle = std::uniform_int_distribution(0, 360)(gen);
 			area.balls.push_back(std::shared_ptr<BTRball>(newBall));
 		}
 		for (auto& curBall : area.balls)
@@ -655,7 +655,7 @@ void BTRpowerup::PowerupHandle(BTRPlayArea& area, int powerupID)
 			newBall->split = true;
 			newBall->velX = -area.balls[i]->velX;
 			newBall->velY = -area.balls[i]->velY;
-			newBall->angle = std::uniform_int(0, 360)(gen);
+			newBall->angle = std::uniform_int_distribution(0, 360)(gen);
 			area.balls.push_back(std::shared_ptr<BTRball>(newBall));
 		}
 		for (auto& curBall : area.balls)

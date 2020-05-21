@@ -79,7 +79,8 @@ auto ActivatePowerup(int powerupID)
     return BTRpowerup::PowerupHandle(*playArea, powerupID);
 }
 const std::string gammaShaderCode =
-"#version 330 core"\
+
+"#version 120"\
 "\n"\
 ""\
 "uniform sampler2D texture;" \
@@ -89,8 +90,10 @@ const std::string gammaShaderCode =
 " vec4 pixel = texture2D(texture, gl_TexCoord[0].xy);" \
 " gl_FragColor = pow(pixel, vec4(vec3(1.0f / gamma),1.0) );" \
 "}";
+
 int main()
 {
+    SelectMidiDevice();
     InitOpenAL();
     std::map<std::string, int> cheatKeys =
     {
@@ -114,7 +117,7 @@ int main()
         std::cout << "Loading gamma shader failed" << std::endl;
     }
 #if !defined(_HAS_CXX20)
-    static_assert(false, "C++20 support not available");
+    //static_assert(false, "C++20 support not available");
 #endif
     /*    L = lua_open();
         luaL_openlibs(L);
@@ -145,6 +148,7 @@ int main()
             end
         end
         )");*/
+
     std::vector<std::string> musics = { "./ball/coolin.mds","./ball/samba.mds","./ball/piano.mds","./ball/rush.mds" };
     std::cout.setf(std::ios_base::boolalpha);
     //for (int i = 0; i < 19937 / 8 * 4; i++) gen.seed(rd());
@@ -187,7 +191,7 @@ int main()
 
     unsigned int devID = 0;
 #if defined(WIN32)
-    midiStreamOpen(&midiDev, &devID, 1, 0, 0, 0);
+    //midiStreamOpen(&midiDev, &devID, 1, 0, 0, 0);
 #endif
     int x, y, n;
     auto retval = stbi_load("./ball/back.png", &x, &y, &n, 4);
@@ -306,9 +310,7 @@ int main()
 
     menu = true;
     paused = true;
-#ifdef WIN32
-    midiStreamPause(midiDev);
-#endif // WIN32
+    PauseMidiPlayback();
     BTRPlaySound("./sound/menu.wav", 1, 0, 1);
     auto DrawBackground = [&]()
     {
@@ -380,7 +382,38 @@ int main()
         highScoreTexture.update(highScoreImage);
         free(highScoreImage);
     }
+    /*auto fadeToColor = [&](sf::Color fadeColor)
+    {
+        uint32_t framerate = 60;
+#ifdef WIN32
+        framerate = GetDeviceCaps(GetDC(window->getSystemHandle()), VREFRESH);
+#endif
+        window->setFramerateLimit(framerate);
+        double alpha = 1.0;
+        int localFrameCnt = 0;
 
+        while (localFrameCnt < framerate)
+        {
+            if (fadeColor == sf::Color(0, 0, 0, 255))
+            {
+                gammaShader.setUniform("texture", windowTexture);
+                gammaShader.setUniform("gamma", (float)alpha);
+                window->clear();
+                window->draw(windowSprite,&gammaShader);
+                window->display();
+                alpha -= 1.f / (float)framerate;
+                localFrameCnt++;
+                continue;
+            }
+            windowSprite.setColor(sf::Color(255, 255, 255, 255 * alpha));
+            window->clear(fadeColor);
+            window->draw(windowSprite);
+            window->display();
+            alpha -= 1 / 60.;
+            localFrameCnt++;
+        }
+        window->setFramerateLimit(40);
+    };*/
     auto winBoxImage = new BTRsprite("./ball/winbox.png", 1, 0, 1);
     auto titleImage = new BTRsprite("./ball/bibleball.png", 1, false, 1);
     auto wincornerImage = new BTRsprite("./ball/wincorner.png", 14, 0, 1);
@@ -443,9 +476,7 @@ int main()
     {
         paused ^= 1;
         BTRStopAllSounds();
-#if defined(WIN32)
-        midiStreamPause(midiDev);
-#endif
+        PauseMidiPlayback();
         if (paused)
         {
             BTRPlaySound("./sound/menu.wav", 1, 0, 1);
@@ -458,9 +489,7 @@ int main()
         else
         {
             BTRStopAllSounds();
-#if defined(WIN32)
-            if (musRestart) midiStreamRestart(midiDev);
-#endif
+            if (musRestart) ContinueMidiPlayback();
             menu = false;
         }
     };
