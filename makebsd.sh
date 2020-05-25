@@ -1,0 +1,1 @@
+c++ -std=gnu++17 -I /usr/local/include -D RTMIDI17_JACK MidsFileParser.cpp BTRPlayArea.cpp ConsoleApplication9.cpp SoundPlayback.cpp -I ./RtMidi17/ -D NULL=0 -l sfml-system -l sfml-window -l sfml-graphics -l sndfile -l openal -l GL -l pthread -lm -ljack -Wno-register -L /usr/local/lib/
