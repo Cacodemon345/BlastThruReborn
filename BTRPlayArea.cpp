@@ -32,7 +32,7 @@ BTRPlayArea::BTRPlayArea(std::string levfilename, sf::RenderWindow* window)
 			file.read(brickBytes, 20);
 			for (int i = 0; i < 20; i++)
 			{
-				if (brickBytes[i] != 0 && brickBytes[i] != 255)
+				if (brickBytes[i] != 0 && brickBytes[i] != (char)255)
 				{
 					auto newBrick = BTRbrick();
 					newBrick.x = newBrick.width * (double)i + wallWidth / 2.;
