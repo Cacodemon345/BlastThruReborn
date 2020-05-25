@@ -161,7 +161,7 @@
       <UseUnicodeForAssemblerListing>false</UseUnicodeForAssemblerListing>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <AdditionalOptions>/D "_SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING" /bigobj %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/D "_SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING" /bigobj /Zc:__cplusplus /experimental:preprocessor %(AdditionalOptions)</AdditionalOptions>
       <CompileAsManaged>false</CompileAsManaged>
       <ExceptionHandling>Async</ExceptionHandling>
     </ClCompile>

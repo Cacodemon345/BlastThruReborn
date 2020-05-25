@@ -40,6 +40,7 @@ std::thread* thread = NULL;
 std::vector<std::pair<std::string, int>> scoresAndNames;
 BTRChompTeeth* chompteeth = NULL;
 BTRPlayArea* playArea = NULL;
+std::vector<unsigned char> randPlayedLevels;
 
 bool sortScoreList(const std::pair<std::string, int> t1, const std::pair<std::string, int> t2)
 {
@@ -48,6 +49,7 @@ bool sortScoreList(const std::pair<std::string, int> t1, const std::pair<std::st
 }
 extern void StopMidiPlayback();
 extern std::string& GetCurPlayingFilename();
+unsigned int devID = 0;
 void loadMusic(std::string mdsfilename)
 {
     if (GetCurPlayingFilename() == mdsfilename)
@@ -66,7 +68,7 @@ void loadMusic(std::string mdsfilename)
     midiStreamStop(midiDev);
     midiOutReset((HMIDIOUT)midiDev);
     midiStreamClose(midiDev);
-    unsigned int devID = 0;
+    //unsigned int devID = 0;
     midiStreamOpen(&midiDev, &devID, 1, 0, 0, 0);
 #endif
     ParseMidsFile(mdsfilename);
@@ -90,7 +92,7 @@ const std::string gammaShaderCode =
 " vec4 pixel = texture2D(texture, gl_TexCoord[0].xy);" \
 " gl_FragColor = pow(pixel, vec4(vec3(1.0f / gamma),1.0) );" \
 "}";
-
+bool firstRun = true;
 int main()
 {
     SelectMidiDevice();
@@ -268,13 +270,14 @@ int main()
         window->setFramerateLimit(40);
     };
     BTRPlaySound("./sound/intro.wav");
-    
+    window->requestFocus();
+    window->pollEvent(sf::Event());
     std::this_thread::sleep_for(std::chrono::seconds(3));
     fadeToColor(sf::Color(0, 0, 0, 254));
     
     BTRPlaySound("./ball/grow.wav");
     window->setFramerateLimit(40);
-    loadMusic(musics[mdsrand(gen)]);
+    //loadMusic(musics[mdsrand(gen)]);
 
 
     now = clocktime.now();
@@ -382,38 +385,6 @@ int main()
         highScoreTexture.update(highScoreImage);
         free(highScoreImage);
     }
-    /*auto fadeToColor = [&](sf::Color fadeColor)
-    {
-        uint32_t framerate = 60;
-#ifdef WIN32
-        framerate = GetDeviceCaps(GetDC(window->getSystemHandle()), VREFRESH);
-#endif
-        window->setFramerateLimit(framerate);
-        double alpha = 1.0;
-        int localFrameCnt = 0;
-
-        while (localFrameCnt < framerate)
-        {
-            if (fadeColor == sf::Color(0, 0, 0, 255))
-            {
-                gammaShader.setUniform("texture", windowTexture);
-                gammaShader.setUniform("gamma", (float)alpha);
-                window->clear();
-                window->draw(windowSprite,&gammaShader);
-                window->display();
-                alpha -= 1.f / (float)framerate;
-                localFrameCnt++;
-                continue;
-            }
-            windowSprite.setColor(sf::Color(255, 255, 255, 255 * alpha));
-            window->clear(fadeColor);
-            window->draw(windowSprite);
-            window->display();
-            alpha -= 1 / 60.;
-            localFrameCnt++;
-        }
-        window->setFramerateLimit(40);
-    };*/
     auto winBoxImage = new BTRsprite("./ball/winbox.png", 1, 0, 1);
     auto titleImage = new BTRsprite("./ball/bibleball.png", 1, false, 1);
     auto wincornerImage = new BTRsprite("./ball/wincorner.png", 14, 0, 1);
@@ -493,58 +464,63 @@ int main()
             menu = false;
         }
     };
-    {
-        BTRButton retToGame;
-        retToGame.clickedFunc = [&]()
+	BTRButton retToGame;
+	retToGame.clickedFunc = [&]()
+	{
+        if (firstRun)
         {
-            sf::Event event;
-            event.type = sf::Event::KeyPressed;
-            event.key.code = sf::Keyboard::Escape;
-            flipPaused(event);
-            BTRPlaySound("./ball/editselect.wav");
-        };
-        retToGame.str = "Return to Game";
-        retToGame.pos = sf::Vector2f(640 / 2 - winButtonImage->width / 2, BTRWINDOWHEIGHT - 100);
-        BTRButton quitGame;
-        quitGame.clickedFunc = [&]()
-        {
-            window->display();
-            windowTexture.update(*window); // Flip off the buffers.
-            fadeToColor(sf::Color(0, 0, 0, 255));
-            window->close();
-        };
-        quitGame.pos = sf::Vector2f(640 / 2 - winButtonImage->width / 2, BTRWINDOWHEIGHT - 80);
-        quitGame.str = "Quit Game";
-        BTRButton randomLevel;
-        randomLevel.clickedFunc = [&]()
-        {
-            fadeOut = true;
-            score = 0;
-            lives = 2;
-            playArea->levnum = std::uniform_int_distribution<int>(1, 40)(rd) - 1;
-            sf::Event event;
-            event.type = sf::Event::KeyPressed;
-            event.key.code = sf::Keyboard::Escape;
-            flipPaused(event,false);
-            GetCurPlayingFilename() = "";
-            BTRPlaySound("./ball/editselect.wav");
-            fade = 1;
-        };
-        randomLevel.str = "Random Play";
-        randomLevel.pos = sf::Vector2f(640 / 2 - winButtonImage->width / 2, BTRWINDOWHEIGHT - 340);
-        btns.push_back(randomLevel);
-        BTRButton singlePlay;
-        singlePlay.str = "Single Play";
-        singlePlay.pos = sf::Vector2f(randomLevel.pos.x, randomLevel.pos.y - 20);
-        singlePlay.clickedFunc = [&]()
-        {
-            btns[0].clickedFunc();
-            playArea->levnum = 0;
-        };
-        btns.push_back(retToGame);
-        btns.push_back(quitGame);
-        btns.push_back(singlePlay);
-    }
+            return;
+        }
+		sf::Event event;
+		event.type = sf::Event::KeyPressed;
+		event.key.code = sf::Keyboard::Escape;
+		flipPaused(event);
+		BTRPlaySound("./ball/editselect.wav");
+	};
+	retToGame.str = "Return to Game";
+	retToGame.pos = sf::Vector2f(640 / 2 - winButtonImage->width / 2, BTRWINDOWHEIGHT - 100);
+	BTRButton quitGame;
+	quitGame.clickedFunc = [&]()
+	{
+		window->display();
+		windowTexture.update(*window); // Flip off the buffers.
+		fadeToColor(sf::Color(0, 0, 0, 255));
+		window->close();
+	};
+	quitGame.pos = sf::Vector2f(640 / 2 - winButtonImage->width / 2, BTRWINDOWHEIGHT - 80);
+	quitGame.str = "Quit Game";
+	BTRButton randomLevel;
+	randomLevel.clickedFunc = [&]()
+	{
+		fadeOut = true;
+		score = 0;
+		lives = 2;
+		playArea->levnum = std::uniform_int_distribution<int>(1, 40)(rd) - 1;
+		sf::Event event;
+		event.type = sf::Event::KeyPressed;
+		event.key.code = sf::Keyboard::Escape;
+		flipPaused(event, false);
+		GetCurPlayingFilename() = "";
+		BTRPlaySound("./ball/editselect.wav");
+        firstRun = false;
+		fade = 1;
+        playArea->randomPlay = true;
+	};
+	randomLevel.str = "Random Play";
+	randomLevel.pos = sf::Vector2f(640 / 2 - winButtonImage->width / 2, BTRWINDOWHEIGHT - 340);
+	btns.push_back(randomLevel);
+	BTRButton singlePlay;
+	singlePlay.str = "Single Play";
+	singlePlay.pos = sf::Vector2f(randomLevel.pos.x, randomLevel.pos.y - 20);
+	singlePlay.clickedFunc = [&]()
+	{
+        btns[0].clickedFunc();
+		playArea->levnum = 0;
+        playArea->randomPlay = false;
+	};
+	btns.push_back(retToGame);
+	btns.push_back(quitGame);
+	btns.push_back(singlePlay);
     bool isFullscreen = false;
     while (window->isOpen())
     {
@@ -815,13 +791,37 @@ int main()
                 if (!ballLost)
                 {
                     std::string str = "./lev/";
-                    str += std::to_string(playArea->levnum++) + ".lev";
-                    int oldLevnum = playArea->levnum;
+                    bool isRandom = playArea->randomPlay;
+                    int newLev = 0;
+                    int totalSum = 0;
+                    while (1)
+                    {
+                        if (!playArea->randomPlay) break;
+                        newLev = std::uniform_int_distribution(1, 40)(rd) - 1;
+                        bool alreadyPlayed = 0;
+                        for (auto& curVal : randPlayedLevels)
+                        {
+                            totalSum += curVal;
+                            if (newLev + 1 == curVal)
+                            {
+                                alreadyPlayed = true;
+                            }
+                        }
+                        if (!alreadyPlayed) randPlayedLevels.push_back(playArea->levnum + 1);
+                        if (totalSum >= 820)
+                        {
+
+                        }
+                    }
+                    newLev = isRandom ? std::uniform_int_distribution(1, 40)(rd) - 1 : playArea->levnum++;
+                    str += std::to_string(newLev) + ".lev";
+                    int oldLevnum = playArea->levnum;                   
                     delete playArea;
-                    playArea = 0;
+                    playArea = 0;                  
                     playArea = new BTRPlayArea(str, window);
                     playArea->levelEnded = false;
-                    playArea->levnum = oldLevnum++;
+                    playArea->levnum = isRandom ? ++newLev : oldLevnum++;
+                    playArea->randomPlay = isRandom;
                     explodingBricks.clear();
                     loadMusic(musics[mdsrand(gen)]);
                     BTRPlaySound("./ball/grow.wav");
@@ -932,17 +932,24 @@ int main()
             sparkSprite->sprite.setColor(sparks[i].color);
             if (frameCnt % 3 == 0) sparks[i].sparkRect.left += 3;
             sparkSprite->sprite.setTextureRect(curSpark.sparkRect);
+#if __cplusplus <= 201703L
+            if (sparks[i].sparkRect.left < 15 * 3)
+#endif
             window->draw(sparkSprite->sprite);
-            /*else
+#if __cplusplus <= 201703L
+            else
             {
                 sparks.erase(sparks.begin() + i);
                 continue;
-            }*/
+            }
+#endif
             sparks[i].velY += sparks[i].gravity;
             sparks[i].y += sparks[i].velY;
             sparks[i].x += sparks[i].velX;
         }
+#if __cplusplus > 201703L
         std::erase_if(sparks, removeSparkObject);
+#endif
         largeFont->RenderChars(std::to_string(score), sf::Vector2f(wallWidth / 2, 0), window);
         font->RenderChars("level " + std::to_string(playArea->levnum), sf::Vector2f(wallWidth / 2, largeFont->genCharHeight), window);
         if (!cursorVisible)
