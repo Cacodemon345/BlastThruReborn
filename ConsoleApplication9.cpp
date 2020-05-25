@@ -271,7 +271,8 @@ int main()
     };
     BTRPlaySound("./sound/intro.wav");
     window->requestFocus();
-    window->pollEvent(sf::Event());
+    auto evnt = sf::Event();
+    window->pollEvent(evnt);
     std::this_thread::sleep_for(std::chrono::seconds(3));
     fadeToColor(sf::Color(0, 0, 0, 254));
     

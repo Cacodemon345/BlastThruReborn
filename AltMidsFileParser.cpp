@@ -33,7 +33,7 @@ struct MidsStreamIDEvent
 {
 	int dwDeltaTime;
 	int dwStreamID;
-	int dwEvent;
+	unsigned int dwEvent;
 };
 std::vector<MidsEvent> MidsEvents;
 std::vector<MidsStreamIDEvent> MidsStreamIDEvents;
