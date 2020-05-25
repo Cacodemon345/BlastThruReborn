@@ -251,16 +251,18 @@ struct BTRFont
 		defFilename.pop_back();
 		defFilename.pop_back();
 		defFilename += "txt";
-		std::fstream file;
-		file.open(defFilename, std::ios::in | std::ios::out | std::fstream::app);
+		std::cout << "Font def file to open: " << defFilename << std::endl;
+		std::ifstream file;
+		file.open(defFilename);
 		if (!file.is_open()) std::cout << "Font definition file not found" << std::endl;
 		if (file.is_open())
 		{
 			std::string str;
 			bool charMap = false;
-			while (!file.eof())
+			while (file >> str)
 			{
-				file >> str;
+//				file >> str;
+				std::cout << "Read string: " << str << std::endl;
 				if (str == "Character_Mapping")
 				{
 					file >> genCharHeight;
