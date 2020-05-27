@@ -332,7 +332,7 @@ void BTRball::Tick(BTRPlayArea &area)
 			this->destroyed = true;
 		}
 	}
-	if (frameCnt % 20 == 0 && this->isFireball)
+	if (frameCnt % 10 == 0 && this->isFireball)
 	{
 		auto fireSpark = BTRSpark();
 		fireSpark.x = this->x + this->width * 0.5;

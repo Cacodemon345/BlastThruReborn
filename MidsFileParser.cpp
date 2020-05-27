@@ -63,7 +63,8 @@ std::string& GetCurPlayingFilename()
 {
 	return curFilename;
 }
-void SelectMidiDevice() {
+void SelectMidiDevice()
+{
 	for (int i = 0; i < midiOutGetNumDevs(); i++)
 	{
 		MIDIOUTCAPSA caps;

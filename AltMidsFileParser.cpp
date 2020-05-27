@@ -15,6 +15,7 @@ extern void ParseMidsFile(std::string filename);
 extern void StartMidiPlayback();
 rtmidi::midi_out midiOut;
 extern bool eot;
+extern unsigned int devID;
 bool paused = 0;
 #pragma pack(push,1)
 struct MidsDataHeader
@@ -72,6 +73,7 @@ void SelectMidiDevice()
     std::cout << "Select MIDI device: " << std::endl;
     int selection;
     std::cin >> selection;
+	devID = selection;
     midiOut.open_port(selection);
 }
 void QueueMidiEvent(MidsEvent midsevent)

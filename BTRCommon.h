@@ -42,6 +42,7 @@ extern int frameCnt;
 extern int score;
 extern int framesPassedlastPowerup;
 extern int lives;
+extern unsigned int devID;
 std::string& GetCurPlayingFilename();
 void PauseMidiPlayback();
 void ContinueMidiPlayback();
@@ -61,6 +62,13 @@ inline void preprocess8bitpal(stbi_uc* pixels, int width, int height)
 		}
 	}
 }
+#if __cplusplus <= 201703L // Horrible hack.
+namespace std {
+	inline float lerp(float v0, float v1, float t) {
+		return (1 - t) * v0 + t * v1;
+	}
+}
+#endif
 inline void preprocess8bitpalalpha(stbi_uc* pixels, int width, int height)
 {
 	int64_t totalPixels = width * height;
@@ -398,6 +406,7 @@ class BTRPlayArea
 	int rainGoodPowerups = 0;
 	int missileCooldown = 10;
 	int levStateFlags = 0;
+	bool randomPlay = false;
 	// angle = 0;
 	bool levelEnded = false;
 	void Tick();
