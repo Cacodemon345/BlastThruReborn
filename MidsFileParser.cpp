@@ -85,6 +85,7 @@ void SelectMidiDevice()
 		}
 	}
 	midiStreamOpen(&midiDev, &selection, 1, 0, 0, 0);
+	devID = selection;
 }
 void ParseMidsFile(std::string filename)
 {

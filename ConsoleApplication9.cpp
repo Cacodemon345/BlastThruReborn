@@ -810,7 +810,6 @@ int main()
                             if (newLev + 1 == curVal)
                             {
                                 alreadyPlayed = true;
-
                             }
                         }
                         if (!alreadyPlayed) randPlayedLevels.push_back(playArea->levnum + 1);

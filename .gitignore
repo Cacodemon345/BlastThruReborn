@@ -353,3 +353,4 @@ LuaBridge/
 *.html
 *.out
 sol.hpp
+RtMidi17/
