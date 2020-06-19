@@ -15,6 +15,28 @@ void BTRPlayArea::SpawnInitialBall()
 	newBall->offsetFromPaddle = paddle.paddleRadius / 2;
 	this->balls.push_back(std::shared_ptr<BTRball>(newBall));
 }
+void BTRPlayArea::LoadBrickTex()
+{
+	int width, height, n;
+	auto pixels = stbi_load("./ball/bricks.png", &width, &height, &n, 4);
+	if (!pixels)
+	{
+		std::cerr << "Failed to load ./ball/bricks.png" << std::endl;
+	}
+	else
+	{
+		preprocess8bitpal(pixels, width, height);
+		brickTexture.create(width, height);
+		brickTexture.update(pixels);
+		free(pixels);
+		for (int ii = 0; ii < height / 15; ii++)
+			for (int i = 0; i < width / 30; i++)
+			{
+				sf::IntRect rect = sf::IntRect(sf::Vector2i(i * 30, ii * 15), sf::Vector2i(30, 15));
+				brickTexRects.push_back(rect);
+			}
+	}
+}
 BTRPlayArea::BTRPlayArea(std::string levfilename, sf::RenderWindow* window)
 {
 	auto file = std::fstream(levfilename, std::ios::in | std::ios::binary);
@@ -49,25 +71,7 @@ BTRPlayArea::BTRPlayArea(std::string levfilename, sf::RenderWindow* window)
 			}
 			yPos++;
 		}
-		int width, height, n;
-		auto pixels = stbi_load("./ball/bricks.png", &width, &height, &n, 4);
-		if (!pixels)
-		{
-			std::cerr << "Failed to load ./ball/bricks.png" << std::endl;
-		}
-		else
-		{
-			preprocess8bitpal(pixels, width, height);
-			brickTexture.create(width, height);
-			brickTexture.update(pixels);
-			free(pixels);
-			for (int ii = 0; ii < height / 15; ii++)
-				for (int i = 0; i < width / 30; i++)
-				{
-					sf::IntRect rect = sf::IntRect(sf::Vector2i(i * 30, ii * 15), sf::Vector2i(30, 15));
-					brickTexRects.push_back(rect);
-				}
-		}
+		LoadBrickTex();
 		if (window != nullptr) paddle.sprite->sprite.setPosition((sf::Vector2f)sf::Mouse::getPosition(*window));
 		SpawnInitialBall();
 	}
@@ -75,6 +79,10 @@ BTRPlayArea::BTRPlayArea(std::string levfilename, sf::RenderWindow* window)
 	{
 		throw std::runtime_error("Failed to load level");
 	}
+}
+BTRPlayArea::BTRPlayArea()
+{
+	LoadBrickTex();
 }
 void BTRPlayArea::UpdateBrickGridPos()
 {
@@ -158,6 +166,10 @@ void BTRPlayArea::Tick()
 	}
 	for (int i = 0; i < bricks.size(); i++)
 	{
+		if (bricks[i].collisionCooldown > 0)
+		{
+			bricks[i].collisionCooldown--;
+		}
 		if (bricks[i].destroyed) while(bricks[i].destroyed)
 		{
 			if (!bricks[i].explosionHit)
@@ -233,10 +245,10 @@ void BTRPlayArea::Tick()
 	}
 	if (this->rainGoodPowerups && (frameCnt % 15) == 0)
 	{
-		std::uniform_int_distribution badPowerDist(0, 10);
+		std::uniform_int_distribution goodPowerDist(0, 10);
 		std::uniform_real_distribution randomXPos(wallWidth / 2., BTRWINDOWWIDTH - 32. - wallWidth / 2.);
-		auto badPowerup = BTRpowerup(sf::Vector2f(randomXPos(rd), 0), sf::Vector2f(0, 5), badPowerDist(rd));
-		powerups.push_back(badPowerup);
+		auto goodPowerup = BTRpowerup(sf::Vector2f(randomXPos(rd), 0), sf::Vector2f(0, 5), goodPowerDist(rd));
+		powerups.push_back(goodPowerup);
 		BTRPlaySound("./ball/rainpowerup.wav");
 		rainGoodPowerups--;
 	}
@@ -294,7 +306,16 @@ void DownBricks(BTRPlayArea& area)
 		}
 	}
 }
-
+bool TestAABBOverlap(BTRObjectBase& a, BTRObjectBase& b)
+{
+	sf::FloatRect aRect(sf::Vector2f(a.x,a.y),sf::Vector2f(a.width,a.height));
+	sf::FloatRect bRect(sf::Vector2f(b.x,b.y),sf::Vector2f(b.width,b.height));
+	if (bRect.intersects(aRect))
+	{
+		return true;
+	}
+	return false;
+}
 void BTRball::Tick(BTRPlayArea &area)
 {
 	if (!ballHeld)
@@ -357,7 +378,8 @@ void BTRball::Tick(BTRPlayArea &area)
 		if (this->x + this->width >= area.bricks[i].x
 			&& this->x <= area.bricks[i].x + area.bricks[i].width
 			&& this->y + this->height >= area.bricks[i].y
-			&& this->y <= area.bricks[i].y + area.bricks[i].height)
+			&& this->y <= area.bricks[i].y + area.bricks[i].height
+			&& area.bricks[i].collisionCooldown <= 0)
 		{
 			area.bricks[i].hitvelX = this->velX;
 			area.bricks[i].hitvelY = this->velY;
@@ -373,38 +395,10 @@ void BTRball::Tick(BTRPlayArea &area)
 				//std::cout << "Res in degress: " << res << std::endl;
 				int cornerHit = 0;
 				bool fallbackToAngle = 1;
-				int cornerHits = HitTest<BTRObjectBase>(*this, area.bricks[i]);
-				if (cornerHits && !fallbackToAngle)
-				switch (cornerHits)
+				bool cornerHits = HitTest<BTRObjectBase>(*this, area.bricks[i]);
+				if (cornerHits)
 				{
-				case 0b0001:
-				case 0b0010:
-				case 0b0100:
-				case 0b1000:
-					this->velX = -this->velX;
-					this->velY = -this->velY;
-					break;
-				case 0b0011:
-				case 0b1100:
-					this->velY = -this->velY;
-					break;
-				case 0b0101:
-				case 0b1010:
-					this->velX = -this->velX;
-					break;
-				case 0b0111:
-				case 0b1110:
-				case 0b1011:
-				case 0b1101:
-					std::cout << "Warning: more than 2 corners checked" << std::endl;
-					break;
-				case 0b1111:
-					std::cout << "Warning: all 4 corners checked" << std::endl;
-					break;
-				default:
-					//std::cout << "Warning: Falling back to angle detection. Value: " << std::hex << cornerHits << std::dec << std::endl;
-					fallbackToAngle = true;
-					break;
+					std::cout << "SAT Hit" << std::endl;
 				}
 				if (fallbackToAngle)
 				{
@@ -430,20 +424,9 @@ void BTRball::Tick(BTRPlayArea &area)
 					}
 					if (cornerHit >= 2)
 					{
-						auto greater = std::max(velY, velX);
-						if (greater == velX)
-						{
-							this->velY = -this->velY;
-						}
-						if (greater == velY)
-						{
-							this->velX = -this->velX;
-						}
-						if (area.bricks[i].brickID == 61)
-						{
-							this->x += velX;
-							this->y += velY;
-						}
+						this->x += velX;
+						this->y += velY;
+						//std::cout << "Corner hit" << std::endl;
 					}
 				}
 			}
@@ -463,6 +446,7 @@ void BTRball::Tick(BTRPlayArea &area)
 			}
 			area.bricks[i].destroyed++;
 			area.bricks[i].hitTimes++;
+			area.bricks[i].collisionCooldown = 4;
 			score += (area.paddle.lengthOfBall / 5 - 1) * 5;
 		}
 	}

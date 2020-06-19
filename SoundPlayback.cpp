@@ -29,11 +29,11 @@ bool InitOpenAL()
 	OpenALInited = true;
 	return true;
 }
-void BTRPlaySound(std::string filename, bool looping, bool playOnSameChannel, bool isMusic, bool queueUp)
+void BTRPlaySound(std::string filename, bool looping, bool playOnSameChannel, bool isMusic, bool queueUp, float sourceX, float sourceY, float sourceZ)
 {
 	return BTRPlaySound(filename.c_str(), looping, playOnSameChannel, isMusic, queueUp);
 }
-void BTRPlaySound(const char* filename, bool looping, bool playOnSameChannel, bool isMusic, bool queueUp)
+void BTRPlaySound(const char* filename, bool looping, bool playOnSameChannel, bool isMusic, bool queueUp, float sourceX, float sourceY, float sourceZ)
 {
 	if (!OpenALInited) return;
 	SF_INFO info;
@@ -56,7 +56,7 @@ void BTRPlaySound(const char* filename, bool looping, bool playOnSameChannel, bo
 		}
 		auto framedata = new short[info.frames * info.channels];
 		//alSourceStop(source[curBuffer]);
-		alSourcei(source[curBuffer], AL_BUFFER, NULL);		
+		alSourcei(source[curBuffer], AL_BUFFER, 0);		
 		//alDeleteBuffers(1, &Buffers[curBuffer]);
 		sf_readf_short(file, framedata, info.frames);		
 		alBufferData(Buffers[curBuffer], AL_FORMAT_MONO16 + (info.channels == 2 ? 2 : 0), framedata, info.frames * info.channels * sizeof(short), info.samplerate);
@@ -76,6 +76,7 @@ void BTRPlaySound(const char* filename, bool looping, bool playOnSameChannel, bo
 		else alSourcei(source[curBuffer], AL_BUFFER, Buffers[curBuffer]);
 		if (looping) alSourcei(source[curBuffer], AL_LOOPING, AL_TRUE);
 		else alSourcei(source[curBuffer], AL_LOOPING, AL_FALSE);
+		alSource3f(source[curBuffer], AL_POSITION, sourceX, sourceY, -sourceZ);
 		alSourcePlay(source[curBuffer]);
 		curBuffer++;
 		delete[] framedata;

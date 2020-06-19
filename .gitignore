@@ -354,3 +354,5 @@ LuaBridge/
 *.out
 sol.hpp
 RtMidi17/
+.ccls-cache/
+compile_commands.json

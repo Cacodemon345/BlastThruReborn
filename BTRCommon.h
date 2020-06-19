@@ -21,6 +21,9 @@
 #include <utility>
 #include <functional>
 #include <cmath>
+#include <sattest.h>
+#include <glm/glm.hpp>
+
 /*#include "LuaBridge/LuaBridge.h"
 #include "LuaBridge/Map.h"
 #include "LuaBridge/UnorderedMap.h"
@@ -30,6 +33,7 @@
 #include <cstring>
 #include <SFML/Audio.hpp>
 #include <SFML/OpenGL.hpp>
+#include <bitset>
 constexpr auto BTRWINDOWWIDTH = 640;
 constexpr auto BTRWINDOWHEIGHT = 480;
 constexpr auto pi = 3.14159265358979323846;
@@ -42,6 +46,7 @@ extern int frameCnt;
 extern int score;
 extern int framesPassedlastPowerup;
 extern int lives;
+extern bool vertvelpowerup;
 extern unsigned int devID;
 std::string& GetCurPlayingFilename();
 void PauseMidiPlayback();
@@ -71,7 +76,7 @@ namespace std {
 #endif
 inline void preprocess8bitpalalpha(stbi_uc* pixels, int width, int height)
 {
-	int64_t totalPixels = width * height;
+	int64_t totalPixels = width * (int64_t)height;
 	for (int i = 0; i < totalPixels; i++)
 	{
 		if (pixels[i * 4] == pixels[i * 4 + 1]
@@ -181,13 +186,13 @@ struct BTRFont
 	int width, height, n;
 	int genCharHeight = 0;
 	int spacebetweenChars = 0;
-	enum FontType
+	enum class FontType
 	{
 		BTR_FONTSMALL,
 		BTR_FONTLARGE,
 	};
-	char* bitmapChars;
-	FontType font = BTR_FONTSMALL;
+	char* bitmapChars = (char*)" ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!?.,''|-():;0123456789\0\0";
+	FontType font = FontType::BTR_FONTSMALL;
 	std::vector<BTRCharBitmap> bitmaps;
 	std::unordered_map<unsigned char, BTRCharBitmap> charMaps;
 	void RenderChars(std::string chars, sf::Vector2f pos, sf::RenderWindow* &window)
@@ -197,7 +202,7 @@ struct BTRFont
 		sprite.setPosition(pos);
 		for (int i = 0; i < chars.size(); i++)
 		{
-			if (font == BTR_FONTLARGE && !std::isdigit(chars[i],std::locale(""))) continue;
+			if (font == FontType::BTR_FONTLARGE && !std::isdigit(chars[i],std::locale(""))) continue;
 			sf::Vector2i texPos;
 			texPos.x = charMaps[chars[i]].x;
 			texPos.y = charMaps[chars[i]].y;
@@ -215,7 +220,7 @@ struct BTRFont
 		sf::Vector2f totalSize;
 		for (int i = 0; i < chars.size(); i++)
 		{
-			if (font == BTR_FONTLARGE && !std::isdigit(chars[i], std::locale(""))) continue;
+			if (font == FontType::BTR_FONTLARGE && !std::isdigit(chars[i], std::locale(""))) continue;
 			sf::Vector2i texPos;
 			texPos.x = charMaps[chars[i]].x;
 			texPos.y = charMaps[chars[i]].y;
@@ -231,7 +236,7 @@ struct BTRFont
 	{
 		return RenderChars(chars, sf::Vector2f(X, Y), window);
 	}
-	BTRFont(const char* filename, FontType sFont = BTR_FONTSMALL)
+	BTRFont(const char* filename, FontType sFont = FontType::BTR_FONTSMALL)
 	{
 		font = sFont;
 		char* bitmapCharsSmall = (char*)" ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!?.,''|-():;0123456789\0\0";
@@ -284,14 +289,14 @@ struct BTRFont
 				file >> bitmapDef.width;
 				std::cout << "width :" << bitmapDef.width << ", ";
 				bitmapDef.height = genCharHeight;
-				if (font == BTR_FONTLARGE) std::cout << "character :" << *bitmapCharsLarge << std::endl;
+				if (font == FontType::BTR_FONTLARGE) std::cout << "character :" << *bitmapCharsLarge << std::endl;
 				else std::cout << "character :" << *bitmapCharsSmall << std::endl;
-				if (font == BTR_FONTLARGE) bitmapDef.character = *bitmapCharsLarge++;
+				if (font == FontType::BTR_FONTLARGE) bitmapDef.character = *bitmapCharsLarge++;
 				else bitmapDef.character = *bitmapCharsSmall++;
 				charMaps.emplace(bitmapDef.character,bitmapDef);
 				bitmaps.push_back(bitmapDef);
 			}
-			if (font == BTR_FONTSMALL) spacebetweenChars = charMaps['\''].width;
+			if (font == FontType::BTR_FONTSMALL) spacebetweenChars = charMaps['\''].width;
 		}
 		if (file.is_open()) file.close();
 	}
@@ -302,29 +307,39 @@ struct BTRbrick;
 struct BTRpowerup;
 class BTRPaddle;
 class BTRPlayArea;
-
-// Does not work currently.
 template <typename T>
-inline int HitTest(T& obj, T& obj2)
+inline std::vector<sf::Vector2f> getNormals(T& obj)
 {
-	// Build up 4 points.
 	sf::Vector2f firstCorner = sf::Vector2f(obj.x, obj.y);
 	sf::Vector2f secondCorner = sf::Vector2f(obj.x + obj.width, obj.y);
 	sf::Vector2f thirdCorner = sf::Vector2f(obj.x, obj.y + obj.height);
 	sf::Vector2f fourthCorner = sf::Vector2f(obj.x + obj.width, obj.y + obj.height);
-	int result = 0;
+	
+	std::vector<sf::Vector2f> normals;
 	std::vector<sf::Vector2f> cornerArrays = { firstCorner,secondCorner,thirdCorner,fourthCorner };
 	for (int i = 0; i < cornerArrays.size(); i++)
 	{
-		if (cornerArrays[i].x >= obj2.x && cornerArrays[i].y >= obj2.y
-			&& cornerArrays[i].x <= obj2.x + obj2.width
-			&& cornerArrays[i].y <= obj2.y + obj2.height)
-		{
-			std::cout << "Corner hit" << std::endl;
-			result |= 1 << i;
-		}
+		auto& v = cornerArrays[i];
+		auto next = i + 1;
+		if (next >= cornerArrays.size()) next = 0;
+		auto& nextVec = cornerArrays[next];
+		auto edgeVec = nextVec - v;
+		sf::Vector2f normVec = sf::Vector2f(edgeVec.x,edgeVec.y);
+		std::cout << "Printing corners: x: "  << v.x << ", y: " << v.y << std::endl;
+		normals.push_back(normVec);
 	}
-	return result;
+	return normals;
+}
+// Does not work currently.
+template <typename T>
+inline bool HitTest(T& obj, T& obj2)
+{
+	sf::RectangleShape rectShape = sf::RectangleShape(sf::Vector2f(obj.width,obj.height));
+	rectShape.setPosition(obj.x,obj.y);
+	sf::RectangleShape rectShape2 = sf::RectangleShape(sf::Vector2f(obj2.width,obj2.height));
+	rectShape2.setPosition(obj2.x,obj2.y);
+	sf::Vector2f mtv;
+	return testCollision(rectShape,rectShape2,mtv);
 }
 
 struct BTRObjectBase
@@ -333,7 +348,7 @@ struct BTRObjectBase
 	double velX = 0, velY = 0;
 	double oldx = x, oldy = y;
 	double oldvelX = 0, oldvelY = 0;
-	bool isFireball; // used for balls and bricks.
+	bool isFireball = false; // used for balls and bricks.
 	int width = 0;
 	uint32_t destroyed = false;
 	int height = 0;
@@ -343,6 +358,7 @@ struct BTRObjectBase
 	{
 
 	}
+	virtual ~BTRObjectBase() = default;
 };
 struct BTRSpark : BTRObjectBase
 {
@@ -415,6 +431,8 @@ class BTRPlayArea
 	void LostBall();
 	void SpawnInitialBall();
 	BTRPlayArea(std::string levfilename, sf::RenderWindow* window = nullptr);
+	BTRPlayArea();
+	void LoadBrickTex();
 	void UpdateBrickGridPos();
 };
 struct BTRpowerup : BTRObjectBase
@@ -446,6 +464,7 @@ struct BTRbrick : BTRObjectBase
 	bool goneThrough = false;
 	int curXPos = 0,curYPos = 0;
 	int hitTimes = 1;
+	int collisionCooldown = 0;
 	bool BrickExistUnder(BTRPlayArea& area)
 	{
 		for (auto& curBrick : area.bricks)
@@ -504,7 +523,7 @@ struct BTRbrick : BTRObjectBase
 			std::uniform_int_distribution<int> badpowerDist(16, 22);
 			int pwrres = powerDist(gen);
 			if (hitvelX == 0) hitvelX = dis(gen);
-			/*if (hitvelY == 0) */hitvelY = -5;
+			if (!vertvelpowerup || hitvelY == 0) hitvelY = -5;
 			auto liveres = gen() % 101;
 			if (liveres <= 2)
 			{
@@ -555,6 +574,9 @@ struct BTRbrick : BTRObjectBase
 				{
 					area.bricks[i].destroyed = true;
 					area.bricks[i].explosionHit = true;
+					auto angleFromBrick = atan2(area.bricks[i].y - this->y,area.bricks[i].x - this->x);
+					area.bricks[i].hitvelX = cos(angleFromBrick) * 33;
+					area.bricks[i].hitvelY = sin(angleFromBrick) * 33;
 				}
 			}
 		}
@@ -604,6 +626,33 @@ inline void vectorLerp(sf::Vector2f &pos, sf::Vector2f &toPos, double t)
 	pos.x = std::lerp(pos.x, toPos.x, 0.5f);
 	pos.y = std::lerp(pos.y, toPos.y, 0.5f);
 }
+template<typename T>
+inline T spawnObject(sf::Vector2f pos, std::function<void(T&)> postSpawnFunc)
+{
+	T spawnObj = T();
+	spawnObj.x = pos.x;
+	spawnObj.y = pos.y;
+	postSpawnFunc(spawnObj);
+	return spawnObj;
+}
+template<typename T>
+inline T* spawnObject(sf::Vector2f pos, std::function<void(T*)> postSpawnFunc)
+{
+	T* spawnObj = new T();
+	spawnObj->x = pos.x;
+	spawnObj->y = pos.y;
+	postSpawnFunc(spawnObj);
+	return spawnObj;
+}
+template<typename T>
+inline std::shared_ptr<T> spawnObject(sf::Vector2f pos, std::function<void(std::shared_ptr<T>)> postSpawnFunc)
+{
+	std::shared_ptr<T> spawnObj = std::shared_ptr<T>(new T());
+	spawnObj->x = pos.x;
+	spawnObj->y = pos.y;
+	postSpawnFunc(spawnObj);
+	return spawnObj;
+}
 struct BTRMovingText
 {
 	sf::Vector2f pos;
@@ -633,10 +682,12 @@ struct BTRChompTeeth : BTRObjectBase
 			this->destroyed = true;
 		}
 	}
+	virtual ~BTRChompTeeth() = default;
 };
 struct BTRMissileObject : BTRObjectBase
 {
 	int height = 32;
+	int width = 20;
 	void Tick(BTRPlayArea& area) override
 	{
 		velY -= gravity;
@@ -655,7 +706,7 @@ struct BTRMissileObject : BTRObjectBase
 		}
 		for (auto& curBrick : area.bricks)
 		{
-			if (this->x >= curBrick.x && this->x <= curBrick.x + curBrick.width
+			if (this->x + this->width >= curBrick.x && this->x <= curBrick.x + curBrick.width
 				&& this->y <= curBrick.y + curBrick.height && this->y + this->height / 2 >= curBrick.y)
 			{
 				this->destroyed = true;

@@ -227,11 +227,16 @@ void StopMidiPlayback()
 }
 void PauseMidiPlayback()
 {
-    for (int i = 0; i < 16; i++)
+    /*for (int i = 0; i < 16; i++)
     {
         for (int ii = 0; ii < 128; ii++){}
         //midiOut.send_message(rtmidi::message::note_off(i,ii,0));
-    }
+    }*/
+	for (unsigned char i = 0; i < 16; i++)
+	{
+		std::vector<unsigned char> midiMsg = {static_cast<unsigned char>(0xB0 | i),0x7B,0};
+		midiOut.send_message(midiMsg);
+	}
     paused = true;
 }
 void ContinueMidiPlayback()

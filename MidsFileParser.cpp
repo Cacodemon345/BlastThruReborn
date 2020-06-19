@@ -149,7 +149,34 @@ void ParseMidsFile(std::string filename)
 				}
 				else
 				{
-					std::cerr << "Stream ID needs to exist in the messages!" << std::endl;
+					//std::cerr << "Stream ID needs to exist in the messages!" << std::endl;
+					std::vector<uint32_t> midsData;
+					if (blockSize % 8) std::cerr << "Warning: MIDS block is not 8-byte aligned!" << std::endl;
+					MIDIHDR header;
+					unsigned int bytesRead = 0;
+					while (1)
+					{
+						int dataRead = 0;
+						file.read((char*)&dataRead, 4);
+						midsData.push_back(dataRead);
+						midsData.push_back(0);
+						bytesRead += 4;
+						file.read((char*)&dataRead, 4);
+						midsData.push_back(dataRead);
+						bytesRead += 4;
+						if (bytesRead >= blockSize)
+						{
+							auto resptr = midsData.data();
+							auto newtype = new uint32_t[midsData.size()];
+							memcpy((void*)newtype,(void*)resptr,midsData.size() * sizeof(uint32_t));
+							header.lpData = (LPSTR)newtype;
+							header.dwBufferLength = header.dwBytesRecorded = midsData.size() * sizeof(uint32_t);
+							header.dwFlags = 0;
+							midiHeaders.push_back(header);
+							buffer = 0;
+							break;
+						}
+					}
 				}
 			}
 		}
