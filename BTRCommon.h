@@ -402,6 +402,11 @@ class BTRPaddle
 	}
 };
 struct BTRMissileObject;
+struct BTRLevInfo
+{
+	unsigned char brickID;
+	int x,y;
+};
 class BTRPlayArea
 {
 	public:
@@ -424,6 +429,7 @@ class BTRPlayArea
 	int rainGoodPowerups = 0;
 	int missileCooldown = 10;
 	int levStateFlags = 0;
+	int brickwidth,brickheight;
 	bool randomPlay = false;
 	// angle = 0;
 	bool levelEnded = false;
@@ -432,6 +438,7 @@ class BTRPlayArea
 	void SpawnInitialBall();
 	BTRPlayArea(std::string levfilename, sf::RenderWindow* window = nullptr);
 	BTRPlayArea();
+	void ExportBricks();
 	void LoadBrickTex();
 	void UpdateBrickGridPos();
 };
@@ -465,6 +472,8 @@ struct BTRbrick : BTRObjectBase
 	int curXPos = 0,curYPos = 0;
 	int hitTimes = 1;
 	int collisionCooldown = 0;
+	inline BTRbrick() = default;
+	inline BTRbrick(const BTRLevInfo& levInfo) {x = levInfo.x; y = levInfo.y; brickID = levInfo.brickID;};
 	bool BrickExistUnder(BTRPlayArea& area)
 	{
 		for (auto& curBrick : area.bricks)
@@ -555,6 +564,7 @@ struct BTRbrick : BTRObjectBase
 		bool yelOrRed = 0;
 		if (this->isFireball)
 		{
+			BTRPlaySound("./ball/explode.wav");
 			for (int iii = 0; iii < 30; iii++)
 			{
 				BTRSpark spark;
@@ -653,6 +663,21 @@ inline std::shared_ptr<T> spawnObject(sf::Vector2f pos, std::function<void(std::
 	postSpawnFunc(spawnObj);
 	return spawnObj;
 }
+
+inline void spawnSpark(uint32_t count,sf::Color col,sf::Vector2f pos)
+{
+	for (int i = 0; i < count; i++)
+	{
+		BTRSpark spark;
+		spark.velX = dis(gen);
+		spark.velY = dis(gen);
+		spark.x = pos.x;
+		spark.y = pos.y;
+		spark.color = col;
+		sparks.push_back(spark);
+	}
+}
+
 struct BTRMovingText
 {
 	sf::Vector2f pos;
@@ -731,6 +756,8 @@ struct BTRButton
 	sf::Vector2f pos;
 	std::string str;
 	bool wasHeld = false;
+	bool smallButton = false;
+	bool levEditOnly = false;
 	std::function<void()> clickedFunc = [&,this]()
 	{
 

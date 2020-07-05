@@ -16,6 +16,9 @@ extern void StartMidiPlayback();
 rtmidi::midi_out midiOut;
 extern bool eot;
 extern unsigned int devID;
+#ifdef BTRMID_STANDALONE
+unsigned int devID = 0;
+#endif
 bool paused = 0;
 #pragma pack(push,1)
 struct MidsDataHeader
@@ -76,6 +79,25 @@ void SelectMidiDevice()
 	devID = selection;
     midiOut.open_port(selection);
 }
+#ifdef BTRMID_STANDALONE
+
+int main(int argc, char *argv[])
+{
+	if (argc > 1)
+	{
+		if (strncmp(argv[1],"exportmid"))
+		{
+			
+		}
+	}
+	std::cout << "Select MIDS file: " << std::endl;
+	std::string str;
+	std::cin >> str;
+	SelectMidiDevice();
+	ParseMidsFile(str);
+	StartMidiPlayback();
+}
+#endif
 void QueueMidiEvent(MidsEvent midsevent)
 {
 	//std::cout << "Delta time: " << midsevent.dwDeltaTime << std::endl;
@@ -188,7 +210,13 @@ void ParseMidsFile(std::string filename)
 			}
 		}
 	}
-	else std::cout << "Error: Failed to open file!" << std::endl;
+	else
+	{
+		std::cout << "Error: Failed to open file!" << std::endl;
+		#ifdef BTRMID_STANDALONE
+		exit(-1);
+		#endif
+	}
 }
 
 void StartMidiPlayback()
@@ -196,7 +224,9 @@ void StartMidiPlayback()
     //midiOut.send_message(rtmidi::message::control_change(0,0x79,0));
     //midiOut.send_message(rtmidi::message::control_change(0,0x7B,0));
 	unsigned int devID = 0;
+#ifndef BTRMID_STANDALONE
     while(1)
+#endif
 	if (header.dwFlags == 0)
 	{
 		for (int i = 0; i < MidsStreamIDEvents.size(); i++)

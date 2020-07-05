@@ -19,13 +19,14 @@
 //#include <immintrin.h>
 #include <algorithm>
 int lives = 2;
-BTRsprite* ball = NULL;
+BTRsprite *ball = NULL;
 //std::vector<BTRball*> balls;
 std::vector<BTRSpark> sparks;
 int wallWidth = 0;
 int score = 0;
 int frameCnt = 0;
 int fireBrickFrame = 64;
+unsigned char brickID = 1;
 std::chrono::steady_clock clocktime;
 std::chrono::steady_clock::time_point now;
 int64_t sec = 0;
@@ -46,21 +47,23 @@ bool ballLost = false;
 std::vector<BTRExplodingBricks> explodingBricks;
 std::vector<BTRExplosion> explosions;
 std::vector<BTRButton> btns;
+std::vector<BTRButton> levEditBtns;
 int framesPassedlastPowerup;
-std::thread* thread = NULL;
+std::thread *thread = NULL;
 std::vector<std::pair<std::string, int>> scoresAndNames;
-BTRChompTeeth* chompteeth = NULL;
-BTRPlayArea* playArea = NULL;
+BTRChompTeeth *chompteeth = NULL;
+BTRPlayArea *playArea = NULL;
 std::vector<unsigned char> randPlayedLevels;
-std::bitset<40> randPlayedSet;
+int64_t randPlayedSet;
 
 bool sortScoreList(const std::pair<std::string, int> t1, const std::pair<std::string, int> t2)
 {
-    if (std::get<1>(t1) > std::get<1>(t2)) return true;
+    if (std::get<1>(t1) > std::get<1>(t2))
+        return true;
     return false;
 }
 extern void StopMidiPlayback();
-extern std::string& GetCurPlayingFilename();
+extern std::string &GetCurPlayingFilename();
 unsigned int devID = 0;
 void loadMusic(std::string mdsfilename)
 {
@@ -71,7 +74,8 @@ void loadMusic(std::string mdsfilename)
     if (thread)
     {
         eot = true;
-        if (thread->joinable()) thread->join();
+        if (thread->joinable())
+            thread->join();
         eot = false;
         delete thread;
     }
@@ -86,7 +90,7 @@ void loadMusic(std::string mdsfilename)
     ParseMidsFile(mdsfilename);
     thread = new std::thread(StartMidiPlayback);
 }
-extern void DownBricks(BTRPlayArea& area);
+extern void DownBricks(BTRPlayArea &area);
 //using namespace luabridge;
 auto ActivatePowerup(int powerupID)
 {
@@ -94,28 +98,29 @@ auto ActivatePowerup(int powerupID)
 }
 const std::string gammaShaderCode =
 
-"#version 120"\
-"\n"\
-""\
-"uniform sampler2D texture;" \
-"uniform float gamma; " \
-"void main()"\
-"{" \
-" vec4 pixel = texture2D(texture, gl_TexCoord[0].xy);" \
-" gl_FragColor = pow(pixel, vec4(vec3(1.0f / gamma),1.0) );" \
-"}";
+    "#version 120"
+    "\n"
+    ""
+    "uniform sampler2D texture;"
+    "uniform float gamma; "
+    "void main()"
+    "{"
+    " vec4 pixel = texture2D(texture, gl_TexCoord[0].xy);"
+    " gl_FragColor = pow(pixel, vec4(vec3(1.0f / gamma),1.0) );"
+    "}";
 
 bool firstRun = true;
 bool vertvelpowerup = false;
 
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
 #if defined(__unix__) || defined(__APPLE__)
-    auto randfd = open("/dev/random",O_RDONLY);
+    auto randfd = open("/dev/random", O_RDONLY);
     if (randfd == -1)
     {
-        randfd = open("/dev/urandom",O_RDONLY);
-        if (randfd == -1) std::cout << "Skipping random number generation from device" << std::endl;
+        randfd = open("/dev/urandom", O_RDONLY);
+        if (randfd == -1)
+            std::cout << "Skipping random number generation from device" << std::endl;
     }
     if (randfd != -1)
     {
@@ -123,10 +128,10 @@ int main(int argc, char* argv[])
         std::vector<uint32_t> randNums;
         for (int i = 0; i < lrint(2492.125); i++)
         {
-            read(randfd,(void*)&randNum,4);
+            read(randfd, (void *)&randNum, 4);
             randNums.push_back(randNum);
         }
-        std::seed_seq *seq = new std::seed_seq(randNums.begin(),randNums.end());
+        std::seed_seq *seq = new std::seed_seq(randNums.begin(), randNums.end());
         gen.seed(*seq);
         delete seq;
     }
@@ -135,27 +140,26 @@ int main(int argc, char* argv[])
     InitOpenAL();
     for (int i = 0; i < argc; i++)
     {
-        if (strncmp("vertvelpowerup", argv[i], strlen("vertvelpowerup"))==0)
+        if (strncmp("vertvelpowerup", argv[i], strlen("vertvelpowerup")) == 0)
         {
             vertvelpowerup = true;
             std::cout << "vertvelpowerup = true" << std::endl;
         }
     }
     std::map<std::string, int> cheatKeys =
-    {
-        {"inc me",14},
-        {"let me hear you say fired up",6},
-        {"my velcro shoes",3},
-        {"no ska no swing",9},
-        {"not a small thing",0},
-        {"sidewinders",10},
-        {"detrimental abundancy",22},
-        {"mixed blessings",12},
-        {"beneficial abundancy",11},
-        {"through holy faith",15},
-        {"sweet",8},
-        {"funyons",30}
-    };
+        {
+            {"inc me", 14},
+            {"let me hear you say fired up", 6},
+            {"my velcro shoes", 3},
+            {"no ska no swing", 9},
+            {"not a small thing", 0},
+            {"sidewinders", 10},
+            {"detrimental abundancy", 22},
+            {"mixed blessings", 12},
+            {"beneficial abundancy", 11},
+            {"through holy faith", 15},
+            {"sweet", 8},
+            {"funyons", 30}};
     sf::Shader gammaShader;
     auto loaded = gammaShader.loadFromMemory(gammaShaderCode, sf::Shader::Fragment);
     if (!loaded)
@@ -196,7 +200,7 @@ int main(int argc, char* argv[])
         end
         )");
 #endif
-    std::vector<std::string> musics = { "./ball/coolin.mds","./ball/samba.mds","./ball/piano.mds","./ball/rush.mds" };
+    std::vector<std::string> musics = {"./ball/coolin.mds", "./ball/samba.mds", "./ball/piano.mds", "./ball/rush.mds"};
     std::cout.setf(std::ios_base::boolalpha);
     //for (int i = 0; i < 19937 / 8 * 4; i++) gen.seed(rd());
     std::uniform_int_distribution<> dis(-5, 5);
@@ -231,7 +235,8 @@ int main(int argc, char* argv[])
                 sectionName.pop_back();
                 sectionName += "10";
             }
-            else sectionName[sectionName.size() - 1]++;
+            else
+                sectionName[sectionName.size() - 1]++;
         }
         std::sort(scoresAndNames.begin(), scoresAndNames.end(), &sortScoreList);
     }
@@ -271,19 +276,18 @@ int main(int argc, char* argv[])
     wallSprite.setScale(1, 24);
 
     ball = new BTRsprite("./ball/ball.png", 32);
-    auto loadSplashSprite = new BTRsprite("./art/romtech.png",1,false,1);
+    auto loadSplashSprite = new BTRsprite("./art/romtech.png", 1, false, 1);
     sf::Texture windowTexture;
     windowTexture.create(BTRWINDOWWIDTH, BTRWINDOWHEIGHT);
     sf::Sprite windowSprite;
     windowSprite.setTexture(windowTexture, true);
-    sf::RenderWindow* window = new sf::RenderWindow(sf::VideoMode(BTRWINDOWWIDTH, BTRWINDOWHEIGHT), "Blast Thru Reborn", sf::Style::Titlebar | sf::Style::Close);
+    sf::RenderWindow *window = new sf::RenderWindow(sf::VideoMode(BTRWINDOWWIDTH, BTRWINDOWHEIGHT), "Blast Thru Reborn", sf::Style::Titlebar | sf::Style::Close);
     window->setFramerateLimit(40);
     window->clear();
     window->draw(*loadSplashSprite);
     windowTexture.update(*window);
-    window->display();        
-    auto fadeToColor = [&](sf::Color fadeColor)
-    {
+    window->display();
+    auto fadeToColor = [&](sf::Color fadeColor) {
         uint32_t framerate = 60;
 #ifdef WIN32
         framerate = GetDeviceCaps(GetDC(window->getSystemHandle()), VREFRESH);
@@ -323,15 +327,14 @@ int main(int argc, char* argv[])
     std::this_thread::sleep_for(std::chrono::seconds(1));
     window->pollEvent(event);
     std::this_thread::sleep_for(std::chrono::seconds(1));
-    fadeToColor(sf::Color(0, 0, 0, 254));
-    
+    fadeToColor(sf::Color(0, 0, 0, 255));
+
     BTRPlaySound("./ball/grow.wav");
     window->setFramerateLimit(40);
     //loadMusic(musics[mdsrand(gen)]);
 
-
     now = clocktime.now();
-    
+
     auto font = new BTRFont("./ball/fontcool.png");
     auto largeFont = new BTRFont("./ball/fontlarge.png", BTRFont::FontType::BTR_FONTLARGE);
     playArea = new BTRPlayArea("./lev/0.lev");
@@ -365,8 +368,7 @@ int main(int argc, char* argv[])
     paused = true;
     PauseMidiPlayback();
     BTRPlaySound("./sound/menu.wav", 1, 0, 1);
-    auto DrawBackground = [&]()
-    {
+    auto DrawBackground = [&]() {
         sf::Sprite sprite;
         sprite.setTexture(tex, true);
 
@@ -377,7 +379,7 @@ int main(int argc, char* argv[])
                 sprite.setPosition(sf::Vector2f(posX, posY));
                 //gammaShader.setUniform("gamma", 1.f);
                 //gammaShader.setUniform("texture", tex);
-                window->draw(sprite/*,&gammaShader*/);
+                window->draw(sprite /*,&gammaShader*/);
             }
         wallSprite.setPosition(window->getSize().x - wallWidth / 2, 0);
         window->draw(wallSprite);
@@ -387,17 +389,16 @@ int main(int argc, char* argv[])
     DrawBackground();
     windowTexture.update(*window);
     window->display();
-    auto removeSparkObject = [](BTRSpark& spark)
-    {
+    auto removeSparkObject = [](BTRSpark &spark) {
         if (spark.sparkRect.left >= 15 * 3 || spark.y > BTRWINDOWHEIGHT)
         {
             return true;
         }
         return false;
     };
-    auto drawPaddle = [&](bool changeToCursor = true)
-    {
-        if (changeToCursor) playArea->paddle.sprite->sprite.setPosition(std::clamp(cursor->sprite.getPosition().x, wallWidth / 2.f, BTRWINDOWWIDTH - wallWidth / 2.f - (float)playArea->paddle.paddleRadius), BTRWINDOWHEIGHT - 30);
+    auto drawPaddle = [&](bool changeToCursor = true) {
+        if (changeToCursor)
+            playArea->paddle.sprite->sprite.setPosition(std::clamp(cursor->sprite.getPosition().x, wallWidth / 2.f, BTRWINDOWWIDTH - wallWidth / 2.f - (float)playArea->paddle.paddleRadius), BTRWINDOWHEIGHT - 30);
         //paddle.sprite->Animate();
         window->draw(playArea->paddle.sprite->sprite);
         playArea->paddle.sprite->sprite.setTextureRect(sf::IntRect(sf::Vector2i(0, playArea->paddle.sprite->realHeightPerTile * (playArea->paddle.sprite->animFramePos - 1)), sf::Vector2i(3, playArea->paddle.sprite->realHeightPerTile)));
@@ -409,8 +410,7 @@ int main(int argc, char* argv[])
         window->draw(playArea->paddle.sprite->sprite);
         playArea->paddle.sprite->sprite.setPosition(orgpos);
     };
-    auto drawPaddleXY = [&](float x, float y, int width)
-    {
+    auto drawPaddleXY = [&](float x, float y, int width) {
         auto orgRad = playArea->paddle.paddleRadius;
         auto orgPos = playArea->paddle.sprite->sprite.getPosition();
         playArea->paddle.sprite->sprite.setPosition(x, y);
@@ -439,12 +439,12 @@ int main(int argc, char* argv[])
     auto titleImage = new BTRsprite("./ball/bibleball.png", 1, false, 1);
     auto wincornerImage = new BTRsprite("./ball/wincorner.png", 14, 0, 1);
     auto winButtonImage = new BTRsprite("./ball/winbutton2.png", 1);
+    auto winButtonSmallImage = new BTRsprite("./ball/winbutton.png", 1);
     wincornerImage->sprite.setOrigin(sf::Vector2f(wincornerImage->realWidthPerTile / 2, wincornerImage->height / 2));
     titleImage->SetTexRect(0, 0);
     titleImage->texture.setRepeated(true);
     bool isLevEdit = false;
-    auto DrawFrame = [&](sf::RenderWindow* window, sf::Vector2f pos, sf::Vector2f size)
-    {
+    auto DrawFrame = [&](sf::RenderWindow *window, sf::Vector2f pos, sf::Vector2f size) {
         sf::RectangleShape rect;
         rect.setFillColor(sf::Color(16, 24, 32));
         rect.setPosition(pos);
@@ -494,8 +494,7 @@ int main(int argc, char* argv[])
         window->draw(*wincornerImage);
     };
     auto editPlayArea = new BTRPlayArea();
-    auto flipPaused = [&](sf::Event event,bool musRestart = true)
-    {
+    auto flipPaused = [&](sf::Event event, bool musRestart = true) {
         paused ^= 1;
         BTRStopAllSounds();
         PauseMidiPlayback();
@@ -506,87 +505,186 @@ int main(int argc, char* argv[])
             {
                 menu = true;
             }
-            else menu = false;
+            else
+                menu = false;
         }
         else
         {
             BTRStopAllSounds();
-            if (musRestart) ContinueMidiPlayback();
+            if (musRestart)
+                ContinueMidiPlayback();
             menu = false;
         }
     };
-	BTRButton retToGame;
-	retToGame.clickedFunc = [&]()
-	{
+    BTRButton retToGame;
+    retToGame.clickedFunc = [&]() {
         if (firstRun)
         {
             return;
         }
-		sf::Event event;
-		event.type = sf::Event::KeyPressed;
-		event.key.code = sf::Keyboard::Escape;
-		flipPaused(event);
-		BTRPlaySound("./ball/editselect.wav");
-	};
-	retToGame.str = "Return to Game";
-	retToGame.pos = sf::Vector2f(640 / 2 - winButtonImage->width / 2, BTRWINDOWHEIGHT - 100);
-	BTRButton quitGame;
-	quitGame.clickedFunc = [&]()
-	{
-		window->display();
-		windowTexture.update(*window); // Flip off the buffers.
-		fadeToColor(sf::Color(0, 0, 0, 255));
-		window->close();
-	};
-	quitGame.pos = sf::Vector2f(640 / 2 - winButtonImage->width / 2, BTRWINDOWHEIGHT - 80);
-	quitGame.str = "Quit Game";
-	BTRButton randomLevel;
-	randomLevel.clickedFunc = [&]()
-	{
-		fadeOut = true;
-		score = 0;
-		lives = 2;
-		playArea->levnum = std::uniform_int_distribution<int>(1, 40)(rd) - 1;
-		sf::Event event;
-		event.type = sf::Event::KeyPressed;
-		event.key.code = sf::Keyboard::Escape;
-		flipPaused(event, false);
-		GetCurPlayingFilename() = "";
-		BTRPlaySound("./ball/editselect.wav");
+        sf::Event event;
+        event.type = sf::Event::KeyPressed;
+        event.key.code = sf::Keyboard::Escape;
+        flipPaused(event);
+        BTRPlaySound("./ball/editselect.wav");
+    };
+    retToGame.str = "Return to Game";
+    retToGame.pos = sf::Vector2f(640 / 2 - winButtonImage->width / 2, BTRWINDOWHEIGHT - 100);
+    BTRButton quitGame;
+    quitGame.clickedFunc = [&]() {
+        window->display();
+        windowTexture.update(*window); // Flip off the buffers.
+        fadeToColor(sf::Color(0, 0, 0, 255));
+        window->close();
+    };
+    quitGame.pos = sf::Vector2f(640 / 2 - winButtonImage->width / 2, BTRWINDOWHEIGHT - 80);
+    quitGame.str = "Quit Game";
+    BTRButton randomLevel;
+    randomLevel.clickedFunc = [&]() {
+        fadeOut = true;
+        score = 0;
+        lives = 2;
+        playArea->levnum = std::uniform_int_distribution<int>(1, 40)(rd) - 1;
+        sf::Event event;
+        event.type = sf::Event::KeyPressed;
+        event.key.code = sf::Keyboard::Escape;
+        flipPaused(event, false);
+        GetCurPlayingFilename() = "";
+        BTRPlaySound("./ball/editselect.wav");
         firstRun = false;
-		fade = 1;
+        fade = 1;
         playArea->randomPlay = true;
         isLevEdit = false;
-	};
-	randomLevel.str = "Random Play";
-	randomLevel.pos = sf::Vector2f(640 / 2 - winButtonImage->width / 2, BTRWINDOWHEIGHT - 340);
-	btns.push_back(randomLevel);
-	BTRButton singlePlay;
-	singlePlay.str = "Single Play";
-	singlePlay.pos = sf::Vector2f(randomLevel.pos.x, randomLevel.pos.y - 20);
-	singlePlay.clickedFunc = [&]()
-	{
+    };
+    randomLevel.str = "Random Play";
+    randomLevel.pos = sf::Vector2f(640 / 2 - winButtonImage->width / 2, BTRWINDOWHEIGHT - 340);
+    btns.push_back(randomLevel);
+    BTRButton singlePlay;
+    singlePlay.str = "Single Play";
+    singlePlay.pos = sf::Vector2f(randomLevel.pos.x, randomLevel.pos.y - 20);
+    singlePlay.clickedFunc = [&]() {
         btns[0].clickedFunc();
-		playArea->levnum = 0;
+        playArea->levnum = 0;
         playArea->randomPlay = false;
-	};
-	btns.push_back(retToGame);
-	btns.push_back(quitGame);
-	btns.push_back(singlePlay);
+    };
+    btns.push_back(retToGame);
+    btns.push_back(quitGame);
+    btns.push_back(singlePlay);
 
     BTRButton levEdit;
-    levEdit.clickedFunc = [&]()
-    {
+    levEdit.clickedFunc = [&]() {
         isLevEdit = true;
         sf::Event event;
-		event.type = sf::Event::KeyPressed;
-		event.key.code = sf::Keyboard::Escape;
-		flipPaused(event, false);
+        event.type = sf::Event::KeyPressed;
+        event.key.code = sf::Keyboard::Escape;
+        flipPaused(event, false);
     };
     levEdit.str = "Level Editor";
     levEdit.pos = sf::Vector2f(randomLevel.pos.x, randomLevel.pos.y + 20);
+    BTRButton levEditPlay;
+    levEditPlay.clickedFunc = [&]()
+    {
+        *playArea = *editPlayArea;
+        singlePlay.clickedFunc();
+        sf::Event event;
+        event.type = sf::Event::KeyPressed;
+        event.key.code = sf::Keyboard::Escape;
+        flipPaused(event, false);
+        playArea->levnum = -1;        
+        playArea->SpawnInitialBall();
+    };
+    levEditPlay.smallButton = 1;
+    levEditPlay.str = "Play";
+    levEditPlay.pos = sf::Vector2f(BTRWINDOWWIDTH - winButtonSmallImage->width - 20,20);
+    levEditBtns.push_back(levEditPlay);
+    BTRButton levEditSave;
+    levEditSave.clickedFunc = [editPlayArea]()
+    {
+        editPlayArea->ExportBricks();
+    };
+    levEditSave.smallButton = 1;
+    levEditSave.str = "Save";
+    levEditSave.pos = sf::Vector2f(levEditPlay.pos.x - winButtonSmallImage->width - 20,20);
+    levEditBtns.push_back(levEditSave);    
     btns.push_back(levEdit);
     bool isFullscreen = false;
+    sf::Sprite brickSprite;
+    playArea->LoadBrickTex();
+    brickSprite.setTexture(playArea->brickTexture, true);
+    auto drawBricks = [&]() {
+        sf::Sprite brickSprite;
+        playArea->LoadBrickTex();
+        brickSprite.setTexture(playArea->brickTexture, true);
+        for (auto &curBrick : playArea->bricks)
+            if (curBrick.brickID != 63 || (curBrick.brickID == 63 && isLevEdit))
+            {
+                brickSprite.setTextureRect(playArea->brickTexRects[curBrick.brickID - 1]);
+                if (curBrick.isFireball)
+                {
+                    brickSprite.setTextureRect(playArea->brickTexRects[fireBrickFrame]);
+                }
+                brickSprite.setPosition(sf::Vector2f(curBrick.x, curBrick.y));
+                window->draw(brickSprite);
+            }
+        for (auto &curExplBrick : explodingBricks)
+        {
+            if (curExplBrick.frameOffset >= 7)
+            {
+                curExplBrick.frameOffset = 0;
+                curExplBrick.loop++;
+            }
+            brickSprite.setTextureRect(playArea->brickTexRects[128ll + curExplBrick.frameOffset]);
+            brickSprite.setPosition(curExplBrick.pos);
+            window->draw(brickSprite);
+            curExplBrick.frameOffset++;
+        }
+        for (int i = 0; i < explodingBricks.size(); i++)
+        {
+            if (explodingBricks[i].loop > 4)
+            {
+                explodingBricks.erase(explodingBricks.begin() + i);
+            }
+        }
+        fireBrickFrame++;
+        if (fireBrickFrame >= 128)
+        fireBrickFrame = 64;
+    };
+    auto drawBricksFromArea = [&](BTRPlayArea* area)
+    {
+        auto orgArea = playArea;
+        playArea = area;
+        drawBricks();
+        playArea = orgArea;
+    };
+    auto drawSparks = [&]()
+    {
+        for (int i = 0; i < sparks.size(); i++)
+        {
+            auto curSpark = sparks[i];
+            sparkSprite->sprite.setPosition(sparks[i].x, sparks[i].y);
+            sparkSprite->sprite.setColor(sparks[i].color);
+            if (frameCnt % 3 == 0)
+                sparks[i].sparkRect.left += 3;
+            sparkSprite->sprite.setTextureRect(curSpark.sparkRect);
+#if __cplusplus <= 201703L
+            if (sparks[i].sparkRect.left < 15 * 3)
+#endif
+                window->draw(sparkSprite->sprite);
+#if __cplusplus <= 201703L
+            else
+            {
+                sparks.erase(sparks.begin() + i);
+                continue;
+            }
+#endif
+            sparks[i].velY += sparks[i].gravity;
+            sparks[i].y += sparks[i].velY;
+            sparks[i].x += sparks[i].velX;
+        }
+#if __cplusplus > 201703L
+        std::erase_if(sparks, removeSparkObject);
+#endif
+    };
     while (window->isOpen())
     {
         sf::Event event;
@@ -614,20 +712,18 @@ int main(int argc, char* argv[])
                 }*/
                 if (cheatText)
                 {
-                    if (event.text.unicode == 127) cheatstr.pop_back();
-                    else cheatstr += static_cast<char>(event.text.unicode);
+                    if (event.text.unicode == 127)
+                        cheatstr.pop_back();
+                    else
+                        cheatstr += static_cast<char>(event.text.unicode);
                 }
                 break;
             case sf::Event::MouseButtonReleased:
                 if (menu)
                 {
-                    for (auto& curBtn : btns)
+                    for (auto &curBtn : btns)
                     {
-                        if (event.mouseButton.x >= curBtn.pos.x
-                            && event.mouseButton.x <= curBtn.pos.x + winButtonImage->width
-                            && event.mouseButton.y <= curBtn.pos.y + 20
-                            && event.mouseButton.y >= curBtn.pos.y
-                            && curBtn.wasHeld)
+                        if (event.mouseButton.x >= curBtn.pos.x && event.mouseButton.x <= curBtn.pos.x + winButtonImage->width && event.mouseButton.y <= curBtn.pos.y + 20 && event.mouseButton.y >= curBtn.pos.y && curBtn.wasHeld)
                         {
                             BTRPlaySound("./ball/editselect.wav");
                             curBtn.clickedFunc();
@@ -635,11 +731,71 @@ int main(int argc, char* argv[])
                         curBtn.wasHeld = false;
                     }
                 }
+                if (isLevEdit && !menu)
+                {
+                    for (auto &curBtn : levEditBtns)
+                    {
+                        if (event.mouseButton.x >= curBtn.pos.x && event.mouseButton.x <= curBtn.pos.x + winButtonImage->width && event.mouseButton.y <= curBtn.pos.y + 20 && event.mouseButton.y >= curBtn.pos.y && curBtn.wasHeld)
+                        {
+                            BTRPlaySound("./ball/editselect.wav");
+                            curBtn.clickedFunc();
+                        }
+                        curBtn.wasHeld = false;
+                    }
+                }                
                 break;
             case sf::Event::MouseButtonPressed:
+                if (event.mouseButton.button == sf::Mouse::Right && isLevEdit && !paused
+                    && sf::Mouse::getPosition(*window).y >= 50
+                    && sf::Mouse::getPosition(*window).y <= (BTRWINDOWHEIGHT - 15 * 5))
+                {
+                    for (int i = 0; i < editPlayArea->bricks.size(); i++)
+                    {
+                        auto& curBrick = editPlayArea->bricks[i];
+                        if (event.mouseButton.x >= curBrick.x
+                            && event.mouseButton.y >= curBrick.y
+                            && event.mouseButton.x <= curBrick.x + curBrick.width 
+                            && event.mouseButton.y <= curBrick.y + curBrick.height )
+                        {
+                            editPlayArea->bricks.erase(editPlayArea->bricks.begin() + i);
+                            BTRPlaySound("./ball/explode.wav");
+                        }
+                    }
+                }
                 if (event.mouseButton.button == sf::Mouse::Left)
                 {
-                    for (auto& curBall : playArea->balls)
+                    if (isLevEdit && !paused &&
+                     sf::Mouse::getPosition(*window).y >= 50
+                     && sf::Mouse::getPosition(*window).y <= (BTRWINDOWHEIGHT - 15 * 5))
+                    {
+                        for (int i = 0; i < editPlayArea->bricks.size(); i++)
+                        {
+                            auto& curBrick = editPlayArea->bricks[i];
+                            if (event.mouseButton.x >= curBrick.x
+                                && event.mouseButton.y >= curBrick.y
+                                && event.mouseButton.x <= curBrick.x + curBrick.width 
+                                && event.mouseButton.y <= curBrick.y + curBrick.height )
+                            {
+                                editPlayArea->bricks.erase(editPlayArea->bricks.begin() + i);
+                                BTRPlaySound("./ball/explode.wav");
+                            }
+                        }
+                        BTRPlaySound("./ball/editbrick.wav");
+                        auto curPos = sf::Mouse::getPosition(*window);
+                        curPos.x -= wallWidth / 2;
+                        auto gridAlignX = curPos.x % 30;
+                        auto gridAlignY = curPos.y % 15;
+                        spawnSpark(30, sf::Color(255, 255, 255), ((sf::Vector2f)curPos - sf::Vector2f(gridAlignX,gridAlignY)) + sf::Vector2f(wallWidth / 2,0));
+                        spawnObject(sf::Vector2f((curPos.x - gridAlignX) + wallWidth / 2 ,curPos.y - gridAlignY), 
+                        std::function<void(BTRbrick&)>() = [editPlayArea](BTRbrick& brick)
+                        {
+                            brick.brickID = brickID;
+                            if (brick.brickID > 64) brick.brickID = 64;
+                            if (brick.brickID == 64) brick.isFireball = true;
+                            editPlayArea->bricks.push_back(brick);
+                        });
+                    }
+                    for (auto &curBall : playArea->balls)
                     {
                         curBall->ballHeld = false;
                     }
@@ -651,12 +807,22 @@ int main(int argc, char* argv[])
 #endif
                     if (menu)
                     {
-                        for (auto& curBtn : btns)
+                        for (auto &curBtn : btns)
+                        {
+                            if (event.mouseButton.x >= curBtn.pos.x && event.mouseButton.x <= curBtn.pos.x + winButtonImage->width && event.mouseButton.y <= curBtn.pos.y + 20 && event.mouseButton.y >= curBtn.pos.y)
+                            {
+                                curBtn.wasHeld = true;
+                            }
+                        }
+                    }
+                    if (isLevEdit && !menu)
+                    {
+                        for (auto &curBtn : levEditBtns)
                         {
                             if (event.mouseButton.x >= curBtn.pos.x
-                                && event.mouseButton.x <= curBtn.pos.x + winButtonImage->width
-                                && event.mouseButton.y <= curBtn.pos.y + 20
-                                && event.mouseButton.y >= curBtn.pos.y)
+                            && event.mouseButton.x <= curBtn.pos.x + winButtonSmallImage->width 
+                            && event.mouseButton.y <= curBtn.pos.y + 20 
+                            && event.mouseButton.y >= curBtn.pos.y)
                             {
                                 curBtn.wasHeld = true;
                             }
@@ -664,19 +830,39 @@ int main(int argc, char* argv[])
                     }
                 }
                 break;
-            case sf::Event::KeyPressed:
-                if (event.key.code == sf::Keyboard::Pause || event.key.code == sf::Keyboard::Escape) if (!highScore)
+            case sf::Event::MouseWheelScrolled:
                 {
-                    flipPaused(event);
+                    if (event.mouseWheelScroll.delta < 0)
+                    {
+                        brickID -= 1;
+                        if (brickID <= 0)
+                        {
+                            brickID = 64;
+                        }
+
+                    }
+                    else if (event.mouseWheelScroll.delta > 0)
+                    {
+                        brickID = std::clamp(++brickID,(unsigned char)1,(unsigned char)64);
+                    }
+                    break;
                 }
+            case sf::Event::KeyPressed:
+                if (event.key.code == sf::Keyboard::Pause || event.key.code == sf::Keyboard::Escape)
+                    if (!highScore)
+                    {
+                        flipPaused(event);
+                    }
                 if (event.key.code == sf::Keyboard::Enter)
                 {
                     if (event.key.alt)
                     {
                         delete window;
                         isFullscreen ^= 1;
-                        if (isFullscreen) window = new sf::RenderWindow(sf::VideoMode(BTRWINDOWWIDTH, BTRWINDOWHEIGHT), "Blast Thru Reborn", sf::Style::Titlebar | sf::Style::Close | sf::Style::Fullscreen);
-                        else window = new sf::RenderWindow(sf::VideoMode(BTRWINDOWWIDTH, BTRWINDOWHEIGHT), "Blast Thru Reborn", sf::Style::Titlebar | sf::Style::Close | sf::Style::Resize);
+                        if (isFullscreen)
+                            window = new sf::RenderWindow(sf::VideoMode(BTRWINDOWWIDTH, BTRWINDOWHEIGHT), "Blast Thru Reborn", sf::Style::Titlebar | sf::Style::Close | sf::Style::Fullscreen);
+                        else
+                            window = new sf::RenderWindow(sf::VideoMode(BTRWINDOWWIDTH, BTRWINDOWHEIGHT), "Blast Thru Reborn", sf::Style::Titlebar | sf::Style::Close | sf::Style::Resize);
                         window->setFramerateLimit(40);
                         //break;
                     }
@@ -699,7 +885,9 @@ int main(int argc, char* argv[])
                             textToDraw = "You cheater you!";
                             cornerTextBlinkTime = 1;
                         }
-                        catch (std::out_of_range) {} // Intentional.
+                        catch (std::out_of_range)
+                        {
+                        } // Intentional.
                         cheatText = false;
                         cheatstr.clear();
                     }
@@ -722,12 +910,13 @@ int main(int argc, char* argv[])
                 break;
             }
         }
-        if (!window->isOpen()) break;
+        if (!window->isOpen())
+            break;
         if (highScore)
         {
             window->clear();
             window->draw(highScoreSprite);
-            for (auto& curMovingText : scoreTexts)
+            for (auto &curMovingText : scoreTexts)
             {
                 curMovingText.Tick();
                 font->RenderChars(curMovingText.movingText, curMovingText.pos, window);
@@ -743,7 +932,8 @@ int main(int argc, char* argv[])
             window->draw(windowSprite);
             winBoxImage->sprite.setPosition(sf::Vector2f(BTRWINDOWWIDTH / 2 - winBoxImage->width / 2, BTRWINDOWHEIGHT / 2));
             window->draw(*winBoxImage);
-            if (sf::Keyboard::isKeyPressed(sf::Keyboard::BackSpace) && cheatstr.size() > 0) cheatstr.pop_back();
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::BackSpace) && cheatstr.size() > 0)
+                cheatstr.pop_back();
             font->RenderChars("Cheaters never prosper...", winBoxImage->sprite.getPosition() - sf::Vector2f(0, font->genCharHeight), window);
             font->RenderChars(cheatstr + '|', winBoxImage->sprite.getPosition(), window);
             window->display();
@@ -770,7 +960,7 @@ int main(int argc, char* argv[])
                 glEnable(GL_SCISSOR_TEST);
                 glScissor(pos.x, pos.y, 300, 370);
                 font->RenderChars("Game Menu", sf::Vector2f(640 / 2 - font->GetSizeOfText("Game Menu").x / 2, font->genCharHeight + pos.y), window);
-                for (auto& curBtn : btns)
+                for (auto &curBtn : btns)
                 {
                     winButtonImage->sprite.setPosition(curBtn.pos);
                     winButtonImage->SetSpriteIndex(curBtn.wasHeld);
@@ -811,7 +1001,7 @@ int main(int argc, char* argv[])
                 int scoreY = 3;
                 int scoreList = 1;
                 bool flipVal = false;
-                for (auto& curScore : scoresAndNames)
+                for (auto &curScore : scoresAndNames)
                 {
                     if (std::get<int>(curScore) == score)
                     {
@@ -820,7 +1010,7 @@ int main(int argc, char* argv[])
                     std::stringstream istr;
                     std::string str = std::to_string(scoreList) + ". " + std::get<std::string>(curScore);
                     istr << str;
-                    istr.setf(std::ios::right, std::ios::adjustfield);                                        
+                    istr.setf(std::ios::right, std::ios::adjustfield);
                     str += "                           ";
                     str.resize(str.size() - std::to_string(std::get<int>(curScore)).size());
                     str += std::to_string(std::get<int>(curScore));
@@ -855,31 +1045,43 @@ int main(int argc, char* argv[])
                 playArea->paddle.sprite->sprite.setPosition(cursor->sprite.getPosition());
                 if (!ballLost)
                 {
-                    std::string str = "./lev/";
-                    bool isRandom = playArea->randomPlay;
-                    int newLev = 0;
-                    while (1)
+                    if (playArea->levnum != -1 || playArea->levelEnded)
                     {
-                        if (!playArea->randomPlay) break;
-                        randPlayedSet[playArea->levnum] = 1;
-                        newLev = std::uniform_int_distribution<int>(1, 40)(rd) - 1;
-                        if (randPlayedSet.all())
+                        std::string str = "./lev/";
+                        bool isRandom = playArea->randomPlay;
+                        int newLev = 0;
+                        playArea->levelEnded = 0;
+                        while (1)
                         {
+                            if (!playArea->randomPlay)
+                                break;
+                            randPlayedSet |= 1 << playArea->levnum;
+                            newLev = std::uniform_int_distribution<int>(1, 40)(rd) - 1;
+                            if (randPlayedSet == -1)
+                            {
+                                break;
+                            }
+                            if (randPlayedSet & (1 << newLev))
+                                continue;
                             break;
                         }
-                        if (randPlayedSet[newLev]) continue;
-                        break;
+                        newLev = isRandom ? newLev : playArea->levnum++;
+                        newLev = std::clamp(newLev, 0, 39);
+                        str += std::to_string(newLev) + ".lev";        
+                        int oldLevnum = playArea->levnum;
+                        delete playArea;
+                        playArea = 0;
+                        playArea = new BTRPlayArea(str, window);
+                        playArea->levelEnded = false;
+                        playArea->levnum = isRandom ? ++newLev : oldLevnum++;
+                        playArea->randomPlay = isRandom;
+                        explodingBricks.clear();
                     }
-                    newLev = isRandom ? newLev: playArea->levnum++;
-                    str += std::to_string(newLev) + ".lev";
-                    int oldLevnum = playArea->levnum;                   
-                    delete playArea;
-                    playArea = 0;                  
-                    playArea = new BTRPlayArea(str, window);
-                    playArea->levelEnded = false;
-                    playArea->levnum = isRandom ? ++newLev : oldLevnum++;
-                    playArea->randomPlay = isRandom;
-                    explodingBricks.clear();
+                    else
+                    {
+                        
+                    }
+                    
                     loadMusic(musics[mdsrand(gen)]);
                     BTRPlaySound("./ball/grow.wav");
                 }
@@ -897,7 +1099,6 @@ int main(int argc, char* argv[])
                     //midiStreamRestart(midiDev);
                     exitingFromHighScore = false;
                 }
-
             }
         }
         sf::Sprite sprite;
@@ -909,20 +1110,34 @@ int main(int argc, char* argv[])
         if (isLevEdit)
         {
             window->setFramerateLimit(40);
-            sf::Sprite brickSprite;
-            brickSprite.setTexture(playArea->brickTexture, true);
-            for (auto &curBrick : editPlayArea->bricks)
-                if (curBrick.brickID != 63)
-                {
-                    brickSprite.setTextureRect(playArea->brickTexRects[curBrick.brickID - 1]);
-                    if (curBrick.isFireball)
-                    {
-                        brickSprite.setTextureRect(playArea->brickTexRects[fireBrickFrame]);
-                    }
-                    brickSprite.setPosition(sf::Vector2f(curBrick.x, curBrick.y));
-
-                    window->draw(brickSprite);
-                }
+            drawBricksFromArea(editPlayArea);
+            DrawFrame(window, sf::Vector2f(0, 0), sf::Vector2f(BTRWINDOWWIDTH, 50));
+            DrawFrame(window, sf::Vector2f(wallWidth / 2, BTRWINDOWHEIGHT - (editPlayArea->brickheight - 15 * 4)), sf::Vector2f(BTRWINDOWWIDTH - wallWidth, editPlayArea->brickheight - 15 * 4));
+            for (auto &curBtn : levEditBtns)
+            {
+                winButtonSmallImage->sprite.setPosition(curBtn.pos);
+                winButtonSmallImage->SetSpriteIndex(curBtn.wasHeld);
+                window->draw(*winButtonSmallImage);
+                auto curBtnPos = curBtn.pos;
+                curBtnPos.x += winButtonSmallImage->width / 2;
+                curBtnPos -= sf::Vector2f(font->GetSizeOfText(curBtn.str).x / 2, 0);
+                //curBtnPos += sf::Vector2f(0, curBtn.wasHeld ? 5 : 0);
+                font->RenderChars(curBtn.str, curBtnPos, window);
+            }
+            auto brickRect = sf::IntRect(sf::Vector2i(), sf::Vector2i(editPlayArea->brickwidth, editPlayArea->brickheight - 15 * 5));
+            auto orgBrickRect = brickSprite.getTextureRect();
+            brickSprite.setTexture(editPlayArea->brickTexture);
+            brickSprite.setTextureRect(brickRect);
+            brickSprite.setPosition(BTRWINDOWWIDTH / 2 - editPlayArea->brickwidth / 2, BTRWINDOWHEIGHT - (editPlayArea->brickheight - 15 * 4.5));
+            window->draw(brickSprite);
+            auto brickTexPos = brickSprite.getPosition();
+            sf::RectangleShape outlineRect(sf::Vector2f(30,15));
+            sf::IntRect rect = editPlayArea->brickTexRects[brickID - 1];
+            outlineRect.setPosition(brickTexPos + sf::Vector2f(rect.left,rect.top));
+            outlineRect.setOutlineColor(sf::Color(255,0,0,255));
+            outlineRect.setOutlineThickness(-1);
+            outlineRect.setFillColor(sf::Color::Transparent);
+            window->draw(outlineRect);
             if (!cursorVisible)
             {
                 ball->SetSpriteIndex(1);
@@ -930,72 +1145,29 @@ int main(int argc, char* argv[])
                 cursor->sprite.setPosition((sf::Vector2f)sf::Mouse::getPosition(*window) - sf::Vector2f(cursor->width / 2, cursor->height / 2));
                 window->draw(cursor->sprite);
                 window->draw(ball->sprite);
-                ball->Animate();
+                //ball->Animate();
                 ball->SetSpriteIndex(0);
             }
+            drawSparks();
+            windowTexture.update(*window);
             window->display();
+            frameCnt++;
             continue;
         }
         playArea->Tick();
         playArea->paddle.sprite->Animate();
         playArea->paddle.sprite->sprite.setTextureRect(sf::IntRect(sf::Vector2i(playArea->paddle.sprite->width / 2 - playArea->paddle.drawPaddleRadius / 2, playArea->paddle.sprite->realHeightPerTile * (playArea->paddle.sprite->animFramePos - 1)), sf::Vector2i(playArea->paddle.drawPaddleRadius, playArea->paddle.sprite->realHeightPerTile)));
         playArea->paddle.sprite->sprite.setOrigin(-playArea->paddle.paddleRadius / 2 + playArea->paddle.drawPaddleRadius / 2, 0);
-        if (fireBrickFrame >= 128) fireBrickFrame = 64;
-        if (drawCornerText) font->RenderChars(textToDraw, sf::Vector2f(wallWidth / 2, BTRWINDOWHEIGHT - font->genCharHeight), window);
+
+        if (drawCornerText)
+            font->RenderChars(textToDraw, sf::Vector2f(wallWidth / 2, BTRWINDOWHEIGHT - font->genCharHeight), window);
         if (frameCnt % 10 == 0 && cornerTextBlinkTime < 7)
         {
             drawCornerText ^= 1;
             cornerTextBlinkTime++;
         }
-        sf::Sprite brickSprite;
-        brickSprite.setTexture(playArea->brickTexture, true);
-        for (auto& curBrick : playArea->bricks) if (curBrick.brickID != 63)
-        {
-            brickSprite.setTextureRect(playArea->brickTexRects[curBrick.brickID - 1]);
-            if (curBrick.isFireball)
-            {
-                brickSprite.setTextureRect(playArea->brickTexRects[fireBrickFrame]);
-            }
-            brickSprite.setPosition(sf::Vector2f(curBrick.x, curBrick.y));
-#if 0
-            for (auto& curExpl : explosions)
-            {
-                auto dist = abs(sqrt(curBrick.x * curBrick.x + curBrick.y * curBrick.y) - sqrt(curExpl.pos.x * curExpl.pos.x + curExpl.pos.y * curExpl.pos.y));
-                if (dist <= 67.)
-                {
-                    auto val = 1.0 - (dist / 67.);
-                    auto col = sf::Color(255 * 0.85,255 * 0.65,255 * 0.13);
-                    col.r = std::lerp(col.r, 255, val);
-                    col.g = std::lerp(col.g, 255, val);
-                    col.b = std::lerp(col.b, 255, val);
-                    brickSprite.setColor(col);
-                }
-            }
-#endif
-            window->draw(brickSprite);
-#if 0
-            brickSprite.setColor(sf::Color(255, 255, 255, 255));
-#endif
-        }
-        for (auto& curExplBrick : explodingBricks)
-        {
-            if (curExplBrick.frameOffset >= 7)
-            {
-                curExplBrick.frameOffset = 0;
-                curExplBrick.loop++;
-            }
-            brickSprite.setTextureRect(playArea->brickTexRects[128ll + curExplBrick.frameOffset]);
-            brickSprite.setPosition(curExplBrick.pos);
-            window->draw(brickSprite);
-            curExplBrick.frameOffset++;
-        }
-        for (int i = 0; i < explodingBricks.size(); i++)
-        {
-            if (explodingBricks[i].loop > 4)
-            {
-                explodingBricks.erase(explodingBricks.begin() + i);
-            }
-        }
+
+        drawBricks();
         for (int i = 0; i < playArea->powerups.size(); i++)
         {
             if (playArea->powerups[i].aliveTick < 30)
@@ -1012,18 +1184,23 @@ int main(int argc, char* argv[])
                 powerupSprite->SetTexRect(playArea->powerups[i].powerupID - (playArea->powerups[i].powerupID > 15 ? 16 : 0), playArea->powerups[i].powerupID > 15);
                 window->draw(powerupSprite->sprite);
             }
-            if (playArea->powerups[i].destroyed == true) playArea->powerups.erase(playArea->powerups.begin() + i);
+            if (playArea->powerups[i].destroyed == true)
+                playArea->powerups.erase(playArea->powerups.begin() + i);
         }
-        fireBrickFrame++;
-        for (auto& curball : playArea->balls)
+        
+        for (auto &curball : playArea->balls)
         {
-            if (curball->isFireball) ball->SetSpriteIndex(1);
-            else ball->SetSpriteIndex(0);
+            if (curball->isFireball)
+                ball->SetSpriteIndex(1);
+            else
+                ball->SetSpriteIndex(0);
             ball->sprite.setPosition(sf::Vector2f(curball->x, curball->y));
-            if (!curball->invisibleSparkling) window->draw(ball->sprite);
-            if (curball->ballHeld) magnetHeldBall++;
+            if (!curball->invisibleSparkling)
+                window->draw(ball->sprite);
+            if (curball->ballHeld)
+                magnetHeldBall++;
         }
-        for (auto& curMissile : playArea->missiles)
+        for (auto &curMissile : playArea->missiles)
         {
             powerupSprite->sprite.setPosition(curMissile->x, curMissile->y);
             powerupSprite->SetTexRect(15, 1);
@@ -1031,31 +1208,7 @@ int main(int argc, char* argv[])
             window->draw(powerupSprite->sprite);
             //powerupSprite->sprite.setOrigin(sf::Vector2f(0, 0));
         }
-        for (int i = 0; i < sparks.size(); i++)
-        {
-            auto curSpark = sparks[i];
-            sparkSprite->sprite.setPosition(sparks[i].x, sparks[i].y);
-            sparkSprite->sprite.setColor(sparks[i].color);
-            if (frameCnt % 3 == 0) sparks[i].sparkRect.left += 3;
-            sparkSprite->sprite.setTextureRect(curSpark.sparkRect);
-#if __cplusplus <= 201703L
-            if (sparks[i].sparkRect.left < 15 * 3)
-#endif
-            window->draw(sparkSprite->sprite);
-#if __cplusplus <= 201703L
-            else
-            {
-                sparks.erase(sparks.begin() + i);
-                continue;
-            }
-#endif
-            sparks[i].velY += sparks[i].gravity;
-            sparks[i].y += sparks[i].velY;
-            sparks[i].x += sparks[i].velX;
-        }
-#if __cplusplus > 201703L
-        std::erase_if(sparks, removeSparkObject);
-#endif
+        drawSparks();
         largeFont->RenderChars(std::to_string(score), sf::Vector2f(wallWidth / 2, 0), window);
         font->RenderChars("level " + std::to_string(playArea->levnum), sf::Vector2f(wallWidth / 2, largeFont->genCharHeight), window);
         if (!cursorVisible)
@@ -1064,7 +1217,7 @@ int main(int argc, char* argv[])
             ball->sprite.setPosition((sf::Vector2f)sf::Mouse::getPosition(*window) - sf::Vector2f(ball->realWidthPerTile / 2, ball->realHeightPerTile / 2));
             cursor->sprite.setPosition((sf::Vector2f)sf::Mouse::getPosition(*window) - sf::Vector2f(cursor->width / 2, cursor->height / 2));
         }
-        for (auto& curExpl : explosions)
+        for (auto &curExpl : explosions)
         {
             curExpl.Tick();
             if (curExpl.destroyed)
@@ -1083,7 +1236,8 @@ int main(int argc, char* argv[])
                 continue;
             }
         }
-        if (!ballLost) playArea->paddle.sprite->sprite.setPosition(std::clamp(cursor->sprite.getPosition().x, wallWidth / 2.f, BTRWINDOWWIDTH - wallWidth / 2.f - (float)playArea->paddle.paddleRadius), BTRWINDOWHEIGHT - 30);
+        if (!ballLost)
+            playArea->paddle.sprite->sprite.setPosition(std::clamp(cursor->sprite.getPosition().x, wallWidth / 2.f, BTRWINDOWWIDTH - wallWidth / 2.f - (float)playArea->paddle.paddleRadius), BTRWINDOWHEIGHT - 30);
         drawPaddleXY(playArea->paddle.sprite->sprite.getPosition().x, playArea->paddle.sprite->sprite.getPosition().y, playArea->paddle.drawPaddleRadius);
         auto orgpos = playArea->paddle.sprite->sprite.getPosition();
         auto orgOrig = playArea->paddle.sprite->sprite.getOrigin();
@@ -1093,13 +1247,14 @@ int main(int argc, char* argv[])
             drawPaddleXY(BTRWINDOWWIDTH - playArea->paddle.radiuses[0] * ((long long)i + 1) - wallWidth / 2 - (9ll * i), 0, playArea->paddle.radiuses[0]);
         }
         playArea->paddle.sprite->sprite.setOrigin(orgOrig);
-        for (int i = 0; i < playArea->paddle.missilesLeft; i++) if (playArea->paddle.stateFlags & BTRPaddle::PADDLE_MISSILE)
-        {
-            powerupSprite->SetTexRect(15, 1);
-            int totalWidth = 16 * playArea->paddle.missilesLeft;
-            powerupSprite->sprite.setPosition((BTRWINDOWWIDTH / 2 - totalWidth / 2) + i * 16, 0);
-            window->draw(powerupSprite->sprite);
-        }
+        for (int i = 0; i < playArea->paddle.missilesLeft; i++)
+            if (playArea->paddle.stateFlags & BTRPaddle::PADDLE_MISSILE)
+            {
+                powerupSprite->SetTexRect(15, 1);
+                int totalWidth = 16 * playArea->paddle.missilesLeft;
+                powerupSprite->sprite.setPosition((BTRWINDOWWIDTH / 2 - totalWidth / 2) + i * 16, 0);
+                window->draw(powerupSprite->sprite);
+            }
         playArea->paddle.sprite->sprite.setTextureRect(sf::IntRect(sf::Vector2i(playArea->paddle.sprite->width / 2 - playArea->paddle.drawPaddleRadius / 2, playArea->paddle.sprite->realHeightPerTile * (playArea->paddle.sprite->animFramePos - 1)), sf::Vector2i(playArea->paddle.drawPaddleRadius, playArea->paddle.sprite->realHeightPerTile)));
         playArea->paddle.drawPaddleRadius = std::lerp(playArea->paddle.drawPaddleRadius, playArea->paddle.paddleRadius, 0.25);
         if (playArea->paddle.stateFlags & playArea->paddle.PADDLE_TRACTOR)
@@ -1153,15 +1308,17 @@ int main(int argc, char* argv[])
         }
         ball->SetSpriteIndex(0);
         scrRect.setFillColor(sf::Color(0, 0, 0, 255 * fade));
-        if (fade > 0) fade -= 1 / (long double)40;
-        else fade = 0;
+        if (fade > 0)
+            fade -= 1 / (long double)40;
+        else
+            fade = 0;
         window->draw(scrRect);
         /*std::chrono::duration<double, std::milli> nowCurTime = clocktime.now().time_since_epoch() - curTime;
         auto frameRateStr = std::string("Render time: ") + std::to_string(nowCurTime.count());
         font->RenderChars(frameRateStr, 0, 0, window);*/
         windowTexture.update(*window);
         window->display();
-        
+
         frameCnt++;
         framesPassedlastPowerup++;
     }
@@ -1176,12 +1333,12 @@ int main(int argc, char* argv[])
     delete winBoxImage;
     deInitOpenAL();
     if (!(inierr < 0))
-    for (int i = 0; i < scoresAndNames.size(); i++)
-    {
-        ini.SetValue("bt.ini",
-                     ("score" + std::to_string(i)).c_str(),
-                     (std::get<std::string>(scoresAndNames[i]) + ';' + std::to_string(std::get<int>(scoresAndNames[i]))).c_str());
-        std::cout << "Saved score: " << ini.GetValue("bt.ini", ("score" + std::to_string(i)).c_str()) << std::endl;
-    }
+        for (int i = 0; i < scoresAndNames.size(); i++)
+        {
+            ini.SetValue("bt.ini",
+                         ("score" + std::to_string(i)).c_str(),
+                         (std::get<std::string>(scoresAndNames[i]) + ';' + std::to_string(std::get<int>(scoresAndNames[i]))).c_str());
+            std::cout << "Saved score: " << ini.GetValue("bt.ini", ("score" + std::to_string(i)).c_str()) << std::endl;
+        }
     ini.SaveFile("./bt.ini", false);
 }
