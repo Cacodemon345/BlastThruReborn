@@ -1391,7 +1391,10 @@ int main(int argc, char *argv[])
         framesPassedlastPowerup++;
     }
     eot = true;
-    StopMidiPlayback();
+#ifdef _WIN32
+    midiStreamStop(midiDev);
+    midiOutReset((HMIDIOUT)midiDev);
+#endif
     delete window;
     delete magnetSprite;
     delete winBoxImage;

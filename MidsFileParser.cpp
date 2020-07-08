@@ -66,13 +66,13 @@ std::string& GetCurPlayingFilename()
 }
 void SelectMidiDevice(int selection)
 {
-	auto res = midiStreamOpen(&midiDev, &selection, 1, 0, 0, 0);
+	auto res = midiStreamOpen(&midiDev, (LPUINT)&selection, 1, 0, 0, 0);
 	if (res != MMSYSERR_NOERROR)
 	{
 		if (res == MMSYSERR_BADDEVICEID)
 		{
-			selection = 0
-			res = midiStreamOpen(&midiDev, &selection, 1, 0, 0, 0); // Assume that Windows will always have GS Wavetable Synth.
+			selection = 0;
+			res = midiStreamOpen(&midiDev, (LPUINT)&selection, 1, 0, 0, 0); // Assume that Windows will always have GS Wavetable Synth.
 		}
 		else printf("Failed to open MIDI device\n");
 	}
