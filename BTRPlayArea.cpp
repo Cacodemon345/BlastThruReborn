@@ -162,6 +162,7 @@ void BTRPlayArea::UpdateBrickGridPos()
 		curBrick.curYPos = (int)curBrick.y % curBrick.height;
 	}
 }
+extern bool endofgame;
 void BTRPlayArea::Tick()
 {
 	for (auto& curball : balls)
@@ -337,6 +338,10 @@ void BTRPlayArea::Tick()
 	{
 		fadeOut = levelEnded = true;
 		ballLost = false;
+		if (!randomPlay && levnum == 40)
+		{
+			endofgame = true;			
+		}
 	}
 	for (int i = 0; i < balls.size(); i++)
 	{
@@ -464,11 +469,6 @@ void BTRball::Tick(BTRPlayArea &area)
 				//std::cout << "Res in degress: " << res << std::endl;
 				int cornerHit = 0;
 				bool fallbackToAngle = 1;
-				bool cornerHits = HitTest<BTRObjectBase>(*this, area.bricks[i]);
-				if (cornerHits)
-				{
-					std::cout << "SAT Hit" << std::endl;
-				}
 				if (fallbackToAngle)
 				{
 					if (res >= -45 && res <= 45)
@@ -515,7 +515,7 @@ void BTRball::Tick(BTRPlayArea &area)
 			}
 			area.bricks[i].destroyed++;
 			area.bricks[i].hitTimes++;
-			area.bricks[i].collisionCooldown = 4;
+			area.bricks[i].collisionCooldown = 2;
 			score += (area.paddle.lengthOfBall / 5 - 1) * 5;
 		}
 	}

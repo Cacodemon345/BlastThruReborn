@@ -3,6 +3,7 @@
 #pragma pack(push,1)
 HMIDISTRM midiDev;
 std::string curFilename;
+bool oneshotplay = false;
 struct MidsDataHeader
 {
 	char FourCC[4];
@@ -62,6 +63,20 @@ std::vector<MIDIHDR> midiHeaders;
 std::string& GetCurPlayingFilename()
 {
 	return curFilename;
+}
+void SelectMidiDevice(int selection)
+{
+	auto res = midiStreamOpen(&midiDev, &selection, 1, 0, 0, 0);
+	if (res != MMSYSERR_NOERROR)
+	{
+		if (res == MMSYSERR_BADDEVICEID)
+		{
+			selection = 0
+			res = midiStreamOpen(&midiDev, &selection, 1, 0, 0, 0); // Assume that Windows will always have GS Wavetable Synth.
+		}
+		else printf("Failed to open MIDI device\n");
+	}
+	devID = selection;
 }
 void SelectMidiDevice()
 {
@@ -211,6 +226,7 @@ void StartMidiPlayback()
 				}
 			}
 		}
+		if (oneshotplay) return;
 		ParseMidsFile(curFilename);
 	}
 	midiStreamStop(midiDev);

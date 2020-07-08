@@ -14,6 +14,7 @@
 #include <unistd.h>
 #include <float.h>
 #endif
+#define SI_SUPPORT_IOSTREAMS
 #include "SimpleIni.h"
 #include <signal.h>
 //#include <immintrin.h>
@@ -30,6 +31,7 @@ unsigned char brickID = 1;
 std::chrono::steady_clock clocktime;
 std::chrono::steady_clock::time_point now;
 int64_t sec = 0;
+bool endofgame = false;
 extern void ParseMidsFile(std::string filename);
 extern void StartMidiPlayback();
 #ifdef WIN32
@@ -39,6 +41,7 @@ HMIDIOUT midiOutDev;
 #endif // WIN32
 
 extern bool eot;
+extern bool oneshotplay;
 std::random_device rd;
 std::mt19937 gen(rd());
 std::uniform_real_distribution<> dis(-5, 5);
@@ -65,7 +68,8 @@ bool sortScoreList(const std::pair<std::string, int> t1, const std::pair<std::st
 extern void StopMidiPlayback();
 extern std::string &GetCurPlayingFilename();
 unsigned int devID = 0;
-void loadMusic(std::string mdsfilename)
+bool loadedEndMusic = false;
+void loadMusic(std::string mdsfilename, bool oneshot = false)
 {
     if (GetCurPlayingFilename() == mdsfilename)
     {
@@ -87,6 +91,7 @@ void loadMusic(std::string mdsfilename)
     //unsigned int devID = 0;
     midiStreamOpen(&midiDev, &devID, 1, 0, 0, 0);
 #endif
+    oneshotplay = oneshot;
     ParseMidsFile(mdsfilename);
     thread = new std::thread(StartMidiPlayback);
 }
@@ -136,8 +141,66 @@ int main(int argc, char *argv[])
         delete seq;
     }
 #endif
-    SelectMidiDevice();
+    CSimpleIniA ini;
+    ini.SetUnicode(true);
+    ini.Reset();
+    SI_Error inierr = (SI_Error)ini.LoadFile("./bt.ini");
+    if (!(inierr < 0))
+    {
+        auto section = ini.GetSection("bt.ini");
+        std::string scorestr;
+        std::string sectionName = "score0";
+        while (sectionName != "score1:")
+        {
+            scorestr = ini.GetValue("bt.ini", sectionName.c_str());
+            std::string name;
+            auto res = scorestr.find_first_of(';');
+            if (res == std::string::npos)
+            {
+                std::cout << "Invalid score string encountered!" << std::endl;
+            }
+            else
+            {
+                name = scorestr.substr(0, res);
+                auto scoreint = std::stoi(scorestr.substr(res + 1, scorestr.size() - res));
+                std::cout << sectionName << ": " << name << ", " << scoreint << std::endl;
+                scoresAndNames.push_back(std::make_pair(name, scoreint));
+            };
+            if (sectionName == "score9")
+            {
+                sectionName.pop_back();
+                sectionName += "10";
+            }
+            else
+                sectionName[sectionName.size() - 1]++;
+        }
+        std::sort(scoresAndNames.begin(), scoresAndNames.end(), &sortScoreList);
+    }
+    else
+    {
+        ini.SetValue("bt.ini",0,0);
+        int cnt;
+        while (cnt++ < 20)
+        {
+            auto scorestr = std::string("score") + std::to_string(cnt);
+            ini.SetValue("bt.ini",scorestr.c_str(),"0");
+        }
+        ini.SetValue("bt.ini","scheck","0");
+        ini.SetValue("bt.ini","gmididevselect","off");
+        ini.SetValue("bt.ini","gmididevnum","0");
+        ini.SaveFile("./bt.ini",0);
+        
+    }
+    bool mididevselect = ini.GetBoolValue("bt.ini","gmididevselect");
+    if (!mididevselect) 
+    {
+        SelectMidiDevice();
+        ini.SetValue("bt.ini","gmididevselect","on");
+        ini.SetLongValue("bt.ini","gmididevnum",devID);
+    }
+    else SelectMidiDevice(ini.GetLongValue("bt.ini","gmididevnum"));
     InitOpenAL();
+    vertvelpowerup = ini.GetBoolValue("bt.ini","gvertvelpowerup");
     for (int i = 0; i < argc; i++)
     {
         if (strncmp("vertvelpowerup", argv[i], strlen("vertvelpowerup")) == 0)
@@ -145,6 +208,12 @@ int main(int argc, char *argv[])
             vertvelpowerup = true;
             std::cout << "vertvelpowerup = true" << std::endl;
         }
+        if (strncmp("-vertvelpowerup", argv[i], strlen("-vertvelpowerup")) == 0)
+        {
+            vertvelpowerup = false;
+            std::cout << "vertvelpowerup = false" << std::endl;
+        }
+        ini.SetBoolValue("bt.ini","gvertvelpowerup",vertvelpowerup);
     }
     std::map<std::string, int> cheatKeys =
         {
@@ -206,40 +275,7 @@ int main(int argc, char *argv[])
     std::uniform_int_distribution<> dis(-5, 5);
     std::uniform_int_distribution<> fuzzrand(0, 2);
     std::uniform_int_distribution<> mdsrand(0, musics.size() - 1);
-    CSimpleIniA ini;
-    ini.SetUnicode(true);
-    SI_Error inierr = (SI_Error)ini.LoadFile("./bt.ini");
-    if (!(inierr < 0))
-    {
-        auto section = ini.GetSection("bt.ini");
-        std::string scorestr;
-        std::string sectionName = "score0";
-        while (sectionName != "score1:")
-        {
-            scorestr = ini.GetValue("bt.ini", sectionName.c_str());
-            std::string name;
-            auto res = scorestr.find_first_of(';');
-            if (res == std::string::npos)
-            {
-                std::cout << "Invalid score string encountered!" << std::endl;
-            }
-            else
-            {
-                name = scorestr.substr(0, res);
-                auto scoreint = std::stoi(scorestr.substr(res + 1, scorestr.size() - res));
-                std::cout << sectionName << ": " << name << ", " << scoreint << std::endl;
-                scoresAndNames.push_back(std::make_pair(name, scoreint));
-            };
-            if (sectionName == "score9")
-            {
-                sectionName.pop_back();
-                sectionName += "10";
-            }
-            else
-                sectionName[sectionName.size() - 1]++;
-        }
-        std::sort(scoresAndNames.begin(), scoresAndNames.end(), &sortScoreList);
-    }
+
 
     unsigned int devID = 0;
 #if defined(WIN32)
@@ -848,6 +884,11 @@ int main(int argc, char *argv[])
                     break;
                 }
             case sf::Event::KeyPressed:
+                if (endofgame)
+                {
+                    eot = true;
+                    thread->detach();
+                }
                 if (event.key.code == sf::Keyboard::Pause || event.key.code == sf::Keyboard::Escape)
                     if (!highScore)
                     {
@@ -895,9 +936,10 @@ int main(int argc, char *argv[])
                     {
                         windowTexture.update(*window);
                         playArea->levnum = 0;
-                        highScore = false;
+                        highScore =                        
+                        ballLost =
+                        endofgame = false;
                         fadeOut = true;
-                        ballLost = false;
                         scrRect.setFillColor(sf::Color(0, 0, 0, 255));
                         fade = 1;
                         lives = 2;
@@ -922,6 +964,30 @@ int main(int argc, char *argv[])
                 font->RenderChars(curMovingText.movingText, curMovingText.pos, window);
             }
             font->RenderChars("Hall of Fame", sf::Vector2f(BTRWINDOWWIDTH / 2, font->genCharHeight * 2) - sf::Vector2f(font->GetSizeOfText("Hall of Fame").x / 2, 0), window);
+            window->display();
+            continue;
+        }
+        if (endofgame)
+        {
+            if (!loadedEndMusic)
+            {
+                loadedEndMusic = true;
+                loadMusic("./ball/exmil.mds",true);
+            }
+            if (!thread->joinable())
+            {
+                loadedEndMusic = false;
+                endofgame = false;
+                lives = 0;
+                fadeOut = true;
+                ballLost = true;
+                playArea->balls.clear();
+                continue;
+            }
+            window->clear();
+            windowSprite.setColor(sf::Color(255, 255, 255, 255 * 0.5));
+            window->draw(windowSprite);
+            font->RenderChars("You completed the game!",sf::Vector2f(BTRWINDOWWIDTH / 2,BTRWINDOWHEIGHT / 2) - sf::Vector2f(font->GetSizeOfText("You completed the game!").x / 2,0),window);
             window->display();
             continue;
         }
@@ -993,6 +1059,7 @@ int main(int argc, char *argv[])
             {
                 BTRPlaySound("./ball/scream.wav");
                 fadeToColor(sf::Color(255, 255, 255, 255));
+                endofgame = false;
                 auto scorePair = std::make_pair("", score);
                 scoresAndNames.push_back(scorePair);
                 std::sort(scoresAndNames.begin(), scoresAndNames.end(), &sortScoreList);
@@ -1029,6 +1096,7 @@ int main(int argc, char *argv[])
                 highScore = true;
                 BTRPlaySound("./ball/whoosh.wav");
                 loadMusic("./ball/hghscr.mds");
+                continue;
             }
             else
             {
@@ -1323,22 +1391,22 @@ int main(int argc, char *argv[])
         framesPassedlastPowerup++;
     }
     eot = true;
-#if defined(WIN32)
-    midiStreamStop(midiDev);
-    //if (thread->joinable()) thread->join();
-    midiOutReset((HMIDIOUT)midiDev);
-#endif
+    StopMidiPlayback();
     delete window;
     delete magnetSprite;
     delete winBoxImage;
     deInitOpenAL();
+    unsigned int scheck = 0;
     if (!(inierr < 0))
         for (int i = 0; i < scoresAndNames.size(); i++)
         {
+            scheck += static_cast<unsigned int>(std::get<int>(scoresAndNames[i]) & 0xFF);
+
             ini.SetValue("bt.ini",
                          ("score" + std::to_string(i)).c_str(),
                          (std::get<std::string>(scoresAndNames[i]) + ';' + std::to_string(std::get<int>(scoresAndNames[i]))).c_str());
             std::cout << "Saved score: " << ini.GetValue("bt.ini", ("score" + std::to_string(i)).c_str()) << std::endl;
         }
+    ini.SetLongValue("bt.ini","scheck",scheck);
     ini.SaveFile("./bt.ini", false);
 }

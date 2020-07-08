@@ -20,6 +20,7 @@ extern unsigned int devID;
 unsigned int devID = 0;
 #endif
 bool paused = 0;
+bool oneshotplay = false;
 #pragma pack(push,1)
 struct MidsDataHeader
 {
@@ -66,6 +67,15 @@ bool eot = false;
 int tempoPerBeat = 6000000;
 int timeDiv = 96;
 std::chrono::steady_clock curClock;
+void SelectMidiDevice(int selection)
+{
+	if (selection >= midiOut.get_port_count())
+	{
+		selection = 0;
+	}
+	midiOut.open_port(selection);
+	devID = selection;
+}
 void SelectMidiDevice()
 {
     auto cnt = midiOut.get_port_count();
@@ -227,26 +237,29 @@ void StartMidiPlayback()
 #ifndef BTRMID_STANDALONE
     while(1)
 #endif
-	if (header.dwFlags == 0)
 	{
-		for (int i = 0; i < MidsStreamIDEvents.size(); i++)
+		if (header.dwFlags == 0)
 		{
-            while(paused)
-            {
-                if (eot) return;
-            }
-			QueueMidiEvent(MidsStreamIDEvents[i]);
+			for (int i = 0; i < MidsStreamIDEvents.size(); i++)
+			{
+				while(paused)
+				{
+					if (eot) return;
+				}
+				QueueMidiEvent(MidsStreamIDEvents[i]);
+				if (eot) return;
+			}
+		}
+		else for (int i = 0; i < MidsEvents.size(); i++)
+		{
+			while(paused)
+			{
+				if (eot) return;
+			}
+			QueueMidiEvent(MidsEvents[i]);
 			if (eot) return;
 		}
-	}
-	else for (int i = 0; i < MidsEvents.size(); i++)
-	{
-        while(paused)
-        {
-            if (eot) return;
-        }
-		QueueMidiEvent(MidsEvents[i]);
-		if (eot) return;
+		if (oneshotplay) return;
 	}
 }
 void StopMidiPlayback()

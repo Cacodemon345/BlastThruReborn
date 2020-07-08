@@ -356,6 +356,7 @@ LuaBridge/
 *.dll
 *.html
 *.out
+bt.ini
 sol.hpp
 RtMidi17/
 .ccls-cache/

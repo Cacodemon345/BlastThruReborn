@@ -21,8 +21,6 @@
 #include <utility>
 #include <functional>
 #include <cmath>
-#include <sattest.h>
-#include <glm/glm.hpp>
 
 /*#include "LuaBridge/LuaBridge.h"
 #include "LuaBridge/Map.h"
@@ -51,6 +49,7 @@ extern unsigned int devID;
 std::string& GetCurPlayingFilename();
 void PauseMidiPlayback();
 void ContinueMidiPlayback();
+void SelectMidiDevice(int selection);
 void SelectMidiDevice();
 inline sf::Color colors[2] = { sf::Color(252,128,0),sf::Color(255,255,0) };
 // This section composes the engine part. Should be usable for "Adventures with Chickens" game.
@@ -97,10 +96,11 @@ struct BTRsprite
 	bool isVerticalFrame = false;
 	int animFramePos = 0;
 	int index = 0;
-	int x = 0, y = 0; // positions in realnumOfFrames x realnumofSprite grids, starting at 0.
+	int x = 0, y = 0; // positions in realnumOfFrames x realnumofSprites grids, starting at 0.
 	int realnumOfFrames;
 	BTRsprite(const char* filename, int numOfFrames, bool verticalFrame = false, int numofSprites = 2, bool alphaMap = false)
 	{
+		//std::cout << "Loading " << filename << "..." << std::endl;
 		sprite = sf::Sprite();
 		texture = sf::Texture();
 		int n;
@@ -329,17 +329,6 @@ inline std::vector<sf::Vector2f> getNormals(T& obj)
 		normals.push_back(normVec);
 	}
 	return normals;
-}
-// Does not work currently.
-template <typename T>
-inline bool HitTest(T& obj, T& obj2)
-{
-	sf::RectangleShape rectShape = sf::RectangleShape(sf::Vector2f(obj.width,obj.height));
-	rectShape.setPosition(obj.x,obj.y);
-	sf::RectangleShape rectShape2 = sf::RectangleShape(sf::Vector2f(obj2.width,obj2.height));
-	rectShape2.setPosition(obj2.x,obj2.y);
-	sf::Vector2f mtv;
-	return testCollision(rectShape,rectShape2,mtv);
 }
 
 struct BTRObjectBase
