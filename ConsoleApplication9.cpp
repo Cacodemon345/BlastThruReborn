@@ -69,8 +69,10 @@ extern void StopMidiPlayback();
 extern std::string &GetCurPlayingFilename();
 unsigned int devID = 0;
 bool loadedEndMusic = false;
+bool gameMusic = true;
 void loadMusic(std::string mdsfilename, bool oneshot = false)
 {
+    if (!gameMusic) return;
     if (GetCurPlayingFilename() == mdsfilename)
     {
         return; // Let it continue;
@@ -188,9 +190,20 @@ int main(int argc, char *argv[])
         ini.SetValue("bt.ini","scheck","0");
         ini.SetValue("bt.ini","gmididevselect","off");
         ini.SetValue("bt.ini","gmididevnum","0");
+        ini.SetValue("bt.ini", "ggamemusic", "on");
+        ini.SetValue("bt.ini", "ggamesound", "on");
         ini.SaveFile("./bt.ini",0);
         
     }
+    std::string name;
+    if (ini.GetValue("bt.ini", "gamename") == NULL)
+    {
+        std::cout << "Enter name to be saved in the Hall Of Fame: ";
+        std::cin >> name;
+        ini.SetValue("bt.ini", "gamename", name.c_str());
+    }
+    name = ini.GetValue("bt.ini", "gamename");
+    gameMusic = ini.GetBoolValue("bt.ini", "ggamemusic");
     bool mididevselect = ini.GetBoolValue("bt.ini","gmididevselect");
     if (!mididevselect) 
     {
@@ -233,7 +246,9 @@ int main(int argc, char *argv[])
             {"beneficial abundancy", 11},
             {"through holy faith", 15},
             {"sweet", 8},
-            {"funyons", 30}};
+            {"funyons", 30},
+            {"i never prosper", 31}
+        };
     sf::Shader gammaShader;
     auto loaded = gammaShader.loadFromMemory(gammaShaderCode, sf::Shader::Fragment);
     if (!loaded)
@@ -378,6 +393,7 @@ int main(int argc, char *argv[])
 
     auto font = new BTRFont("./ball/fontcool.png");
     auto largeFont = new BTRFont("./ball/fontlarge.png", BTRFont::FontType::BTR_FONTLARGE);
+    auto largeFont2 = new BTRFont("./ball/fontlarge2.png", BTRFont::FontType::BTR_FONTLARGE2);
     playArea = new BTRPlayArea("./lev/0.lev");
     //playArea->paddle.sprite = new BTRsprite("./ball/rockpaddle.png", 1, true, 32);
     long double fade = 1.0;
@@ -558,6 +574,42 @@ int main(int argc, char *argv[])
             menu = false;
         }
     };
+    auto updateScoreList = [&]()
+    {
+        {
+            auto scorePair = std::make_pair("", score);
+            scoresAndNames.push_back(scorePair);
+            std::sort(scoresAndNames.begin(), scoresAndNames.end(), &sortScoreList);
+            scoresAndNames.pop_back();
+            bool scoreFound = false;
+            int scoreY = 3;
+            int scoreList = 1;
+            bool flipVal = false;
+            for (auto& curScore : scoresAndNames)
+            {
+                if (std::get<int>(curScore) == score)
+                {
+                    std::get<std::string>(curScore) = name;
+                }
+                std::stringstream istr;
+                std::string str = std::to_string(scoreList) + ". " + std::get<std::string>(curScore);
+                istr << str;
+                istr.setf(std::ios::right, std::ios::adjustfield);
+                str += "                           ";
+                str.resize(str.size() - std::to_string(std::get<int>(curScore)).size());
+                str += std::to_string(std::get<int>(curScore));
+                istr << std::to_string(std::get<int>(curScore));
+                auto moveText = BTRMovingText();
+                flipVal ^= 1;
+                moveText.toPos = sf::Vector2f(90, scoreY * font->genCharHeight);
+                moveText.pos = sf::Vector2f(-font->GetSizeOfText(str).x + (BTRWINDOWWIDTH * flipVal), scoreY * font->genCharHeight);
+                scoreY++;
+                moveText.movingText = str;
+                scoreTexts.push_back(moveText);
+                scoreList++;
+            }
+        }
+    };
     BTRButton retToGame;
     retToGame.clickedFunc = [&]() {
         if (firstRun)
@@ -623,6 +675,23 @@ int main(int argc, char *argv[])
     };
     levEdit.str = "Level Editor";
     levEdit.pos = sf::Vector2f(randomLevel.pos.x, randomLevel.pos.y + 20);
+    BTRButton highScoreEnter;
+    highScoreEnter.str = "High Score";
+    highScoreEnter.pos = sf::Vector2f(randomLevel.pos.x, randomLevel.pos.y + 40);
+    highScoreEnter.clickedFunc = [&]()
+    {
+        sf::Event event;
+        event.type = sf::Event::KeyPressed;
+        event.key.code = sf::Keyboard::Escape;
+        flipPaused(event, false);
+        BTRPlaySound("./ball/whoosh.wav");
+        updateScoreList();
+        highScore = true;
+        ballLost = false;
+        fadeOut = false;
+        loadMusic("./ball/hghscr.mds");
+    };
+    btns.push_back(highScoreEnter);
     BTRButton levEditPlay;
     levEditPlay.clickedFunc = [&]()
     {
@@ -993,7 +1062,8 @@ int main(int argc, char *argv[])
             window->clear();
             windowSprite.setColor(sf::Color(255, 255, 255, 255 * 0.5));
             window->draw(windowSprite);
-            font->RenderChars("You completed the game!",sf::Vector2f(BTRWINDOWWIDTH / 2,BTRWINDOWHEIGHT / 2) - sf::Vector2f(font->GetSizeOfText("You completed the game!").x / 2,0),window);
+            largeFont2->RenderChars("EXCELLENT", sf::Vector2f(BTRWINDOWWIDTH / 2, 0) - sf::Vector2f(font->GetSizeOfText("EXCELLENT").x / 2, 0),window);
+            font->RenderChars("You completed the game!",sf::Vector2f(BTRWINDOWWIDTH / 2, largeFont2->GetSizeOfText("EXCELLENT").y) - sf::Vector2f(font->GetSizeOfText("You completed the game!").x / 2,0),window);
             window->display();
             continue;
         }
@@ -1066,37 +1136,7 @@ int main(int argc, char *argv[])
                 BTRPlaySound("./ball/scream.wav");
                 fadeToColor(sf::Color(255, 255, 255, 255));
                 endofgame = false;
-                auto scorePair = std::make_pair("", score);
-                scoresAndNames.push_back(scorePair);
-                std::sort(scoresAndNames.begin(), scoresAndNames.end(), &sortScoreList);
-                scoresAndNames.pop_back();
-                bool scoreFound = false;
-                int scoreY = 3;
-                int scoreList = 1;
-                bool flipVal = false;
-                for (auto &curScore : scoresAndNames)
-                {
-                    if (std::get<int>(curScore) == score)
-                    {
-                        scoreFound = true;
-                    }
-                    std::stringstream istr;
-                    std::string str = std::to_string(scoreList) + ". " + std::get<std::string>(curScore);
-                    istr << str;
-                    istr.setf(std::ios::right, std::ios::adjustfield);
-                    str += "                           ";
-                    str.resize(str.size() - std::to_string(std::get<int>(curScore)).size());
-                    str += std::to_string(std::get<int>(curScore));
-                    istr << std::to_string(std::get<int>(curScore));
-                    auto moveText = BTRMovingText();
-                    flipVal ^= 1;
-                    moveText.toPos = sf::Vector2f(90, scoreY * font->genCharHeight);
-                    moveText.pos = sf::Vector2f(-font->GetSizeOfText(str).x + (BTRWINDOWWIDTH * flipVal), scoreY * font->genCharHeight);
-                    scoreY++;
-                    moveText.movingText = str;
-                    scoreTexts.push_back(moveText);
-                    scoreList++;
-                }
+                updateScoreList();
                 fadeOut = false;
                 ballLost = false;
                 highScore = true;
@@ -1113,6 +1153,7 @@ int main(int argc, char *argv[])
                 explosions.clear();
                 explodingBricks.clear();
                 playArea->powerups.clear();
+                playArea->missiles.clear();
                 delete chompteeth;
                 chompteeth = 0;
                 playArea->paddle.stateFlags = 0;
@@ -1129,14 +1170,16 @@ int main(int argc, char *argv[])
                         {
                             if (!playArea->randomPlay)
                                 break;
-                            randPlayedSet |= 1ll << (long long)playArea->levnum;
-                            newLev = std::uniform_int_distribution<int>(1, 40)(rd) - 1;
-                            if (randPlayedSet == -1)
+                            randPlayedSet |= 1ll << (long long)(playArea->levnum - 1ll);
+                            newLev = std::uniform_int_distribution<long long>(1ll, 40ll)(rd) - 1ll;
+                            if (randPlayedSet == 0xFFFFFFFFFFll)
                             {
+                                std::cout << "All bits set" << std::endl;
                                 break;
                             }
                             if (randPlayedSet & (1ll << newLev))
                                 continue;
+                            std::cout << "Rand bits set: " << std::bitset<40>(randPlayedSet) << std::endl;
                             break;
                         }
                         newLev = isRandom ? newLev : playArea->levnum++;

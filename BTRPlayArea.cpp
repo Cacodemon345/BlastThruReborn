@@ -163,6 +163,7 @@ void BTRPlayArea::UpdateBrickGridPos()
 	}
 }
 extern bool endofgame;
+extern int64_t randPlayedSet;
 void BTRPlayArea::Tick()
 {
 	for (auto& curball : balls)
@@ -338,7 +339,7 @@ void BTRPlayArea::Tick()
 	{
 		fadeOut = levelEnded = true;
 		ballLost = false;
-		if (!randomPlay && levnum == 40)
+		if ((!randomPlay && levnum == 40) || (this->levStateFlags & AREA_ENDOFGAME) || (randomPlay && randPlayedSet == 0xFFFFFFFFFFll))
 		{
 			endofgame = true;			
 		}
@@ -587,6 +588,7 @@ void BTRpowerup::PowerupHandle(BTRPlayArea& area, int powerupID)
 	switch (powerupID)
 	{
 	default:
+		std::cout << "Unknown Powerup ID " << powerupID << std::endl;
 		break;
 	case 0:
 		if (area.paddle.curRadius > 3)
@@ -698,7 +700,6 @@ void BTRpowerup::PowerupHandle(BTRPlayArea& area, int powerupID)
 			curBrick.destroyed = true;
 			curBrick.explosionHit = true;
 		}
-		framesPassedlastPowerup = 40 * 5;
 		break;
 	case 8:
 		PowerupHandle(area, 1);
@@ -773,6 +774,10 @@ void BTRpowerup::PowerupHandle(BTRPlayArea& area, int powerupID)
 		area.levStateFlags |= BTRPlayArea::AREA_NOGODOWN;
 		filename = (char*)"./ball/powerup.wav";
 		break;
+	case 31:
+		area.levStateFlags |= BTRPlayArea::AREA_ENDOFGAME;
+		filename = (char*)"./ball/powerup.wav";
+		break;
 	}
 	BTRPlaySound(filename);
 }
@@ -804,6 +809,8 @@ void BTRpowerup::Tick(BTRPlayArea &area)
 		&& this->x <= area.paddle.sprite->sprite.getPosition().x + area.paddle.paddleRadius)
 	{
 		PowerupHandle(area, this->powerupID);
+		sf::Color col = this->powerupID > 15 ? sf::Color(255, 0, 0) : sf::Color(0, 0, 255);
+		spawnSpark(20, col, sf::Vector2f(this->x, this->y));
 		destroyed = true;
 	}
 }

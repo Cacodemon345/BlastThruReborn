@@ -190,6 +190,7 @@ struct BTRFont
 	{
 		BTR_FONTSMALL,
 		BTR_FONTLARGE,
+		BTR_FONTLARGE2
 	};
 	char* bitmapChars = (char*)" ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!?.,''|-():;0123456789\0\0";
 	FontType font = FontType::BTR_FONTSMALL;
@@ -241,6 +242,7 @@ struct BTRFont
 		font = sFont;
 		char* bitmapCharsSmall = (char*)" ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!?.,''|-():;0123456789\0\0";
 		char* bitmapCharsLarge = (char*)"0123456789";
+		char* bitmapCharsLarge2 = (char*)" ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 		auto retval = stbi_load(filename, &width, &height, &n, 4);
 		if (!retval)
 		{
@@ -290,8 +292,9 @@ struct BTRFont
 				std::cout << "width :" << bitmapDef.width << ", ";
 				bitmapDef.height = genCharHeight;
 				if (font == FontType::BTR_FONTLARGE) std::cout << "character :" << *bitmapCharsLarge << std::endl;
-				else std::cout << "character :" << *bitmapCharsSmall << std::endl;
+				else if (font == FontType::BTR_FONTLARGE2) std::cout << "character :" << *bitmapCharsLarge2 << std::endl;
 				if (font == FontType::BTR_FONTLARGE) bitmapDef.character = *bitmapCharsLarge++;
+				else if (font == FontType::BTR_FONTLARGE2) bitmapDef.character = *bitmapCharsLarge2++;
 				else bitmapDef.character = *bitmapCharsSmall++;
 				charMaps.emplace(bitmapDef.character,bitmapDef);
 				bitmaps.push_back(bitmapDef);
@@ -527,7 +530,7 @@ struct BTRbrick : BTRObjectBase
 			{
 				pwrres = 15;
 			}
-			else if (liveres >= 60)
+			else if (liveres >= 55)
 			{
 				pwrres = badpowerDist(gen);
 			}
