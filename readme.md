@@ -37,4 +37,7 @@ The repository does not contain the game assets for obvious reasons. You must ow
 7. Rename the "ball.glo" folder to "ball".
 8. Build the program as described in the Building section.
 9. Run the executable (type "./a.out" in the terminal on POSIX systems).
-You will be asked to select the MIDI device on first run. Note that quite a bit of stuff in the program that the original game has remains unimplemented. I could try to figure out the ball.glo file format and the compression algorithm, but I can't, unfortunately.
+Alternatively, just put ball.glo on the executable folder and run the program with "extractdata" argument. This requires that you got GloDecrypt from https://github.com/Cacodemon345/GloDecrypt and put the GloDecrypt executable (named GloDecrypt.exe or GloDecrypt) on this project's executable folder.
+You will be asked to select the MIDI device on first run.
+
+Note that quite a bit of stuff in the program that the original game has remains unimplemented.

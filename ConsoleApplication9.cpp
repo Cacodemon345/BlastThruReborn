@@ -214,6 +214,11 @@ int main(int argc, char *argv[])
             std::cout << "vertvelpowerup = false" << std::endl;
         }
         ini.SetBoolValue("bt.ini","gvertvelpowerup",vertvelpowerup);
+        if (strncmp("extractdata", argv[i], strlen("extractdata")) == 0)
+        {
+            int ret = system("./GloDecrypt.exe ./ball.glo ./balldecrypt.glo extract ./ball/");
+            if (ret == -1) system("./GloDecrypt ./ball.glo ./balldecrypt.glo extract ./ball/");
+        }
     }
     std::map<std::string, int> cheatKeys =
         {
@@ -385,6 +390,7 @@ int main(int argc, char *argv[])
     auto pausedSprite = new BTRsprite("./ball/paused.png", 1, false, 1);
     auto magnetSprite = new BTRsprite("./ball/magnet.png", 16, false, 4);
     auto tractorSprite = new BTRsprite("./ball/power.png", 1, 0);
+    auto explSprite = new BTRsprite("./ball/explosion.png", 8, false, 4);
     tractorSprite->SetSpriteIndex(1);
     pausedSprite->SetTexRect(0, 0);
     powerupSprite->Animate();
@@ -1117,24 +1123,24 @@ int main(int argc, char *argv[])
                     {
                         std::string str = "./lev/";
                         bool isRandom = playArea->randomPlay;
-                        int newLev = 0;
+                        long long newLev = 0;
                         playArea->levelEnded = 0;
                         while (1)
                         {
                             if (!playArea->randomPlay)
                                 break;
-                            randPlayedSet |= 1 << playArea->levnum;
+                            randPlayedSet |= 1ll << (long long)playArea->levnum;
                             newLev = std::uniform_int_distribution<int>(1, 40)(rd) - 1;
                             if (randPlayedSet == -1)
                             {
                                 break;
                             }
-                            if (randPlayedSet & (1 << newLev))
+                            if (randPlayedSet & (1ll << newLev))
                                 continue;
                             break;
                         }
                         newLev = isRandom ? newLev : playArea->levnum++;
-                        newLev = std::clamp(newLev, 0, 39);
+                        newLev = std::clamp(newLev, 0ll, 39ll);
                         str += std::to_string(newLev) + ".lev";        
                         int oldLevnum = playArea->levnum;
                         delete playArea;
@@ -1292,9 +1298,9 @@ int main(int argc, char *argv[])
             {
                 continue;
             }
-            curExpl.spr->SetTexRect(curExpl.framesPassed, curExpl.spriteIndex);
-            curExpl.spr->sprite.setPosition(curExpl.pos);
-            window->draw(curExpl.spr->sprite);
+            explSprite->SetTexRect(curExpl.framesPassed, curExpl.spriteIndex);
+            explSprite->sprite.setPosition(curExpl.pos);
+            window->draw(explSprite->sprite);
         }
         for (int i = 0; i < explosions.size(); i++)
         {
