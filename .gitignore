@@ -361,3 +361,4 @@ sol.hpp
 RtMidi17/
 .ccls-cache/
 compile_commands.json
+*.exe

@@ -155,7 +155,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>SFML_STATIC;_CRT_SECURE_NO_WARNINGS;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>false</ConformanceMode>
-      <AdditionalIncludeDirectories>.\openal-soft\include\;C:\Users\Sahil\Downloads\SFML-2.5.1-windows-vc15-64-bit\SFML-2.5.1\include;C:\Program Files\Mega-Nerd\libsndfile\include;C:\Users\Sahil\Downloads\LuaJIT-2.0.5\src;C:\Users\Sahil\source\repos\ConsoleApplication9\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\openal-soft\include\;C:\Users\Sahil\Downloads\SFML-2.5.1-windows-vc15-64-bit\SFML-2.5.1\include;C:\Program Files\Mega-Nerd\libsndfile\include;C:\Users\Sahil\Downloads\LuaJIT-2.0.5\src;C:\Users\Sahil\source\repos\ConsoleApplication9\;C:\Users\Sahil\Downloads\RtMidi17-master;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <AssemblerOutput>All</AssemblerOutput>
       <UseUnicodeForAssemblerListing>false</UseUnicodeForAssemblerListing>

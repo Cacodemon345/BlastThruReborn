@@ -196,11 +196,12 @@ struct BTRFont
 	FontType font = FontType::BTR_FONTSMALL;
 	std::vector<BTRCharBitmap> bitmaps;
 	std::unordered_map<unsigned char, BTRCharBitmap> charMaps;
-	void RenderChars(std::string chars, sf::Vector2f pos, sf::RenderWindow* &window)
+	void RenderChars(std::string chars, sf::Vector2f pos, sf::RenderWindow* &window, sf::Color col = sf::Color(255,255,255,255))
 	{
 		sf::Sprite sprite;
 		sprite.setTexture(fontImage, true);
 		sprite.setPosition(pos);
+		sprite.setColor(col);
 		for (int i = 0; i < chars.size(); i++)
 		{
 			if (font == FontType::BTR_FONTLARGE && !std::isdigit(chars[i],std::locale(""))) continue;
@@ -212,9 +213,11 @@ struct BTRFont
 			texWH.y = charMaps[chars[i]].height;
 			sf::IntRect rect = sf::IntRect(texPos,texWH);
 			sprite.setTextureRect(rect);
+			if (font == FontType::BTR_FONTLARGE2) fontImage.setSmooth(true);
 			window->draw(sprite);
 			sprite.move(sf::Vector2f(texWH.x, 0));
 		}
+		sprite.setColor(sf::Color(255, 255, 255, 255));
 	}
 	sf::Vector2f GetSizeOfText(std::string chars)
 	{
@@ -233,16 +236,16 @@ struct BTRFont
 		totalSize.y = this->genCharHeight;
 		return totalSize;
 	}
-	void RenderChars(std::string chars, float X, float Y, sf::RenderWindow* &window)
+	void RenderChars(std::string chars, float X, float Y, sf::RenderWindow* &window, sf::Color col = sf::Color(255, 255, 255, 255))
 	{
-		return RenderChars(chars, sf::Vector2f(X, Y), window);
+		return RenderChars(chars, sf::Vector2f(X, Y), window, col);
 	}
 	BTRFont(const char* filename, FontType sFont = FontType::BTR_FONTSMALL)
 	{
 		font = sFont;
 		char* bitmapCharsSmall = (char*)" ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!?.,''|-():;0123456789\0\0";
 		char* bitmapCharsLarge = (char*)"0123456789";
-		char* bitmapCharsLarge2 = (char*)" ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+		char* bitmapCharsLarge2 = (char*)" abcdefghijklmnopqrstuvwxyz";
 		auto retval = stbi_load(filename, &width, &height, &n, 4);
 		if (!retval)
 		{

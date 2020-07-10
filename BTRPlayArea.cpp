@@ -660,6 +660,7 @@ void BTRpowerup::PowerupHandle(BTRPlayArea& area, int powerupID)
 	case 3:
 		area.paddle.stateFlags |= BTRPaddle::PADDLE_TRACTOR;
 		area.paddle.tractorBeamPower = 240;
+		area.paddle.missilesLeft = 0;
 		break;
 	case 4:
 		for (auto& curBall : area.balls)
@@ -725,6 +726,7 @@ void BTRpowerup::PowerupHandle(BTRPlayArea& area, int powerupID)
 	case 10:
 		area.paddle.stateFlags |= BTRPaddle::PADDLE_MISSILE;
 		area.paddle.missilesLeft = 20;
+		area.paddle.tractorBeamPower = 0;
 		break;
 	case 12:
 		area.rainBadPowerups = 16;

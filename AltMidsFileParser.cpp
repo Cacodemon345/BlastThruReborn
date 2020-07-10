@@ -57,11 +57,6 @@ struct MidsHeader
 MidsHeader header;
 MidsDataHeader dataHeader;
 bool shouldContinue = false;
-uint32_t swap_uint32(uint32_t val)
-{
-	val = ((val << 8) & 0xFF00FF00) | ((val >> 8) & 0xFF00FF);
-	return (val << 16) | (val >> 16);
-}
 
 bool eot = false;
 int tempoPerBeat = 6000000;
@@ -95,7 +90,7 @@ int main(int argc, char *argv[])
 {
 	if (argc > 1)
 	{
-		if (strncmp(argv[1],"exportmid"))
+		if (strncmp(argv[1],"exportmid",9))
 		{
 			
 		}
