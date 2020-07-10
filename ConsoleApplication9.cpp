@@ -182,11 +182,12 @@ int main(int argc, char *argv[])
     else
     {
         ini.SetValue("bt.ini",0,0);
-        int cnt;
-        while (cnt++ < 20)
+        int cnt = 0;
+        while (cnt < 20)
         {
             auto scorestr = std::string("score") + std::to_string(cnt);
             ini.SetValue("bt.ini",scorestr.c_str(),";0");
+            cnt++;
         }
         ini.SetValue("bt.ini","scheck","0");
         ini.SetValue("bt.ini","gmididevselect","off");
@@ -260,9 +261,6 @@ int main(int argc, char *argv[])
     {
         std::cout << "Loading gamma shader failed" << std::endl;
     }
-#if !defined(_HAS_CXX20)
-    //static_assert(false, "C++20 support not available");
-#endif
 #if 0
         L = lua_open();
         luaL_openlibs(L);
@@ -1337,6 +1335,7 @@ int main(int argc, char *argv[])
         drawBricks();
         for (int i = 0; i < playArea->powerups.size(); i++)
         {
+            if (vertvelpowerup) playArea->powerups[i].aliveTick++;
             if (playArea->powerups[i].aliveTick < 30)
             {
                 powerupSprite->SetTexRect(10 - fuzzrand(gen), 1);

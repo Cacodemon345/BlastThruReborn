@@ -579,9 +579,6 @@ struct BTRbrick : BTRObjectBase
 				{
 					area.bricks[i].destroyed = true;
 					area.bricks[i].explosionHit = true;
-					auto angleFromBrick = atan2(area.bricks[i].y - this->y,area.bricks[i].x - this->x);
-					area.bricks[i].hitvelX = cos(angleFromBrick) * 33;
-					area.bricks[i].hitvelY = sin(angleFromBrick) * 33;
 				}
 			}
 		}
