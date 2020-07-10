@@ -42,6 +42,7 @@ HMIDIOUT midiOutDev;
 
 extern bool eot;
 extern bool oneshotplay;
+extern bool gameSound;
 std::random_device rd;
 std::mt19937 gen(rd());
 std::uniform_real_distribution<> dis(-5, 5);
@@ -185,13 +186,16 @@ int main(int argc, char *argv[])
         while (cnt++ < 20)
         {
             auto scorestr = std::string("score") + std::to_string(cnt);
-            ini.SetValue("bt.ini",scorestr.c_str(),"0");
+            ini.SetValue("bt.ini",scorestr.c_str(),";0");
         }
         ini.SetValue("bt.ini","scheck","0");
         ini.SetValue("bt.ini","gmididevselect","off");
         ini.SetValue("bt.ini","gmididevnum","0");
         ini.SetValue("bt.ini", "ggamemusic", "on");
         ini.SetValue("bt.ini", "ggamesound", "on");
+        ini.SetValue("bt.ini", "gvertvelpowerup", "off");
+        ini.SetValue("bt.ini", "runcount","0");
+        ini.SetValue("bt.ini", "runsuccess","0");
         ini.SaveFile("./bt.ini",0);
         
     }
@@ -204,6 +208,7 @@ int main(int argc, char *argv[])
     }
     name = ini.GetValue("bt.ini", "gamename");
     gameMusic = ini.GetBoolValue("bt.ini", "ggamemusic");
+    gameSound = ini.GetBoolValue("bt.ini", "ggamesound");
     bool mididevselect = ini.GetBoolValue("bt.ini","gmididevselect");
     if (!mididevselect) 
     {

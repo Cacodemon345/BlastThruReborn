@@ -6,6 +6,7 @@ static ALuint* Buffers = (ALuint*)malloc(sizeof(ALuint) * 129);
 static ALuint* source = (ALuint*)malloc(sizeof(ALuint) * 129);
 static ALuint* musBuf = (ALuint*)malloc(sizeof(ALuint));
 bool OpenALInited = false;
+bool gameSound = true;
 int curBuffer = 0;
 bool InitOpenAL()
 {
@@ -35,7 +36,7 @@ void BTRPlaySound(std::string filename, bool looping, bool playOnSameChannel, bo
 }
 void BTRPlaySound(const char* filename, bool looping, bool playOnSameChannel, bool isMusic, bool queueUp, float sourceX, float sourceY, float sourceZ)
 {
-	if (!OpenALInited) return;
+	if (!OpenALInited || !gameSound) return;
 	SF_INFO info;
 	info.format = 0;
 	auto file = sf_open(filename, SFM_READ, &info);
