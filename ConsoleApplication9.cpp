@@ -1281,7 +1281,7 @@ int main(int argc, char *argv[])
                         if (curBrickRect.contains(mousePosInsideBrickDisp))
                         {
                             auto prevBrickID = brickID;
-                            brickID = index + 1;
+                            brickID = std::clamp(index + 1,1,64);
                             if (brickID != prevBrickID) BTRPlaySound("./ball/editselect.wav");
                             break;
                         }
