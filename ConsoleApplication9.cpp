@@ -118,8 +118,25 @@ const std::string gammaShaderCode =
     " gl_FragColor = pow(pixel, vec4(vec3(1.0f / gamma),1.0) );"
     "}";
 
+const std::string colorShaderCode=
+    "#version 120"
+    "\n"
+    "\n"
+    "uniform sampler2D texture;"
+    "uniform vec4 col;"
+    "void main()"
+    "{"
+    " vec4 pixel = texture2D(texture, gl_TexCoord[0].xy);"
+    " float grayCol = (pixel.r + pixel.g + pixel.b) / 3.0;"
+    " gl_FragColor = gl_Color * vec4(grayCol,grayCol,grayCol,1.0) * col;"
+    "}";
+
 bool firstRun = true;
 bool vertvelpowerup = false;
+bool backgrndcol = false;
+float backgrndr = 1.0f;
+float backgrndg = 1.0f;
+float backgrndb = 1.0f;
 
 int main(int argc, char *argv[])
 {
@@ -198,6 +215,10 @@ int main(int argc, char *argv[])
         ini.SetValue("bt.ini", "gvertvelpowerup", "off");
         ini.SetValue("bt.ini", "runcount", "0");
         ini.SetValue("bt.ini", "runsuccess", "0");
+        ini.SetValue("bt.ini", "backgrndred", "0.0");
+        ini.SetValue("bt.ini", "backgrndgreen", "0.0");
+        ini.SetValue("bt.ini", "backgrndblue", "0.0");
+        ini.SetBoolValue("bt.ini", "backgrndcol", false);
         ini.SaveFile("./bt.ini", 0);
     }
     std::string name;
@@ -210,6 +231,10 @@ int main(int argc, char *argv[])
     name = ini.GetValue("bt.ini", "gamename");
     gameMusic = ini.GetBoolValue("bt.ini", "ggamemusic");
     gameSound = ini.GetBoolValue("bt.ini", "ggamesound");
+    backgrndcol = ini.GetBoolValue("bt.ini", "backgrndcol",false);
+    backgrndr = ini.GetDoubleValue("bt.ini", "backgrndred",1);
+    backgrndg = ini.GetDoubleValue("bt.ini", "backgrndgreen",1);
+    backgrndb = ini.GetDoubleValue("bt.ini", "backgrndblue",1);
     bool mididevselect = ini.GetBoolValue("bt.ini", "gmididevselect");
     if (!mididevselect)
     {
@@ -261,6 +286,12 @@ int main(int argc, char *argv[])
     if (!loaded)
     {
         std::cout << "Loading gamma shader failed" << std::endl;
+    }
+    sf::Shader colShader;
+    loaded = colShader.loadFromMemory(colorShaderCode, sf::Shader::Fragment);
+    if (!loaded)
+    {
+        std::cout << "Loading color shader failed" << std::endl;
     }
 #if 0
         L = lua_open();
@@ -440,7 +471,9 @@ int main(int argc, char *argv[])
                 sprite.setPosition(sf::Vector2f(posX, posY));
                 //gammaShader.setUniform("gamma", 1.f);
                 //gammaShader.setUniform("texture", tex);
-                window->draw(sprite /*,&gammaShader*/);
+                colShader.setUniform("texture",tex);
+                colShader.setUniform("col",sf::Glsl::Vec4(backgrndr,backgrndg,backgrndb,1));
+                window->draw(sprite, backgrndcol ? &colShader : NULL /*,&gammaShader*/);
             }
         wallSprite.setPosition(window->getSize().x - wallWidth / 2, 0);
         window->draw(wallSprite);
