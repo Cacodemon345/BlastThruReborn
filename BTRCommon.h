@@ -272,7 +272,7 @@ struct BTRFont
 			while (file >> str)
 			{
 //				file >> str;
-				std::cout << "Read string: " << str << std::endl;
+				//std::cout << "Read string: " << str << std::endl;
 				if (str == "Character_Mapping")
 				{
 					file >> genCharHeight;
