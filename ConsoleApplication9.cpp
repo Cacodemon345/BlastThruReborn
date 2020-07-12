@@ -917,7 +917,7 @@ int main(int argc, char *argv[])
                 }*/
                 if (cheatText)
                 {
-                    if (event.text.unicode == 127)
+                    if (event.text.unicode == 8 && !cheatstr.empty())
                         cheatstr.pop_back();
                     else
                         cheatstr += static_cast<char>(event.text.unicode);
@@ -1118,8 +1118,6 @@ int main(int argc, char *argv[])
             window->draw(windowSprite);
             winBoxImage->sprite.setPosition(sf::Vector2f(BTRWINDOWWIDTH / 2 - winBoxImage->width / 2, BTRWINDOWHEIGHT / 2));
             window->draw(*winBoxImage);
-            if (sf::Keyboard::isKeyPressed(sf::Keyboard::BackSpace) && cheatstr.size() > 0)
-                cheatstr.pop_back();
             font->RenderChars("Cheaters never prosper...", winBoxImage->sprite.getPosition() - sf::Vector2f(0, font->genCharHeight), window);
             font->RenderChars(cheatstr + '|', winBoxImage->sprite.getPosition(), window);
             window->display();
