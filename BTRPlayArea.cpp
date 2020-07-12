@@ -545,23 +545,23 @@ void BTRball::Tick(BTRPlayArea &area)
 		{	
 			if (this->x <= (double)area.paddle.sprite->sprite.getPosition().x + 8.)
 			{
-				angle = (-90 - 60) * pi / 180;
+				angle = (-90 - 70) * pi / 180;
 				lengthFactor = 0.75;
 				BTRPlaySound("./ball/paddleedge.wav");
 			}
-			else if (this->x <= area.paddle.sprite->sprite.getPosition().x + area.paddle.paddleRadius / 2 - (area.paddle.paddleRadius * 0.25)) angle = (-90 - 30) * pi / 180;
-			else angle = (-90 - 15) * pi / 180;
+			else if (this->x <= area.paddle.sprite->sprite.getPosition().x + area.paddle.paddleRadius / 2 - (area.paddle.paddleRadius * 0.25)) angle = (-90 - 45) * pi / 180;
+			else angle = (-90 - 25) * pi / 180;
 		}
 		else if (this->x > area.paddle.sprite->sprite.getPosition().x + area.paddle.paddleRadius / 2)
 		{
 			if (this->x > area.paddle.sprite->sprite.getPosition().x + area.paddle.paddleRadius - 8)
 			{
-				angle = (-90 + 60) * pi / 180;
+				angle = (-90 + 70) * pi / 180;
 				lengthFactor = 0.75;
 				BTRPlaySound("./ball/paddleedge.wav");
 			}
-			else if (this->x > area.paddle.sprite->sprite.getPosition().x + area.paddle.paddleRadius / 2 + (area.paddle.paddleRadius * 0.25)) angle = (-90 + 30) * pi / 180;
-			else angle = (-90 + 15) * pi / 180;
+			else if (this->x > area.paddle.sprite->sprite.getPosition().x + area.paddle.paddleRadius / 2 + (area.paddle.paddleRadius * 0.25)) angle = (-90 + 45) * pi / 180;
+			else angle = (-90 + 25) * pi / 180;
 		}
 		this->velX = area.paddle.lengthOfBall * lengthFactor * cos(angle);
 		this->velY = area.paddle.lengthOfBall * lengthFactor * sin(angle);
