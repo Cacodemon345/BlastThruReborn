@@ -762,16 +762,31 @@ int main(int argc, char *argv[])
     levEditBtns.push_back(levEditPlay);
 
     BTRButton levEditLoad;
-    levEditLoad.clickedFunc = [&editPlayArea, window]() {
-        delete editPlayArea;
-        try
-        {
-            editPlayArea = new BTRPlayArea("./lev/cust.btrlev", window);
-        }
-        catch (std::runtime_error &err)
-        {
-            editPlayArea = new BTRPlayArea();
-            editPlayArea->LoadBrickTex();
+    levEditLoad.clickedFunc = [&]() {
+        editPlayArea->bricks.clear();
+        auto file = std::ifstream();
+        file.open("./lev/cust.btrlev");
+        if (!file.is_open()) return;
+        char* header = new char[6];
+        file.read (header,6);		
+		if (strncmp(header,"BTRLEV",6) == 0)
+		{
+			unsigned char endianness = 0;
+			file.read((char*)&endianness,1);
+			while(!file.eof())
+			{
+                int curBrickID = 0;
+				BTRbrick curBrick;
+				file.read((char*)&curBrickID,sizeof(int));
+				int x,y;
+				file.read((char*)&x,sizeof(x));
+				file.read((char*)&y,sizeof(y));
+				curBrick.x = x;
+				curBrick.y = y;
+                curBrick.brickID = curBrickID;
+                if (curBrick.brickID >= 64) curBrick.isFireball = true;
+				editPlayArea->bricks.push_back(curBrick);
+			}
         }
     };
     levEditLoad.str = "Load";
@@ -788,7 +803,7 @@ int main(int argc, char *argv[])
     levEditBtns.push_back(levEditSave);
 
     BTRButton levEditNew;
-    levEditNew.clickedFunc = [editPlayArea]() {
+    levEditNew.clickedFunc = [&editPlayArea]() {
         editPlayArea->bricks.clear();
     };
     levEditNew.smallButton = 1;

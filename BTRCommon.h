@@ -468,7 +468,14 @@ struct BTRbrick : BTRObjectBase
 	int hitTimes = 1;
 	int collisionCooldown = 0;
 	inline BTRbrick() = default;
-	inline BTRbrick(const BTRLevInfo& levInfo) {x = levInfo.x; y = levInfo.y; brickID = levInfo.brickID;};
+	inline BTRbrick(const BTRLevInfo& levInfo)
+	{
+		x = levInfo.x;
+		y = levInfo.y;
+		brickID = levInfo.brickID;
+		isFireball = brickID >= 64;
+		if (isFireball) brickID = 64;
+	};
 	bool BrickExistUnder(BTRPlayArea& area)
 	{
 		for (auto& curBrick : area.bricks)

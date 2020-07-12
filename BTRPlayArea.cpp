@@ -55,7 +55,7 @@ void BTRPlayArea::ExportBricks()
 	{
 		levFile.write("BTRLEV",6);
 		unsigned char endianness = 0;
-		{
+		
 			constexpr auto littleorder = 0x41424344UL;
 			constexpr auto bigorder = 0x44434241UL;
 			constexpr auto pdporder = 0x42414443UL;
@@ -73,16 +73,21 @@ void BTRPlayArea::ExportBricks()
 				break;
 			}
 			levFile.write((char*)&endianness,sizeof(char));
-		}
-		for (auto& curBrick : this->bricks)
+		
+		for (auto curBrick : this->bricks)
 		{
+			//BTRLevInfo brickInfo;
+			//brickInfo.x = (int)curBrick.x;
+			//brickInfo.y = (int)curBrick.y;
+			//brickInfo.brickID = curBrick.brickID;
+			//levFile.write((char*)&brickInfo,sizeof(brickInfo));
 			int curX = curBrick.x;
 			int curY = curBrick.y;
-			BTRLevInfo brickInfo;
-			brickInfo.x = curX;
-			brickInfo.y = curY;
-			brickInfo.brickID = curBrick.brickID;
-			levFile.write((char*)&brickInfo,sizeof(brickInfo));
+			int curBrickID = curBrick.brickID;
+			levFile.write((char*)&curBrickID,sizeof(curBrickID));
+			levFile.write((char*)&curX,sizeof(curX));
+			levFile.write((char*)&curY,sizeof(curY));
+			
 		}
 		levFile.close();
 	}
@@ -106,13 +111,19 @@ BTRPlayArea::BTRPlayArea(std::string levfilename, sf::RenderWindow* window)
 			file.read((char*)&endianness,1);
 			while(!file.eof())
 			{
-				BTRLevInfo brickInfo;
-				file.read((char*)&brickInfo,sizeof(brickInfo));
-				bricks.push_back(BTRbrick(brickInfo));
+				BTRbrick curBrick;
+				file.read((char*)&curBrick.brickID,sizeof(int));
+				int x,y;
+				file.read((char*)&x,sizeof(x));
+				file.read((char*)&y,sizeof(y));
+				curBrick.x = x;
+				curBrick.y = y;
+				bricks.push_back(curBrick);
 			}
 			LoadBrickTex();
 			if (window != nullptr) paddle.sprite->sprite.setPosition((sf::Vector2f)sf::Mouse::getPosition(*window));
 			SpawnInitialBall();
+			file.close();
 			return;
 		}
 		file.seekg(0,std::ios::beg);
