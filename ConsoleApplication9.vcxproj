@@ -172,7 +172,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <FixedBaseAddress>true</FixedBaseAddress>
-      <AdditionalDependencies>sfml-graphics.lib;sfml-window.lib;sfml-system.lib;sfml-audio.lib;opengl32.lib;winmm.lib;openal32.lib;flac.lib;vorbis.lib;vorbisenc.lib;vorbisfile.lib;ogg.lib;libsndfile-1.lib;lua51.lib;luajit.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>sfml-graphics.lib;sfml-window.lib;sfml-system.lib;sfml-audio.lib;opengl32.lib;winmm.lib;openal32.lib;flac.lib;vorbis.lib;vorbisenc.lib;vorbisfile.lib;ogg.lib;libsndfile-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ForceFileOutput>
       </ForceFileOutput>
       <AdditionalLibraryDirectories>C:\Users\Sahil\Downloads\SFML-2.5.1-windows-vc15-64-bit\SFML-2.5.1\lib;C:\Program Files\Mega-Nerd\libsndfile\lib;C:\Users\Sahil\Downloads\LuaJIT-2.0.5\src</AdditionalLibraryDirectories>
