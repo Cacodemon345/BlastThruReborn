@@ -536,7 +536,7 @@ void BTRball::Tick(BTRPlayArea &area)
 		&& this->x <= area.paddle.sprite->sprite.getPosition().x + area.paddle.paddleRadius)
 	{
 		BTRPlaySound(area.paddle.stateFlags & BTRPaddle::PADDLE_MAGNET ? "./ball/ballhold.wav" : "./ball/paddle.wav");
-
+		this->y = std::clamp(this->y,0.,BTRWINDOWWIDTH - 40.);
 		long double lengthFactor = 1.0;
 		auto length = sqrt(this->velX * this->velX + this->velY * this->velY);
 		double angle = atan2((this->y + this->height * 0.5 - this->velY) - (area.paddle.sprite->sprite.getPosition().y + area.paddle.sprite->realHeightPerTile * 0.5),
