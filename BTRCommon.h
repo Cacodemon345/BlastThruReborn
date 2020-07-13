@@ -617,11 +617,11 @@ struct BTRExplosion : BTRExplodingBricks
 	bool destroyed = false;
 	void Tick()
 	{
-		if (framesPassed > 6)
+		if (framesPassed >= spr->realnumOfFrames-1)
 		{
 			framesPassed = 0;
 			spriteIndex++;
-			if (spriteIndex > 3)
+			if (spriteIndex >= spr->realnumofSprites)
 			{
 				this->destroyed = true;
 			}

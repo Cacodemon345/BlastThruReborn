@@ -1,5 +1,6 @@
 #include "BTRCommon.h"
 #include "SoundPlayback.h"
+std::map<std::string, short*> soundCache;
 static ALCdevice* Device = NULL;
 static ALCcontext* Context = NULL;
 static ALuint* Buffers = (ALuint*)malloc(sizeof(ALuint) * 129);
@@ -39,6 +40,18 @@ void BTRPlaySound(const char* filename, bool looping, bool playOnSameChannel, bo
 	if (!OpenALInited || !gameSound) return;
 	SF_INFO info;
 	info.format = 0;
+	short* framedata = NULL;
+	bool soundCached = false;
+	try
+	{
+		framedata = soundCache.at(std::string(filename));
+		soundCached = true;
+	}
+	catch(std::out_of_range)
+	{
+		framedata = NULL;
+	}
+	
 	auto file = sf_open(filename, SFM_READ, &info);
 	auto orgBuffer = curBuffer;
 	if (file)
@@ -55,11 +68,16 @@ void BTRPlaySound(const char* filename, bool looping, bool playOnSameChannel, bo
 		{
 			curBuffer = 128;
 		}
-		auto framedata = new short[info.frames * info.channels];
+		if (!framedata) framedata = new short[info.frames * info.channels];
 		//alSourceStop(source[curBuffer]);
 		alSourcei(source[curBuffer], AL_BUFFER, 0);		
 		//alDeleteBuffers(1, &Buffers[curBuffer]);
-		sf_readf_short(file, framedata, info.frames);		
+		if (!soundCached)
+		{
+			sf_readf_short(file, framedata, info.frames);
+			soundCache[std::string(filename)] = framedata;
+		}
+		
 		alBufferData(Buffers[curBuffer], AL_FORMAT_MONO16 + (info.channels == 2 ? 2 : 0), framedata, info.frames * info.channels * sizeof(short), info.samplerate);
 		if (queueUp) 
 		{
@@ -68,7 +86,7 @@ void BTRPlaySound(const char* filename, bool looping, bool playOnSameChannel, bo
 			if (isPlaying != AL_PLAYING) alSourcei(source[curBuffer], AL_BUFFER, Buffers[curBuffer]);
 			else 
 			{
-				delete[] framedata;
+				//delete[] framedata;
 				sf_close(file);
 				curBuffer = ++orgBuffer;
 				return;
@@ -79,8 +97,9 @@ void BTRPlaySound(const char* filename, bool looping, bool playOnSameChannel, bo
 		else alSourcei(source[curBuffer], AL_LOOPING, AL_FALSE);
 		alSource3f(source[curBuffer], AL_POSITION, sourceX, sourceY, -sourceZ);
 		alSourcePlay(source[curBuffer]);
+		
 		curBuffer++;
-		delete[] framedata;
+		//delete[] framedata;
 		sf_close(file);
 		if (isMusic) curBuffer = ++orgBuffer;
 	}

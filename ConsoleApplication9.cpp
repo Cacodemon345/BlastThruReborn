@@ -656,7 +656,7 @@ int main(int argc, char *argv[])
         event.type = sf::Event::KeyPressed;
         event.key.code = sf::Keyboard::Escape;
         flipPaused(event);
-        BTRPlaySound("./ball/editselect.wav");
+        //BTRPlaySound("./ball/editselect.wav");
     };
     retToGame.str = "Return to Game";
     retToGame.pos = sf::Vector2f(640 / 2 - winButtonImage->width / 2, BTRWINDOWHEIGHT - 100);
@@ -682,7 +682,7 @@ int main(int argc, char *argv[])
         event.key.code = sf::Keyboard::Escape;
         flipPaused(event, false);
         GetCurPlayingFilename() = "";
-        BTRPlaySound("./ball/editselect.wav");
+        //BTRPlaySound("./ball/editselect.wav");
         firstRun = false;
         fade = 1;
         playArea->randomPlay = true;
@@ -739,7 +739,7 @@ int main(int argc, char *argv[])
         event.type = sf::Event::KeyPressed;
         event.key.code = sf::Keyboard::Escape;
         flipPaused(event);
-        BTRPlaySound("./ball/editselect.wav");
+        //BTRPlaySound("./ball/editselect.wav");
     };
     levEditMenu.pos = sf::Vector2f(BTRWINDOWWIDTH - winButtonSmallImage->width - 20 - wallWidth / 2, 20);
     levEditMenu.str = "Menu";
@@ -930,8 +930,8 @@ int main(int argc, char *argv[])
                     {
                         if (event.mouseButton.x >= curBtn.pos.x && event.mouseButton.x <= curBtn.pos.x + winButtonImage->width && event.mouseButton.y <= curBtn.pos.y + 20 && event.mouseButton.y >= curBtn.pos.y && curBtn.wasHeld)
                         {
-                            BTRPlaySound("./ball/editselect.wav");
                             curBtn.clickedFunc();
+                            BTRPlaySound("./ball/editselect.wav");
                         }
                         curBtn.wasHeld = false;
                     }
@@ -941,9 +941,9 @@ int main(int argc, char *argv[])
                     for (auto &curBtn : levEditBtns)
                     {
                         if (event.mouseButton.x >= curBtn.pos.x && event.mouseButton.x <= curBtn.pos.x + winButtonImage->width && event.mouseButton.y <= curBtn.pos.y + 20 && event.mouseButton.y >= curBtn.pos.y && curBtn.wasHeld)
-                        {
-                            BTRPlaySound("./ball/editselect.wav");
+                        {                            
                             curBtn.clickedFunc();
+                            BTRPlaySound("./ball/editselect.wav");
                         }
                         curBtn.wasHeld = false;
                     }
@@ -953,7 +953,6 @@ int main(int argc, char *argv[])
 
                 if (event.mouseButton.button == sf::Mouse::Left)
                 {
-
                     for (auto &curBall : playArea->balls)
                     {
                         curBall->ballHeld = false;
@@ -1436,7 +1435,7 @@ int main(int argc, char *argv[])
         }
         drawSparks();
         largeFont->RenderChars(std::to_string(score), sf::Vector2f(wallWidth / 2, 0), window);
-        font->RenderChars("level " + std::to_string(playArea->levnum), sf::Vector2f(wallWidth / 2, largeFont->genCharHeight), window);
+        font->RenderChars(playArea->levnum == -1 ? "custom level" : "level " + std::to_string(playArea->levnum), sf::Vector2f(wallWidth / 2, largeFont->genCharHeight), window);
         if (!cursorVisible)
         {
             ball->SetSpriteIndex(1);
