@@ -140,28 +140,17 @@ float backgrndb = 1.0f;
 
 int main(int argc, char *argv[])
 {
-#if defined(__unix__) || defined(__APPLE__)
-    auto randfd = open("/dev/random", O_RDONLY);
-    if (randfd == -1)
+    int randNum = time(NULL);
+    std::vector<int> randNums;
+    for (int i = 0; i < lrint(2492.125); i++)
     {
-        randfd = open("/dev/urandom", O_RDONLY);
-        if (randfd == -1)
-            std::cout << "Skipping random number generation from device" << std::endl;
+        randNum = rd();
+        randNums.push_back(randNum);
     }
-    if (randfd != -1)
-    {
-        int randNum = time(NULL);
-        std::vector<uint32_t> randNums;
-        for (int i = 0; i < lrint(2492.125); i++)
-        {
-            read(randfd, (void *)&randNum, 4);
-            randNums.push_back(randNum);
-        }
-        std::seed_seq *seq = new std::seed_seq(randNums.begin(), randNums.end());
-        gen.seed(*seq);
-        delete seq;
-    }
-#endif
+    std::seed_seq* seq = new std::seed_seq(randNums.begin(), randNums.end());
+    gen.seed(*seq);
+    delete seq;
+
     CSimpleIniA ini;
     ini.SetUnicode(true);
     ini.Reset();
