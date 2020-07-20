@@ -224,6 +224,10 @@ int main(int argc, char *argv[])
     backgrndr = ini.GetDoubleValue("bt.ini", "backgrndred",1);
     backgrndg = ini.GetDoubleValue("bt.ini", "backgrndgreen",1);
     backgrndb = ini.GetDoubleValue("bt.ini", "backgrndblue",1);
+    ini.SetDoubleValue("bt.ini", "backgrndred", backgrndr);
+    ini.SetDoubleValue("bt.ini", "backgrndgreen", backgrndg);
+    ini.SetDoubleValue("bt.ini", "backgrndblue", backgrndb);
+    ini.SetBoolValue("bt.ini", "backgrndcol", backgrndcol);
     bool mididevselect = ini.GetBoolValue("bt.ini", "gmididevselect");
     if (!mididevselect)
     {
