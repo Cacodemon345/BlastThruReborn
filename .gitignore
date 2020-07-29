@@ -362,3 +362,6 @@ RtMidi17/
 .ccls-cache/
 compile_commands.json
 *.exe
+.vscode/
+*.dSYM/
+.DS_Store
