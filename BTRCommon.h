@@ -29,8 +29,6 @@
 #include "LuaBridge/List.h"*/
 #include "SoundPlayback.h"
 #include <cstring>
-#include <SFML/Audio.hpp>
-#include <SFML/OpenGL.hpp>
 #include <bitset>
 constexpr auto BTRWINDOWWIDTH = 640;
 constexpr auto BTRWINDOWHEIGHT = 480;
