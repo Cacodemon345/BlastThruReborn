@@ -362,3 +362,5 @@ RtMidi17/
 .ccls-cache/
 compile_commands.json
 *.exe
+/sound - Copy
+/art - Copy
