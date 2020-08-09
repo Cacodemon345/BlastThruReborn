@@ -24,7 +24,7 @@ BSD:
 Ditto, but run makebsd.sh instead like this: `. makebsd.sh`. If you get complaints about not being able to find the file (happens on OpenBSD), run makebsd.sh like this: `. ./makebsd.sh`. Commands must be ran as non-root from the shell. Note that extracting the game assets required for running the game won't be possible from a BSD.
 
 macOS:
-I haven't been able to get a Mac computer to test this on macOS, so anything you do to compile it is on your own (including setting up the necessary compiler environments). You still need to install the dependencies by yourself. I may end up testing this on macOS should I manage to get my hand on a Macintosh computer (or if a ARM one, bonus points there too). You will be installing the dependencies by yourself anyway. Note that extracting the game assets required for running the game won't be possible from macOS.
+Install the necessary dependencies listed here using Homebrew and run makeapple-macos.sh like this: `. ./makeapple-macos.sh`. Note that you will need to clone the RtMidi17 git repo inside this project's folder. Extracting assets from a macOS is possible. Note that it is possible for Apple to deprecate CoreMIDI so if that happens by any chance, run the `makeapple-macos-jack.sh` script instead (assuming you got synths built and installed with JACK enabled).
 
 # Running
 The repository does not contain the game assets for obvious reasons. You must own the game. To get this program running:

@@ -1133,8 +1133,6 @@ int main(int argc, char *argv[])
                 sf::Vector2f pos = titleImage->sprite.getPosition() + sf::Vector2f(0, titleImage->height);
 
                 DrawFrame(window, pos, sf::Vector2f(300, 370));
-                glEnable(GL_SCISSOR_TEST);
-                glScissor(pos.x, pos.y, 300, 370);
                 font->RenderChars("Game Menu", sf::Vector2f(640 / 2 - font->GetSizeOfText("Game Menu").x / 2, font->genCharHeight + pos.y), window);
                 for (auto &curBtn : btns)
                 {
@@ -1147,8 +1145,6 @@ int main(int argc, char *argv[])
                     //curBtnPos += sf::Vector2f(0, curBtn.wasHeld ? 5 : 0);
                     font->RenderChars(curBtn.str, curBtnPos, window);
                 }
-                glScissor(0, 0, BTRWINDOWWIDTH, BTRWINDOWHEIGHT);
-                glDisable(GL_SCISSOR_TEST);
                 if (!cursorVisible)
                 {
                     ball->SetSpriteIndex(1);
