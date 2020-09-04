@@ -9,6 +9,7 @@ static ALuint* musBuf = (ALuint*)malloc(sizeof(ALuint));
 bool OpenALInited = false;
 bool gameSound = true;
 int curBuffer = 0;
+extern char* homeprefix;
 bool InitOpenAL()
 {
 	// Initialization

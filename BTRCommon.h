@@ -3,13 +3,14 @@
 //#include <direct.h>
 #include "stb_image.h"
 #include <SFML/Graphics.hpp>
+#include <SFML/Window/Touch.hpp>
 #if __has_include("windows.h")
 #include <windows.h>
 #include <mmsystem.h>
 #endif
-#include <sndfile.hh>
-#include <AL/al.h>
-#include <AL/alc.h>
+#include "sndfile.hh"
+#include "AL/al.h"
+#include "AL/alc.h"
 #include <chrono>
 #include <thread>
 #include <fstream>
@@ -21,6 +22,9 @@
 #include <utility>
 #include <functional>
 #include <cmath>
+#ifndef __APPLE__
+#include <SFML/OpenGL.hpp>
+#endif
 
 /*#include "LuaBridge/LuaBridge.h"
 #include "LuaBridge/Map.h"
@@ -50,6 +54,49 @@ void ContinueMidiPlayback();
 void SelectMidiDevice(int selection);
 void SelectMidiDevice();
 inline sf::Color colors[2] = { sf::Color(252,128,0),sf::Color(255,255,0) };
+
+namespace btr
+{
+	class Mouse
+	{
+	public:
+#if defined(__ANDROID__) || defined(ANDROID)
+
+		static sf::Vector2i getPosition(sf::Window& window) {
+		    sf::Vector2i touchPos = sf::Touch::getPosition(0,window);
+			touchPos.x = ((double)touchPos.x / sf::VideoMode::getDesktopMode().width) * BTRWINDOWWIDTH;
+            touchPos.y = ((double)touchPos.y / sf::VideoMode::getDesktopMode().height) * BTRWINDOWHEIGHT;
+            return touchPos;
+		}
+
+		static sf::Vector2i getPosition(sf::RenderWindow& window) {
+            sf::Vector2i touchPos = sf::Touch::getPosition(0,window);
+            touchPos.x = ((double)touchPos.x / sf::VideoMode::getDesktopMode().width) * BTRWINDOWWIDTH;
+            touchPos.y = ((double)touchPos.y / sf::VideoMode::getDesktopMode().height) * BTRWINDOWHEIGHT;
+            return touchPos;
+		}
+
+		static bool isButtonPressed(sf::Mouse::Button val) {
+			return sf::Touch::isDown((int)val);
+		}
+
+#else
+        static sf::Vector2i getPosition(sf::Window& window)
+        {
+            return sf::Mouse::getPosition(window);
+        }
+        static sf::Vector2i getPosition(sf::RenderWindow& window)
+        {
+            return sf::Mouse::getPosition(window);
+        }
+        static bool isButtonPressed(sf::Mouse::Button val)
+        {
+            return sf::Mouse::isButtonPressed(val);
+        }
+#endif
+	};
+}
+
 // This section composes the engine part. Should be usable for "Adventures with Chickens" game.
 inline void preprocess8bitpal(stbi_uc* pixels, int width, int height)
 {
