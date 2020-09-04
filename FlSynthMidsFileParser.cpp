@@ -97,8 +97,6 @@ void SelectMidiDevice()
     }
     sequencer = new_fluid_sequencer2(0);
     seqId = fluid_sequencer_register_fluidsynth(sequencer,player);
-    
-    fluid_synth_noteon(player,0,60,127);
 
 }
 void SelectMidiDevice(int selection)

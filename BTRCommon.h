@@ -54,7 +54,7 @@ void ContinueMidiPlayback();
 void SelectMidiDevice(int selection);
 void SelectMidiDevice();
 inline sf::Color colors[2] = { sf::Color(252,128,0),sf::Color(255,255,0) };
-
+extern sf::Vector2i lastTouchPosition;
 namespace btr
 {
 	class Mouse
@@ -62,15 +62,20 @@ namespace btr
 	public:
 #if defined(__ANDROID__) || defined(ANDROID)
 
-		static sf::Vector2i getPosition(sf::Window& window) {
-		    sf::Vector2i touchPos = sf::Touch::getPosition(0,window);
-			touchPos.x = ((double)touchPos.x / sf::VideoMode::getDesktopMode().width) * BTRWINDOWWIDTH;
-            touchPos.y = ((double)touchPos.y / sf::VideoMode::getDesktopMode().height) * BTRWINDOWHEIGHT;
-            return touchPos;
-		}
-
 		static sf::Vector2i getPosition(sf::RenderWindow& window) {
             sf::Vector2i touchPos = sf::Touch::getPosition(0,window);
+            if (touchPos.x < 0 || touchPos.x > sf::VideoMode::getDesktopMode().width)
+			{
+            	// Negative X values indicate finger is not down.
+            	return lastTouchPosition;
+			}
+            else
+			{
+				touchPos.x = ((double)touchPos.x / sf::VideoMode::getDesktopMode().width) * BTRWINDOWWIDTH;
+				touchPos.y = ((double)touchPos.y / sf::VideoMode::getDesktopMode().height) * BTRWINDOWHEIGHT;
+            	lastTouchPosition = touchPos;
+            	return touchPos;
+			}
             touchPos.x = ((double)touchPos.x / sf::VideoMode::getDesktopMode().width) * BTRWINDOWWIDTH;
             touchPos.y = ((double)touchPos.y / sf::VideoMode::getDesktopMode().height) * BTRWINDOWHEIGHT;
             return touchPos;

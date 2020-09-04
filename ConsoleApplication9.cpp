@@ -59,6 +59,7 @@ BTRChompTeeth *chompteeth = NULL;
 BTRPlayArea *playArea = NULL;
 std::vector<unsigned char> randPlayedLevels;
 int64_t randPlayedSet;
+sf::Vector2i lastTouchPosition = sf::Vector2i(0,0);
 
 bool sortScoreList(const std::pair<std::string, int> t1, const std::pair<std::string, int> t2)
 {
@@ -134,6 +135,7 @@ const std::string colorShaderCode=
 bool firstRun = true;
 bool vertvelpowerup = false;
 bool backgrndcol = false;
+bool isFullscreen = false;
 float backgrndr = 1.0f;
 float backgrndg = 1.0f;
 float backgrndb = 1.0f;
@@ -218,9 +220,11 @@ int main(int argc, char *argv[])
         ini.SetValue("bt.ini", "backgrndred", "0.0");
         ini.SetValue("bt.ini", "backgrndgreen", "0.0");
         ini.SetValue("bt.ini", "backgrndblue", "0.0");
+        ini.SetBoolValue("bt.ini", "gfullscreen",0);
         ini.SetBoolValue("bt.ini", "backgrndcol", false);
 #if defined(__ANDROID__) || defined(ANDROID)
         ini.SetBoolValue("bt.ini", "gmididevselect",1);
+        ini.SetBoolValue("bt.ini", "gfullscreen",1);
         ini.SetLongValue("bt.ini", "gmididevnum", 0);
         ini.SetValue("bt.ini", "gamename", "Nameless Wonder");
         devID = 0;
@@ -245,8 +249,8 @@ int main(int argc, char *argv[])
     ini.SetDoubleValue("bt.ini", "backgrndgreen", backgrndg);
     ini.SetDoubleValue("bt.ini", "backgrndblue", backgrndb);
     ini.SetBoolValue("bt.ini", "backgrndcol", backgrndcol);
-    InitOpenAL();
     bool mididevselect = ini.GetBoolValue("bt.ini", "gmididevselect");
+    isFullscreen = ini.GetBoolValue("bt.ini","gfullscreen");
     if (!mididevselect)
     {
         SelectMidiDevice();
@@ -255,7 +259,7 @@ int main(int argc, char *argv[])
     }
     else
         SelectMidiDevice(ini.GetLongValue("bt.ini", "gmididevnum"));
-    
+    InitOpenAL();
     vertvelpowerup = ini.GetBoolValue("bt.ini", "gvertvelpowerup");
     for (int i = 0; i < argc; i++)
     {
@@ -379,7 +383,8 @@ int main(int argc, char *argv[])
     ball = new BTRsprite("./ball/ball.png", 32);
     auto loadSplashSprite = new BTRsprite("./art/romtech.png", 1, false, 1);
 
-    sf::RenderWindow *window = new sf::RenderWindow(sf::VideoMode(BTRWINDOWWIDTH, BTRWINDOWHEIGHT), "Blast Thru Reborn", sf::Style::Titlebar | sf::Style::Close);
+    sf::RenderWindow *window = new sf::RenderWindow(sf::VideoMode(BTRWINDOWWIDTH, BTRWINDOWHEIGHT), "Blast Thru Reborn",
+            isFullscreen ? sf::Style::Fullscreen : sf::Style::Titlebar | sf::Style::Close);
     sf::Texture windowTexture;
     windowTexture.create(window->getSize().x,window->getSize().y);
     sf::Sprite windowSprite;
@@ -822,7 +827,7 @@ int main(int argc, char *argv[])
     levEditNew.pos = sf::Vector2f(levEditSave.pos.x - winButtonSmallImage->width - 20, 20);
     levEditBtns.push_back(levEditNew);
 
-    bool isFullscreen = false;
+
     sf::Sprite brickSprite;
     playArea->LoadBrickTex();
     brickSprite.setTexture(playArea->brickTexture, true);
@@ -905,9 +910,13 @@ int main(int argc, char *argv[])
     cursorVisible = false;
     window->setMouseCursorVisible(false);
 #endif
+    if (isFullscreen)
+    {
+        cursorVisible = false;
+        window->setMouseCursorVisible(false);
+    }
     while (window->isOpen())
     {
-
         sf::Event event;
         while (window->pollEvent(event))
         {
@@ -965,7 +974,7 @@ int main(int argc, char *argv[])
                     for (auto &curBtn : levEditBtns)
                     {
                         if (event.mouseButton.x >= curBtn.pos.x && event.mouseButton.x <= curBtn.pos.x + winButtonImage->width && event.mouseButton.y <= curBtn.pos.y + 20 && event.mouseButton.y >= curBtn.pos.y && curBtn.wasHeld)
-                        {                            
+                        {
                             curBtn.clickedFunc();
                             BTRPlaySound("./ball/editselect.wav");
                         }
@@ -1040,10 +1049,27 @@ int main(int argc, char *argv[])
                     thread->detach();
                 }
                 if (event.key.code == sf::Keyboard::Pause || event.key.code == sf::Keyboard::Escape)
+                {
                     if (!highScore)
                     {
                         flipPaused(event);
                     }
+                    else
+                    {
+                        windowTexture.update(*window);
+                        playArea->levnum = 0;
+                        highScore =
+                        ballLost =
+                        endofgame = false;
+                        fadeOut = true;
+                        scrRect.setFillColor(sf::Color(0, 0, 0, 255));
+                        fade = 1;
+                        lives = 2;
+                        score = 0;
+                        scoreTexts.clear();
+                        randPlayedSet = 0;
+                    }
+                }
                 if (event.key.code == sf::Keyboard::Enter)
                 {
                     if (event.key.alt)
@@ -1600,5 +1626,6 @@ int main(int argc, char *argv[])
             std::cout << "Saved score: " << ini.GetValue("bt.ini", ("score" + std::to_string(i)).c_str()) << std::endl;
         }
     ini.SetLongValue("bt.ini", "scheck", scheck);
+    ini.SetBoolValue("bt.ini", "gfullscreen",isFullscreen);
     ini.SaveFile("./bt.ini", false);
 }
