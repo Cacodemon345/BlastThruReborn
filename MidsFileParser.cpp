@@ -130,6 +130,9 @@ void ParseMidsFile(std::string filename)
 		else
 		{
 			std::cout << "Bad MIDS file header" << std::endl;
+			#ifdef BTRMID_STANDALONE
+			exit(-1);
+			#endif
 			return;
 		}
 		file.read((char*)&dataHeader, sizeof(dataHeader));
@@ -199,6 +202,9 @@ void ParseMidsFile(std::string filename)
 	else
 	{
 		std::cout << "Invalid Filename" << std::endl;
+		#ifdef BTRMID_STANDALONE
+		exit(-1);
+		#endif
 	}
 }
 extern void StopMidiPlayback();
@@ -244,6 +250,25 @@ void StopMidiPlayback()
 	midiStreamStop(midiDev);
 	midiStreamClose(midiDev);
 }
+#ifdef BTRMID_STANDALONE
+
+int main(int argc, char *argv[])
+{
+	if (argc > 1)
+	{
+		if (strncmp(argv[1],"exportmid",9))
+		{
+			
+		}
+	}
+	std::cout << "Select MIDS file: " << std::endl;
+	std::string str;
+	std::cin >> str;
+	SelectMidiDevice();
+	ParseMidsFile(str);
+	StartMidiPlayback();
+}
+#endif
 #elif 1
 #include "AltMidsFileParser.cpp" // Better option.
 #elif 0

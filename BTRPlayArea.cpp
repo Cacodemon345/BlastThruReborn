@@ -227,6 +227,13 @@ void BTRPlayArea::Tick()
 		missileCooldown = 0;
 		BTRPlaySound("./ball/missilelaunch.wav");
 	}
+	if (btr::Mouse::isButtonPressed(sf::Mouse::Button::Left))
+	{
+		for (auto &curBall : this->balls)
+        {
+            curBall->ballHeld = false;
+        }
+	}
 	missileCooldown++;
 	if (paddle.stateFlags & paddle.PADDLE_TRACTOR && btr::Mouse::isButtonPressed(sf::Mouse::Button::Left))
 	{
@@ -363,6 +370,15 @@ void BTRPlayArea::Tick()
 	{
 		LostBall();
 	}
+}
+unsigned int BTRPlayArea::getClosestBall()
+{
+	std::sort(balls.begin(),balls.end(),[](const std::shared_ptr<BTRball>& lhs,
+										   const std::shared_ptr<BTRball>& rhs)
+										   {
+											   return std::greater<decltype(lhs->y)>()(lhs->y,rhs->y);
+										   });
+	return 0;
 }
 void BTRPlayArea::LostBall()
 {

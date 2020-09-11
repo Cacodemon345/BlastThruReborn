@@ -55,6 +55,7 @@ void SelectMidiDevice(int selection);
 void SelectMidiDevice();
 inline sf::Color colors[2] = { sf::Color(252,128,0),sf::Color(255,255,0) };
 extern sf::Vector2i lastTouchPosition;
+extern bool demo;
 namespace btr
 {
 	class Mouse
@@ -64,7 +65,7 @@ namespace btr
 
 		static sf::Vector2i getPosition(sf::RenderWindow& window) {
             sf::Vector2i touchPos = sf::Touch::getPosition(0,window);
-            if (touchPos.x < 0 || touchPos.x > sf::VideoMode::getDesktopMode().width)
+            if (touchPos.x < 0 || touchPos.x > sf::VideoMode::getDesktopMode().width || !sf::Touch::isDown(0))
 			{
             	// Negative X values indicate finger is not down.
             	return lastTouchPosition;
@@ -82,6 +83,7 @@ namespace btr
 		}
 
 		static bool isButtonPressed(sf::Mouse::Button val) {
+			if (demo && val == sf::Mouse::Left) return true;
 			return sf::Touch::isDown((int)val);
 		}
 
@@ -96,7 +98,8 @@ namespace btr
         }
         static bool isButtonPressed(sf::Mouse::Button val)
         {
-            return sf::Mouse::isButtonPressed(val);
+			if (demo && val == sf::Mouse::Left) return true;
+            else return sf::Mouse::isButtonPressed(val);
         }
 #endif
 	};
@@ -246,8 +249,29 @@ struct BTRFont
 	FontType font = FontType::BTR_FONTSMALL;
 	std::vector<BTRCharBitmap> bitmaps;
 	std::unordered_map<unsigned char, BTRCharBitmap> charMaps;
-	void RenderChars(std::string chars, sf::Vector2f pos, sf::RenderWindow* &window, sf::Color col = sf::Color(255,255,255,255))
+	sf::Vector2f GetSizeOfText(std::string chars)
 	{
+		sf::Vector2f totalSize;
+		for (int i = 0; i < chars.size(); i++)
+		{
+			if (font == FontType::BTR_FONTLARGE && !std::isdigit(chars[i], std::locale(""))) continue;
+			sf::Vector2i texPos;
+			texPos.x = charMaps[chars[i]].x;
+			texPos.y = charMaps[chars[i]].y;
+			sf::Vector2i texWH;
+			texWH.x = charMaps[chars[i]].width;
+			texWH.y = charMaps[chars[i]].height;
+			totalSize.x += texWH.x;
+		}
+		totalSize.y = this->genCharHeight;
+		return totalSize;
+	}	
+	void RenderChars(std::string chars, sf::Vector2f pos, sf::RenderWindow* &window, sf::Color col = sf::Color(255,255,255,255), bool renderFromCenter = false)
+	{
+		if (renderFromCenter)
+		{
+			pos.x = (sf::Vector2f(BTRWINDOWWIDTH,BTRWINDOWHEIGHT) / 2.f - GetSizeOfText(chars) / 2.f).x;
+		}
 		sf::Sprite sprite;
 		sprite.setTexture(fontImage, true);
 		sprite.setPosition(pos);
@@ -269,24 +293,8 @@ struct BTRFont
 		}
 		sprite.setColor(sf::Color(255, 255, 255, 255));
 	}
-	sf::Vector2f GetSizeOfText(std::string chars)
-	{
-		sf::Vector2f totalSize;
-		for (int i = 0; i < chars.size(); i++)
-		{
-			if (font == FontType::BTR_FONTLARGE && !std::isdigit(chars[i], std::locale(""))) continue;
-			sf::Vector2i texPos;
-			texPos.x = charMaps[chars[i]].x;
-			texPos.y = charMaps[chars[i]].y;
-			sf::Vector2i texWH;
-			texWH.x = charMaps[chars[i]].width;
-			texWH.y = charMaps[chars[i]].height;
-			totalSize.x += texWH.x;
-		}
-		totalSize.y = this->genCharHeight;
-		return totalSize;
-	}
-	void RenderChars(std::string chars, float X, float Y, sf::RenderWindow* &window, sf::Color col = sf::Color(255, 255, 255, 255))
+
+	void RenderChars(std::string chars, float X, float Y, sf::RenderWindow* &window, sf::Color col = sf::Color(255, 255, 255, 255), bool renderFromCenter = false)
 	{
 		return RenderChars(chars, sf::Vector2f(X, Y), window, col);
 	}
@@ -486,6 +494,7 @@ class BTRPlayArea
 	void ExportBricks();
 	void LoadBrickTex();
 	void UpdateBrickGridPos();
+	unsigned int getClosestBall();
 };
 struct BTRpowerup : BTRObjectBase
 {

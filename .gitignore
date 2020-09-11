@@ -368,3 +368,5 @@ compile_commands.json
 /sound - Copy
 /art - Copy
 fluidsynth.h
+
+soundfont.sf2

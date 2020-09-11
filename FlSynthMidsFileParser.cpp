@@ -1,6 +1,8 @@
 //
 // Created by caco345 on 9/4/20.
 //
+// FluidSynth interface based on the RtMidi17 interface.
+//
 
 #include <fluidsynth.h>
 #include <string>
@@ -91,7 +93,7 @@ void SelectMidiDevice()
     player = new_fluid_synth(settings);
     audioDriver = new_fluid_audio_driver(settings,player);
     auto res = fluid_synth_sfload(player,"./soundfont.sf2",1); // This one's for the Unixers...
-    if (res != FLUID_OK)
+    if (res == FLUID_FAILED)
     {
         printf("Failed to load soundfont");
     }
@@ -137,6 +139,9 @@ void ParseMidsFile(std::string filename)
         else
         {
             std::cout << "Bad MIDS file header" << std::endl;
+#ifdef BTRMID_STANDALONE
+            exit(-1);
+#endif
             return;
         }
         file.read((char*)&dataHeader, sizeof(dataHeader));
@@ -299,3 +304,22 @@ void ContinueMidiPlayback()
 {
     paused = false;
 }
+#ifdef BTRMID_STANDALONE
+
+int main(int argc, char *argv[])
+{
+	if (argc > 1)
+	{
+		if (strncmp(argv[1],"exportmid",9))
+		{
+			
+		}
+	}
+	std::cout << "Select MIDS file: " << std::endl;
+	std::string str;
+	std::cin >> str;
+	SelectMidiDevice();
+	ParseMidsFile(str);
+	StartMidiPlayback();
+}
+#endif
