@@ -1581,16 +1581,16 @@ int main(int argc, char *argv[])
         {
             if (demo)
             { 
-                auto posXOfPaddle = playArea->paddle.sprite->sprite.getPosition().x;
+                double posXOfPaddle = playArea->paddle.sprite->sprite.getPosition().x;
                 if (playArea->balls[playArea->getClosestBall()]->y <= 400)
                 {
                     if (playArea->powerups.size() >= 1)
                     {                        
-                        playArea->paddle.sprite->sprite.setPosition(std::clamp((float)std::lerp(posXOfPaddle,(float)playArea->powerups[0].x - (float)playArea->paddle.paddleRadius / 2,0.50), wallWidth / 2.f, BTRWINDOWWIDTH - wallWidth / 2.f - (float)playArea->paddle.paddleRadius), BTRWINDOWHEIGHT - 30);
+                        playArea->paddle.sprite->sprite.setPosition(std::clamp((double)std::lerp(posXOfPaddle,(float)playArea->powerups[0].x - (double)playArea->paddle.paddleRadius / 2.,0.50), wallWidth / 2., BTRWINDOWWIDTH - wallWidth / 2. - (float)playArea->paddle.paddleRadius), BTRWINDOWHEIGHT - 30);
                     }
                     //else playArea->paddle.sprite->sprite.setPosition(std::clamp((float)playArea->balls[playArea->getClosestBall()]->x - (float)playArea->paddle.paddleRadius / 2, wallWidth / 2.f, BTRWINDOWWIDTH - wallWidth / 2.f - (float)playArea->paddle.paddleRadius), BTRWINDOWHEIGHT - 30);
                 }
-                else playArea->paddle.sprite->sprite.setPosition(std::clamp((float)std::lerp(posXOfPaddle,playArea->balls[playArea->getClosestBall()]->x - (float)playArea->paddle.paddleRadius / 2, 0.50), wallWidth / 2.f, BTRWINDOWWIDTH - wallWidth / 2.f - (float)playArea->paddle.paddleRadius), BTRWINDOWHEIGHT - 30);
+                else playArea->paddle.sprite->sprite.setPosition(std::clamp((double)std::lerp(posXOfPaddle,playArea->balls[playArea->getClosestBall()]->x - (float)playArea->paddle.paddleRadius / 2, 0.50), wallWidth / 2., BTRWINDOWWIDTH - wallWidth / 2. - (float)playArea->paddle.paddleRadius), BTRWINDOWHEIGHT - 30);
             }
             else playArea->paddle.sprite->sprite.setPosition(std::clamp(cursor->sprite.getPosition().x, wallWidth / 2.f, BTRWINDOWWIDTH - wallWidth / 2.f - (float)playArea->paddle.paddleRadius), BTRWINDOWHEIGHT - 30);
         }
