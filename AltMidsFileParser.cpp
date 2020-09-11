@@ -171,6 +171,9 @@ void ParseMidsFile(std::string filename)
 		else
 		{
 			std::cout << "Bad MIDS file header" << std::endl;
+#ifdef BTRMID_STANDALONE
+            exit(-1);
+#endif			
 			return;
 		}
 		file.read((char*)&dataHeader, sizeof(dataHeader));

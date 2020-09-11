@@ -367,3 +367,6 @@ compile_commands.json
 .DS_Store
 /sound - Copy
 /art - Copy
+fluidsynth.h
+soundfont.sf2
+

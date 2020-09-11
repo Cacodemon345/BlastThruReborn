@@ -121,7 +121,7 @@ BTRPlayArea::BTRPlayArea(std::string levfilename, sf::RenderWindow* window)
 				bricks.push_back(curBrick);
 			}
 			LoadBrickTex();
-			if (window != nullptr) paddle.sprite->sprite.setPosition((sf::Vector2f)sf::Mouse::getPosition(*window));
+			if (window != nullptr) paddle.sprite->sprite.setPosition((sf::Vector2f)btr::Mouse::getPosition(*window));
 			SpawnInitialBall();
 			file.close();
 			return;
@@ -206,7 +206,7 @@ void BTRPlayArea::Tick()
 		chompteeth = 0;
 	}
 	bool noMoreDestroyed = true;
-	if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)
+	if (btr::Mouse::isButtonPressed(sf::Mouse::Button::Left)
 		&& paddle.missilesLeft
 		&& (paddle.stateFlags & paddle.PADDLE_MISSILE)
 		&& missileCooldown > 10)
@@ -227,8 +227,15 @@ void BTRPlayArea::Tick()
 		missileCooldown = 0;
 		BTRPlaySound("./ball/missilelaunch.wav");
 	}
+	if (btr::Mouse::isButtonPressed(sf::Mouse::Button::Left))
+	{
+		for (auto &curBall : this->balls)
+        {
+            curBall->ballHeld = false;
+        }
+	}
 	missileCooldown++;
-	if (paddle.stateFlags & paddle.PADDLE_TRACTOR && sf::Mouse::isButtonPressed(sf::Mouse::Button::Left))
+	if (paddle.stateFlags & paddle.PADDLE_TRACTOR && btr::Mouse::isButtonPressed(sf::Mouse::Button::Left))
 	{
 		auto centerPaddle = paddle.sprite->sprite.getPosition().x + paddle.paddleRadius / 2;
 		auto lengthOfBall = 15;
@@ -363,6 +370,15 @@ void BTRPlayArea::Tick()
 	{
 		LostBall();
 	}
+}
+unsigned int BTRPlayArea::getClosestBall()
+{
+	std::sort(balls.begin(),balls.end(),[](const std::shared_ptr<BTRball>& lhs,
+										   const std::shared_ptr<BTRball>& rhs)
+										   {
+											   return std::greater<decltype(lhs->y)>()(lhs->y,rhs->y);
+										   });
+	return 0;
 }
 void BTRPlayArea::LostBall()
 {
