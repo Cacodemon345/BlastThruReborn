@@ -362,8 +362,8 @@ RtMidi17/
 .ccls-cache/
 compile_commands.json
 *.exe
-/sound - Copy
-/art - Copy
 .vscode/
 *.dSYM/
 .DS_Store
+/sound - Copy
+/art - Copy
