@@ -106,6 +106,23 @@ auto ActivatePowerup(int powerupID)
 {
     return BTRpowerup::PowerupHandle(*playArea, powerupID);
 }
+std::vector<BTRMovingText> BuildTextFromString(std::string buildStr, BTRFont*& font, int baseYPos = 0)
+{
+    bool flipVal = 0;
+    std::stringstream stream(buildStr);
+    BTRMovingText moveText;
+    
+    std::vector<BTRMovingText> btrmoveTexts;
+    while (!stream.eof())
+    {
+        std::getline(stream,moveText.movingText);
+        flipVal ^= 1;
+        moveText.toPos = sf::Vector2f(BTRWINDOWWIDTH / 2 - font->GetSizeOfText(moveText.movingText).x / 2, baseYPos * font->genCharHeight);
+        moveText.pos = moveText.orgPos = sf::Vector2f(-font->GetSizeOfText(moveText.movingText).x + (BTRWINDOWWIDTH * flipVal), baseYPos++ * font->genCharHeight);
+        btrmoveTexts.push_back(moveText);
+    }
+    return btrmoveTexts;
+}
 const std::string gammaShaderCode =
 
     "#version 120"
@@ -539,6 +556,12 @@ int main(int argc, char *argv[])
     highScoreSprite.setTexture(highScoreTexture, true);
 
     std::vector<BTRMovingText> scoreTexts;
+    std::vector<BTRMovingText> moveTexts;
+    moveTexts = BuildTextFromString(
+                                    "Congratulations!\n"
+                                    "You have entered the Hall of Scores!\n"
+                                    "Enter your name in the box below:\n",
+                                    font,3);
     int highScoreWidth, highScoreHeight, colchan;
     auto highScoreImage = stbi_load("./ball/halloffaith.png", &highScoreWidth, &highScoreHeight, &colchan, 4);
     window->setKeyRepeatEnabled(true);
@@ -649,6 +672,10 @@ int main(int argc, char *argv[])
                 if (std::get<int>(curScore) == score)
                 {
                     newScoreAt = i;
+                    for (auto& curMovingText : moveTexts)
+                    {
+                        curMovingText.pos = curMovingText.orgPos;
+                    }
                 }
                 std::stringstream istr;
                 std::string str = std::to_string(scoreList) + ". " + std::get<std::string>(curScore);
@@ -955,6 +982,17 @@ int main(int argc, char *argv[])
                 {
                     if (event.text.unicode == 8 && !cheatstr.empty())
                         cheatstr.pop_back();
+                    else if (event.text.unicode == 10 && highScore)
+                    {
+                        if (newScoreAt != -1)
+                        {
+                            std::get<std::string>(scoresAndNames[newScoreAt]) = cheatstr;  
+                            scoreTexts[newScoreAt].movingText.replace(newScoreAt > 9 ? 4 : 3,cheatstr.size(),cheatstr);
+                            newScoreAt = -1;
+                            sf::Keyboard::setVirtualKeyboardVisible(false);
+                            BTRPlaySound("./ball/whoosh.wav");
+                        }                        
+                    }
                     else
                         cheatstr += static_cast<char>(event.text.unicode);
                 }
@@ -1142,7 +1180,7 @@ int main(int argc, char *argv[])
                             std::get<std::string>(scoresAndNames[newScoreAt]) = cheatstr;  
                             scoreTexts[newScoreAt].movingText.replace(newScoreAt > 9 ? 4 : 3,cheatstr.size(),cheatstr);
                             newScoreAt = -1;
-                            
+                            sf::Keyboard::setVirtualKeyboardVisible(false);
                             BTRPlaySound("./ball/whoosh.wav");
                         }
                         else
@@ -1176,13 +1214,17 @@ int main(int argc, char *argv[])
             window->draw(highScoreSprite);
             if (newScoreAt != -1)
             {
-                font->RenderChars(std::string("Congratulations!"),sf::Vector2f(0.f,font->genCharHeight * 3),window,sf::Color(255,255,255,255),true);
-                font->RenderChars(std::string("You have entered the Hall Of Scores!"),sf::Vector2f(0.f,font->genCharHeight * 4),window,sf::Color(255,255,255,255),true);
-                font->RenderChars(std::string("Enter your name in the box below"),sf::Vector2f(0.f,font->genCharHeight * 5),window,sf::Color(255,255,255,255),true);
-
+                //font->RenderChars(std::string("Congratulations!"),sf::Vector2f(0.f,font->genCharHeight * 3),window,sf::Color(255,255,255,255),true);
+                //font->RenderChars(std::string("You have entered the Hall Of Scores!"),sf::Vector2f(0.f,font->genCharHeight * 4),window,sf::Color(255,255,255,255),true);
+                //font->RenderChars(std::string("Enter your name in the box below"),sf::Vector2f(0.f,font->genCharHeight * 5),window,sf::Color(255,255,255,255),true);
+                for (auto &curMovingText : moveTexts)
+                {
+                    curMovingText.Tick();
+                    font->RenderChars(curMovingText.movingText, curMovingText.pos, window);
+                }
                 winBoxImage2->sprite.setPosition(sf::Vector2f(BTRWINDOWWIDTH,BTRWINDOWHEIGHT) / 2.f - sf::Vector2f(winBoxImage2->width / 2,0));
                 window->draw(*winBoxImage2);
-                font->RenderChars(cheatstr,winBoxImage2->sprite.getPosition(),window);
+                font->RenderChars(cheatstr + '|',winBoxImage2->sprite.getPosition(),window);
                 window->display();
                 continue;
             }
@@ -1191,7 +1233,7 @@ int main(int argc, char *argv[])
                 curMovingText.Tick();
                 font->RenderChars(curMovingText.movingText, curMovingText.pos, window);
             }
-            font->RenderChars("Hall of Fame", sf::Vector2f(BTRWINDOWWIDTH / 2, font->genCharHeight * 2) - sf::Vector2f(font->GetSizeOfText("Hall of Fame").x / 2, 0), window);
+            font->RenderChars("Hall of Scores", sf::Vector2f(BTRWINDOWWIDTH / 2, font->genCharHeight * 2) - sf::Vector2f(font->GetSizeOfText("Hall of Fame").x / 2, 0), window);
             window->display();
             continue;
         }
@@ -1235,6 +1277,7 @@ int main(int argc, char *argv[])
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::LAlt) && sf::Keyboard::isKeyPressed(sf::Keyboard::H))
         {
             cheatText = true;
+            cheatstr.clear();
         }
         if (paused)
         {
@@ -1287,6 +1330,7 @@ int main(int argc, char *argv[])
                 endofgame = false;
                 updateScoreList();
                 if (demo) newScoreAt = -1;
+                if (newScoreAt != -1) sf::Keyboard::setVirtualKeyboardVisible(true);
                 fadeOut = false;
                 ballLost = false;
                 highScore = true;
@@ -1577,10 +1621,30 @@ int main(int argc, char *argv[])
                 continue;
             }
         }
+        for (auto &curDebris : playArea->debrisObjects)
+        {
+            auto pos = curDebris.shape.getPosition();
+            curDebris.velY += curDebris.gravity;
+            pos.x += curDebris.velX;
+            pos.y += curDebris.velY;
+            curDebris.shape.setPosition(pos);
+            curDebris.shape.setRotation(curDebris.shape.getRotation() + 9.);
+            window->draw(curDebris.shape);
+            curDebris.shape.setFillColor(curDebris.shape.getFillColor() - sf::Color(0,0,0,255 * (1/40.)));
+            if (curDebris.shape.getFillColor().a <= 0) curDebris.destroyed = true;
+        }
+        for (int i = 0; i < playArea->debrisObjects.size(); i++)
+        {
+            if (playArea->debrisObjects[i].destroyed)
+            {
+                playArea->debrisObjects.erase(playArea->debrisObjects.begin() + i);
+            }
+        }
         if (!ballLost)
         {
             if (demo)
             { 
+                // Demo logic is here.
                 double posXOfPaddle = playArea->paddle.sprite->sprite.getPosition().x;
                 if (playArea->balls[playArea->getClosestBall()]->y <= 400)
                 {
@@ -1588,7 +1652,27 @@ int main(int argc, char *argv[])
                     {                        
                         playArea->paddle.sprite->sprite.setPosition(std::clamp((double)std::lerp(posXOfPaddle,(float)playArea->powerups[0].x - (double)playArea->paddle.paddleRadius / 2.,0.50), wallWidth / 2., BTRWINDOWWIDTH - wallWidth / 2. - (float)playArea->paddle.paddleRadius), BTRWINDOWHEIGHT - 30);
                     }
+                    if (playArea->paddle.stateFlags & BTRPaddle::PADDLE_MISSILE)
+                    {
+                        static double brickXPos = wallWidth / 2;
+                        std::uniform_int_distribution<int> randDist(0,playArea->horzPosOfBricks.size()-1);
+                        if ((frameCnt % 80) == 0)
+                        {
+                            int itNum = randDist(gen);
+                            for (auto& curVal : playArea->horzPosOfBricks)
+                            {
+                                itNum--;
+                                if (itNum <= 0)
+                                {
+                                    brickXPos = curVal;
+                                    break;
+                                }
+                            }
+                        }
+                        playArea->paddle.sprite->sprite.setPosition(std::clamp((double)std::lerp(posXOfPaddle,(float)brickXPos - (double)playArea->paddle.paddleRadius / 2.,0.50), wallWidth / 2., BTRWINDOWWIDTH - wallWidth / 2. - (float)playArea->paddle.paddleRadius), BTRWINDOWHEIGHT - 30);
+                    }
                     //else playArea->paddle.sprite->sprite.setPosition(std::clamp((float)playArea->balls[playArea->getClosestBall()]->x - (float)playArea->paddle.paddleRadius / 2, wallWidth / 2.f, BTRWINDOWWIDTH - wallWidth / 2.f - (float)playArea->paddle.paddleRadius), BTRWINDOWHEIGHT - 30);
+                    // Demo logic ends here.
                 }
                 else playArea->paddle.sprite->sprite.setPosition(std::clamp((double)std::lerp(posXOfPaddle,playArea->balls[playArea->getClosestBall()]->x - (float)playArea->paddle.paddleRadius / 2, 0.50), wallWidth / 2., BTRWINDOWWIDTH - wallWidth / 2. - (float)playArea->paddle.paddleRadius), BTRWINDOWHEIGHT - 30);
             }

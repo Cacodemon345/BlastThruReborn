@@ -16,6 +16,7 @@
 #include <fstream>
 #include <sstream>
 #include <unordered_map>
+#include <set>
 #include <numeric>
 #include <cstdlib>
 #include <random>
@@ -460,6 +461,7 @@ struct BTRLevInfo
 	unsigned char brickID;
 	int x,y;
 };
+struct BTRDebris;
 class BTRPlayArea
 {
 	public:
@@ -473,6 +475,8 @@ class BTRPlayArea
 	std::vector<sf::IntRect> brickTexRects;
 	std::vector<BTRpowerup> powerups;
 	std::vector<std::shared_ptr<BTRMissileObject>> missiles;
+	std::vector<BTRDebris> debrisObjects;
+	std::set<float> horzPosOfBricks;
 	sf::Texture brickTexture;
 	std::string levelname;
 	BTRPaddle paddle;
@@ -740,6 +744,7 @@ struct BTRMovingText
 {
 	sf::Vector2f pos;
 	sf::Vector2f toPos;
+	sf::Vector2f orgPos;
 	std::string movingText;
 	void Tick()
 	{
@@ -766,6 +771,19 @@ struct BTRChompTeeth : BTRObjectBase
 		}
 	}
 	virtual ~BTRChompTeeth() = default;
+};
+
+struct BTRDebris : BTRObjectBase
+{
+	sf::CircleShape shape = sf::CircleShape(4,360);	
+	BTRDebris(sf::Vector2f pos, sf::Texture& texture, sf::IntRect rectOfTexPos, sf::Vector2f vel)
+	{
+		shape.setPosition(pos);
+		shape.setTexture(&texture,true);
+		shape.setTextureRect(rectOfTexPos);
+		velX = vel.x;
+		velY = vel.y;
+	}
 };
 struct BTRMissileObject : BTRObjectBase
 {
@@ -802,6 +820,13 @@ struct BTRMissileObject : BTRObjectBase
 				expl.pos.x = this->x - expl.spr->realWidthPerTile * 0.5;
 				expl.pos.y = this->y - expl.spr->realHeightPerTile * 0.5;
 				explosions.push_back(expl);
+				int debrisCnt = 0;
+				while (debrisCnt++ < 4)
+				{
+					auto curAngle = atan2(this->velX,this->velY) + (dis(gen) * pi / 180);					
+					auto debris = BTRDebris(sf::Vector2f(this->x,this->y),area.brickTexture,area.brickTexRects[curBrick.brickID - 1], sf::Vector2f(dis(gen),this->velY));
+					area.debrisObjects.push_back(debris);
+				}
 				gravity = 0;
 				BTRPlaySound("./ball/missile.wav");
 			}

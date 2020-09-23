@@ -253,8 +253,13 @@ void BTRPlayArea::Tick()
 		paddle.tractorBeamPower--;
 		if (paddle.tractorBeamPower <= 0) paddle.stateFlags &= ~BTRPaddle::PADDLE_TRACTOR;
 	}
+	horzPosOfBricks.clear();
 	for (int i = 0; i < bricks.size(); i++)
 	{
+		if (horzPosOfBricks.find(bricks[i].x) == horzPosOfBricks.end())
+		{
+			horzPosOfBricks.insert(bricks[i].x);
+		}
 		if (bricks[i].collisionCooldown > 0)
 		{
 			bricks[i].collisionCooldown--;
@@ -475,6 +480,7 @@ void BTRball::Tick(BTRPlayArea &area)
 	this->velX = std::clamp(this->velX, (double)-30, (double)30);
 	this->velY = std::clamp(this->velY, (double)-15, (double)15);
 	area.paddle.lengthOfBall = std::clamp(area.paddle.lengthOfBall, 5., 25.);
+	bool velXReversed = false,velYReversed = false;
 	for (int i = 0; i < area.bricks.size(); i++)
 	{
 		if (this->x + this->width >= area.bricks[i].x
@@ -503,21 +509,25 @@ void BTRball::Tick(BTRPlayArea &area)
 					{
 						this->velX = -this->velX;
 						cornerHit++;
+						velXReversed = true;
 					}
 					if (res >= 45 && res <= 135)
 					{
 						this->velY = -this->velY;
 						cornerHit++;
+						velYReversed = true;
 					}
 					if (res >= 135 || res <= -135)
 					{
 						this->velX = -this->velX;
 						cornerHit++;
+						velXReversed = true;
 					}
 					if (res <= -45 && res >= -135)
 					{
 						this->velY = -this->velY;
 						cornerHit++;
+						velYReversed = true;
 					}
 					if (cornerHit >= 2)
 					{
@@ -540,6 +550,13 @@ void BTRball::Tick(BTRPlayArea &area)
 				expl.pos.x = this->x - expl.spr->realWidthPerTile * 0.5;
 				expl.pos.y = this->y - expl.spr->realHeightPerTile * 0.5;
 				explosions.push_back(expl);
+				int debrisCnt = 0;
+				while (debrisCnt++ < 4)
+				{
+					auto addAngle = std::uniform_real_distribution<double>(0.,pi)(gen);
+					auto debris = BTRDebris(sf::Vector2f(this->x,this->y),area.brickTexture,area.brickTexRects[area.bricks[i].brickID - 1], sf::Vector2f(this->velX * (velXReversed ? -1 : 1) * 0.75 + cos(addAngle),this->velY * (velYReversed ? -1 : 1) * 0.75 + sin(addAngle)));
+					area.debrisObjects.push_back(debris);
+				}
 			}
 			area.bricks[i].destroyed++;
 			area.bricks[i].hitTimes++;
