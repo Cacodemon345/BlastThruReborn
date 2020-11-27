@@ -8,9 +8,6 @@
 #include <windows.h>
 #include <mmsystem.h>
 #endif
-#include "sndfile.hh"
-#include "AL/al.h"
-#include "AL/alc.h"
 #include <chrono>
 #include <thread>
 #include <fstream>
@@ -23,6 +20,7 @@
 #include <utility>
 #include <functional>
 #include <cmath>
+#include <stack>
 #ifndef __APPLE__
 #include <SFML/OpenGL.hpp>
 #endif
@@ -845,4 +843,11 @@ struct BTRButton
 	{
 
 	};
+};
+
+class BTRMenuUIWindow
+{
+	public:
+	std::list<BTRButton> buttons;
+	std::string nameOfWindow;
 };

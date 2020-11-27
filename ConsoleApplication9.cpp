@@ -123,6 +123,14 @@ std::vector<BTRMovingText> BuildTextFromString(std::string buildStr, BTRFont*& f
     }
     return btrmoveTexts;
 }
+void DoFuncForDuration(unsigned long long sec, std::function<void()> func)
+{
+    auto time = std::chrono::duration_cast<std::chrono::seconds>(clocktime.now().time_since_epoch());
+    while ((std::chrono::duration_cast<std::chrono::seconds>(clocktime.now().time_since_epoch()) - time).count() <= sec)
+    {
+        func();
+    }   
+}
 const std::string gammaShaderCode =
 
     "#version 120"
@@ -400,7 +408,7 @@ int main(int argc, char *argv[])
 
     ball = new BTRsprite("./ball/ball.png", 32);
     auto loadSplashSprite = new BTRsprite("./art/romtech.png", 1, false, 1);
-
+    std::stack<BTRMenuUIWindow> menuWindowStack;
     sf::RenderWindow *window = new sf::RenderWindow(sf::VideoMode(BTRWINDOWWIDTH, BTRWINDOWHEIGHT), "Blast Thru Reborn",
             isFullscreen ? sf::Style::Fullscreen : sf::Style::Titlebar | sf::Style::Close);
     sf::Texture windowTexture;
@@ -445,12 +453,10 @@ int main(int argc, char *argv[])
     BTRPlaySound("./sound/intro.wav");
     window->requestFocus();
     sf::Event event;
-    window->pollEvent(event);
-    std::this_thread::sleep_for(std::chrono::seconds(1));
-    window->pollEvent(event);
-    std::this_thread::sleep_for(std::chrono::seconds(1));
-    window->pollEvent(event);
-    std::this_thread::sleep_for(std::chrono::seconds(1));
+    DoFuncForDuration(3, [&]()
+                      {
+                          window->pollEvent(event);
+                      });
     fadeToColor(sf::Color(0, 0, 0, 255));
 
     BTRPlaySound("./ball/grow.wav");
@@ -1005,12 +1011,13 @@ int main(int argc, char *argv[])
                     event.mouseButton.x = x;
                     event.mouseButton.y = y;
                 }
+                
             case sf::Event::MouseButtonReleased:
                 if (menu)
                 {
                     for (auto &curBtn : btns)
                     {
-                        if (event.mouseButton.x >= curBtn.pos.x && event.mouseButton.x <= curBtn.pos.x + winButtonImage->width && event.mouseButton.y <= curBtn.pos.y + 20 && event.mouseButton.y >= curBtn.pos.y && curBtn.wasHeld)
+                        if (event.mouseButton.x >= curBtn.pos.x && event.mouseButton.x <= curBtn.pos.x + winButtonImage->width && event.mouseButton.y <= curBtn.pos.y + winButtonImage->height / 2 && event.mouseButton.y >= curBtn.pos.y && curBtn.wasHeld)
                         {
                             curBtn.clickedFunc();
                             BTRPlaySound("./ball/editselect.wav");
@@ -1052,6 +1059,7 @@ int main(int argc, char *argv[])
                 break;
             }
 #endif            
+            
             case sf::Event::MouseButtonPressed:
 
                 if (event.mouseButton.button == sf::Mouse::Left)

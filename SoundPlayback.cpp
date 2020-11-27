@@ -1,4 +1,8 @@
-#include "BTRCommon.h"
+#include <map>
+#include <iostream>
+#include <sndfile.hh>
+#include <AL/al.h>
+#include <AL/alc.h>
 #include "SoundPlayback.h"
 std::map<std::string, short*> soundCache;
 static ALCdevice* Device = NULL;
