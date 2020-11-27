@@ -21,6 +21,7 @@
 #include <functional>
 #include <cmath>
 #include <stack>
+#include <list>
 #ifndef __APPLE__
 #include <SFML/OpenGL.hpp>
 #endif
