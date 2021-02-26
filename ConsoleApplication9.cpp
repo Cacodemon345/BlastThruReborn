@@ -927,6 +927,7 @@ int main(int argc, char *argv[])
         playArea = orgArea;
     };
     auto drawSparks = [&]() {
+        sf::VertexArray simpleSparkVertArray = sf::VertexArray(sf::PrimitiveType::Points, 5 * sparks.size());
         for (int i = 0; i < sparks.size(); i++)
         {
             auto curSpark = sparks[i];
@@ -942,13 +943,13 @@ int main(int argc, char *argv[])
                                               252 * double(1. - sparks[i].sparkRect.left / (15. * 3.)),
                                               252 * double(1. - sparks[i].sparkRect.left / (15. * 3.)))
                                               * sparks[i].color;
-                sf::VertexArray vertArray = sf::VertexArray(sf::PrimitiveType::Points,5);
-                vertArray[0] = sf::Vertex(sf::Vector2f(sparks[i].x,sparks[i].y) + sf::Vector2f(-1,0),sideCol);
-                vertArray[1] = sf::Vertex(sf::Vector2f(sparks[i].x,sparks[i].y) + sf::Vector2f(1,0),sideCol);
-                vertArray[2] = sf::Vertex(sf::Vector2f(sparks[i].x,sparks[i].y) + sf::Vector2f(0,1),sideCol);
-                vertArray[3] = sf::Vertex(sf::Vector2f(sparks[i].x,sparks[i].y) + sf::Vector2f(0,-1),sideCol);
-                vertArray[4] = sf::Vertex(sf::Vector2f(sparks[i].x,sparks[i].y),mainCol);
-                window->draw(vertArray);
+                //sf::VertexArray vertArray = sf::VertexArray(sf::PrimitiveType::Points,5);
+                simpleSparkVertArray[i * 5 + 0] = sf::Vertex(sf::Vector2f(sparks[i].x,sparks[i].y) + sf::Vector2f(-1,0),sideCol);
+                simpleSparkVertArray[i * 5 + 1] = sf::Vertex(sf::Vector2f(sparks[i].x,sparks[i].y) + sf::Vector2f(1,0),sideCol);
+                simpleSparkVertArray[i * 5 + 2] = sf::Vertex(sf::Vector2f(sparks[i].x,sparks[i].y) + sf::Vector2f(0,1),sideCol);
+                simpleSparkVertArray[i * 5 + 3] = sf::Vertex(sf::Vector2f(sparks[i].x,sparks[i].y) + sf::Vector2f(0,-1),sideCol);
+                simpleSparkVertArray[i * 5 + 4] = sf::Vertex(sf::Vector2f(sparks[i].x,sparks[i].y),mainCol);
+                //window->draw(vertArray);
             }
             else
             {
@@ -976,6 +977,7 @@ int main(int argc, char *argv[])
 #if __cplusplus > 201703L
         std::erase_if(sparks, removeSparkObject);
 #endif
+        if (simpleSparks) window->draw(simpleSparkVertArray);
     };
     char explBrickOffset = 0;
     bool explBrickReverse = false;
