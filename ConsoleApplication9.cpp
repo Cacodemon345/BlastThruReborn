@@ -162,6 +162,7 @@ bool vertvelpowerup = false;
 bool backgrndcol = false;
 bool isFullscreen = false;
 bool demo = false;
+bool simpleSparks = false;
 float backgrndr = 1.0f;
 float backgrndg = 1.0f;
 float backgrndb = 1.0f;
@@ -267,6 +268,7 @@ int main(int argc, char *argv[])
     name = ini.GetValue("bt.ini", "gamename");
     gameMusic = ini.GetBoolValue("bt.ini", "ggamemusic");
     gameSound = ini.GetBoolValue("bt.ini", "ggamesound");
+    simpleSparks = ini.GetBoolValue("bt.ini","gsimplesparks");
     backgrndcol = ini.GetBoolValue("bt.ini", "backgrndcol",false);
     backgrndr = ini.GetDoubleValue("bt.ini", "backgrndred",1);
     backgrndg = ini.GetDoubleValue("bt.ini", "backgrndgreen",1);
@@ -275,6 +277,7 @@ int main(int argc, char *argv[])
     ini.SetDoubleValue("bt.ini", "backgrndgreen", backgrndg);
     ini.SetDoubleValue("bt.ini", "backgrndblue", backgrndb);
     ini.SetBoolValue("bt.ini", "backgrndcol", backgrndcol);
+    ini.SetBoolValue("bt.ini","gsimplesparks",simpleSparks);
     bool mididevselect = ini.GetBoolValue("bt.ini", "gmididevselect");
     isFullscreen = ini.GetBoolValue("bt.ini","gfullscreen");
     if (!mididevselect)
@@ -308,20 +311,21 @@ int main(int argc, char *argv[])
         }
     }
     std::map<std::string, int> cheatKeys =
-        {
-            {"inc me", 14},
-            {"let me hear you say fired up", 6},
-            {"my velcro shoes", 3},
-            {"no ska no swing", 9},
-            {"not a small thing", 0},
-            {"sidewinders", 10},
-            {"detrimental abundancy", 22},
-            {"mixed blessings", 12},
-            {"beneficial abundancy", 11},
-            {"through holy faith", 15},
-            {"sweet", 8},
-            {"funyons", 30},
-            {"i never prosper", 31}};
+    {
+        {"inc me", 14},
+        {"let me hear you say fired up", 6},
+        {"my velcro shoes", 3},
+        {"no ska no swing", 9},
+        {"not a small thing", 0},
+        {"sidewinders", 10},
+        {"detrimental abundancy", 22},
+        {"mixed blessings", 12},
+        {"beneficial abundancy", 11},
+        {"through holy faith", 15},
+        {"sweet", 8},
+        {"funyons", 30},
+        {"i never prosper", 31}
+    };
     sf::Shader gammaShader;
     auto loaded = gammaShader.loadFromMemory(gammaShaderCode, sf::Shader::Fragment);
     if (!loaded)
@@ -454,8 +458,11 @@ int main(int argc, char *argv[])
     window->requestFocus();
     sf::Event event;
     DoFuncForDuration(3, [&]()
-                      {
+                      {                          
                           window->pollEvent(event);
+                          window->clear();
+                          window->draw(*loadSplashSprite);
+                          window->display();
                       });
     fadeToColor(sf::Color(0, 0, 0, 255));
 
@@ -516,7 +523,7 @@ int main(int argc, char *argv[])
                 colShader.setUniform("col",sf::Glsl::Vec4(backgrndr,backgrndg,backgrndb,1));
                 window->draw(sprite, backgrndcol ? &colShader : NULL /*,&gammaShader*/);
             }
-        wallSprite.setPosition(window->getSize().x - wallWidth / 2, 0);
+        wallSprite.setPosition(BTRWINDOWWIDTH - wallWidth / 2, 0);
         window->draw(wallSprite);
         wallSprite.setPosition(sf::Vector2f(wallWidth / -2, 0));
         window->draw(wallSprite);
@@ -923,15 +930,38 @@ int main(int argc, char *argv[])
         for (int i = 0; i < sparks.size(); i++)
         {
             auto curSpark = sparks[i];
-            sparkSprite->sprite.setPosition(sparks[i].x, sparks[i].y);
-            sparkSprite->sprite.setColor(sparks[i].color);
             if (frameCnt % 3 == 0)
                 sparks[i].sparkRect.left += 3;
-            sparkSprite->sprite.setTextureRect(curSpark.sparkRect);
+            if (simpleSparks)
+            {
+                sf::Color sideCol = sf::Color(116 * double(1. - sparks[i].sparkRect.left / (15. * 3.)),
+                                              116 * double(1. - sparks[i].sparkRect.left / (15. * 3.)),
+                                              116 * double(1. - sparks[i].sparkRect.left / (15. * 3.)))
+                                              * sparks[i].color;
+                sf::Color mainCol = sf::Color(252 * double(1. - sparks[i].sparkRect.left / (15. * 3.)),
+                                              252 * double(1. - sparks[i].sparkRect.left / (15. * 3.)),
+                                              252 * double(1. - sparks[i].sparkRect.left / (15. * 3.)))
+                                              * sparks[i].color;
+                sf::VertexArray vertArray = sf::VertexArray(sf::PrimitiveType::Points,5);
+                vertArray[0] = sf::Vertex(sf::Vector2f(sparks[i].x,sparks[i].y) + sf::Vector2f(-1,0),sideCol);
+                vertArray[1] = sf::Vertex(sf::Vector2f(sparks[i].x,sparks[i].y) + sf::Vector2f(1,0),sideCol);
+                vertArray[2] = sf::Vertex(sf::Vector2f(sparks[i].x,sparks[i].y) + sf::Vector2f(0,1),sideCol);
+                vertArray[3] = sf::Vertex(sf::Vector2f(sparks[i].x,sparks[i].y) + sf::Vector2f(0,-1),sideCol);
+                vertArray[4] = sf::Vertex(sf::Vector2f(sparks[i].x,sparks[i].y),mainCol);
+                window->draw(vertArray);
+            }
+            else
+            {
+                sparkSprite->sprite.setPosition(sparks[i].x, sparks[i].y);
+                sparkSprite->sprite.setColor(sparks[i].color);
+                sparkSprite->sprite.setTextureRect(curSpark.sparkRect);
+            }
 #if __cplusplus <= 201703L
             if (sparks[i].sparkRect.left < 15 * 3)
 #endif
-                window->draw(sparkSprite->sprite);
+            {
+                if (!simpleSparks) window->draw(sparkSprite->sprite);
+            }
 #if __cplusplus <= 201703L
             else
             {
@@ -1015,7 +1045,23 @@ int main(int argc, char *argv[])
             case sf::Event::MouseButtonReleased:
                 if (menu)
                 {
-                    for (auto &curBtn : btns)
+                    if (!menuWindowStack.empty())
+                    {
+                        BTRMenuUIWindow menuWindow = menuWindowStack.top();
+                        for (auto &curBtn : menuWindow.buttons)
+                        {
+                            if (event.mouseButton.x >= curBtn.pos.x + menuWindow.position.x
+                            && event.mouseButton.x <= curBtn.pos.x + winButtonSmallImage->width + menuWindow.position.x
+                            && event.mouseButton.y <= curBtn.pos.y + winButtonSmallImage->height / 2 + menuWindow.position.y
+                            && event.mouseButton.y >= curBtn.pos.y + menuWindow.position.y)
+                            {
+                                curBtn.clickedFunc();
+                                BTRPlaySound("./ball/editselect.wav");
+                            }
+                            curBtn.wasHeld = false;
+                        }
+                    }
+                    else for (auto &curBtn : btns)
                     {
                         if (event.mouseButton.x >= curBtn.pos.x && event.mouseButton.x <= curBtn.pos.x + winButtonImage->width && event.mouseButton.y <= curBtn.pos.y + winButtonImage->height / 2 && event.mouseButton.y >= curBtn.pos.y && curBtn.wasHeld)
                         {
@@ -1076,7 +1122,21 @@ int main(int argc, char *argv[])
 #endif
                     if (menu)
                     {
-                        for (auto &curBtn : btns)
+                        if (!menuWindowStack.empty())
+                        {
+                            BTRMenuUIWindow menuWindow = menuWindowStack.top();
+                            for (auto &curBtn : menuWindow.buttons)
+                            {
+                                if (event.mouseButton.x >= curBtn.pos.x + menuWindow.position.x
+                                && event.mouseButton.x <= curBtn.pos.x + winButtonSmallImage->width + menuWindow.position.x
+                                && event.mouseButton.y <= curBtn.pos.y + winButtonSmallImage->height / 2 + menuWindow.position.y
+                                && event.mouseButton.y >= curBtn.pos.y + menuWindow.position.y)
+                                {
+                                    curBtn.wasHeld = true;
+                                }
+                            }
+                        }
+                        else for (auto &curBtn : btns)
                         {
                             if (event.mouseButton.x >= curBtn.pos.x && event.mouseButton.x <= curBtn.pos.x + winButtonImage->width && event.mouseButton.y <= curBtn.pos.y + 20 && event.mouseButton.y >= curBtn.pos.y)
                             {
@@ -1150,9 +1210,12 @@ int main(int argc, char *argv[])
                         delete window;
                         isFullscreen ^= 1;
                         if (isFullscreen)
+                        {
                             window = new sf::RenderWindow(sf::VideoMode(BTRWINDOWWIDTH, BTRWINDOWHEIGHT), "Blast Thru Reborn", sf::Style::Titlebar | sf::Style::Close | sf::Style::Fullscreen);
+                            windowTexture.create(BTRWINDOWWIDTH,BTRWINDOWHEIGHT);
+                        }
                         else
-                            window = new sf::RenderWindow(sf::VideoMode(BTRWINDOWWIDTH, BTRWINDOWHEIGHT), "Blast Thru Reborn", sf::Style::Titlebar | sf::Style::Close | sf::Style::Resize);
+                            window = new sf::RenderWindow(sf::VideoMode(BTRWINDOWWIDTH, BTRWINDOWHEIGHT), "Blast Thru Reborn", sf::Style::Titlebar | sf::Style::Close);
                         window->setFramerateLimit(40);
                         //break;
                     }
@@ -1299,7 +1362,21 @@ int main(int argc, char *argv[])
                 titleImage->sprite.setPosition(sf::Vector2f(BTRWINDOWWIDTH / 2 - titleImage->width / 2, 0));
                 window->draw(*titleImage);
                 sf::Vector2f pos = titleImage->sprite.getPosition() + sf::Vector2f(0, titleImage->height);
-
+                if (!menuWindowStack.empty())
+                {
+                    auto topMenu = menuWindowStack.top();
+                    for (auto &curBtn : topMenu.buttons)
+                    {
+                        winButtonSmallImage->sprite.setPosition(curBtn.pos + topMenu.position);
+                        winButtonSmallImage->SetSpriteIndex(curBtn.wasHeld);
+                        window->draw(*winButtonSmallImage);
+                        auto curBtnPos = curBtn.pos  + topMenu.position;
+                        curBtnPos.x += winButtonSmallImage->width / 2;
+                        curBtnPos -= sf::Vector2f(font->GetSizeOfText(curBtn.str).x / 2, 0);
+                        //curBtnPos += sf::Vector2f(0, curBtn.wasHeld ? 5 : 0);
+                        font->RenderChars(curBtn.str, curBtnPos, window);            
+                    }
+                }
                 DrawFrame(window, pos, sf::Vector2f(300, 370));
                 font->RenderChars("Game Menu", sf::Vector2f(640 / 2 - font->GetSizeOfText("Game Menu").x / 2, font->genCharHeight + pos.y), window);
                 for (auto &curBtn : btns)

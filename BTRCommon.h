@@ -851,4 +851,5 @@ class BTRMenuUIWindow
 	public:
 	std::list<BTRButton> buttons;
 	std::string nameOfWindow;
+	sf::Vector2f position;
 };
