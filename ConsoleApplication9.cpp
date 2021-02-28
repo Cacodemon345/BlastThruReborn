@@ -61,6 +61,16 @@ std::vector<unsigned char> randPlayedLevels;
 int64_t randPlayedSet;
 sf::Vector2i lastTouchPosition = sf::Vector2i(0,0);
 
+static inline void AppendVerticesFromRect(sf::IntRect& rect, sf::Vector2f pos, sf::VertexArray& vertArray)
+{
+    vertArray.append(sf::Vertex(pos,sf::Vector2f(rect.getPosition())));
+    vertArray.append(sf::Vertex(pos + sf::Vector2f(rect.width,0),sf::Vector2f(rect.getPosition() + sf::Vector2i(rect.width,0))));
+    vertArray.append(sf::Vertex(pos + sf::Vector2f(0,rect.height),sf::Vector2f(rect.getPosition() + sf::Vector2i(0,rect.height))));
+    vertArray.append(sf::Vertex(pos + sf::Vector2f(0,rect.height),sf::Vector2f(rect.getPosition() + sf::Vector2i(0,rect.height))));
+    vertArray.append(sf::Vertex(pos + sf::Vector2f(rect.width,rect.height),sf::Vector2f(rect.getPosition() + sf::Vector2i(rect.width,rect.height))));
+    vertArray.append(sf::Vertex(pos + sf::Vector2f(rect.width,0),sf::Vector2f(rect.getPosition() + sf::Vector2i(rect.width,0))));
+}
+
 bool sortScoreList(const std::pair<std::string, int> t1, const std::pair<std::string, int> t2)
 {
     if (std::get<1>(t1) > std::get<1>(t2))
@@ -886,17 +896,36 @@ int main(int argc, char *argv[])
         sf::Sprite brickSprite;
         playArea->LoadBrickTex();
         brickSprite.setTexture(playArea->brickTexture, true);
+        sf::VertexArray brickVertArray;
+        brickVertArray.setPrimitiveType(sf::PrimitiveType::Triangles);
         for (auto &curBrick : playArea->bricks)
+        {
             if (curBrick.brickID != 63 || (curBrick.brickID == 63 && isLevEdit))
             {
-                brickSprite.setTextureRect(playArea->brickTexRects[curBrick.brickID - 1]);
+                auto& curBrickIntRect = playArea->brickTexRects[curBrick.isFireball ? fireBrickFrame : curBrick.brickID - 1];
+                AppendVerticesFromRect(curBrickIntRect,sf::Vector2f(curBrick.x,curBrick.y),brickVertArray);
+#if 0
+                brickVertArray.append(sf::Vertex(sf::Vector2f(curBrick.x,curBrick.y),sf::Vector2f(curBrickIntRect.getPosition() + sf::Vector2i(0,0))));
+                brickVertArray.append(sf::Vertex(sf::Vector2f(curBrick.x + 30,curBrick.y),sf::Vector2f(curBrickIntRect.getPosition() + sf::Vector2i(30,0))));
+                brickVertArray.append(sf::Vertex(sf::Vector2f(curBrick.x,curBrick.y + 15),sf::Vector2f(curBrickIntRect.getPosition() + sf::Vector2i(0,15))));
+                brickVertArray.append(sf::Vertex(sf::Vector2f(curBrick.x,curBrick.y + 15),sf::Vector2f(curBrickIntRect.getPosition() + sf::Vector2i(0,15))));
+                brickVertArray.append(sf::Vertex(sf::Vector2f(curBrick.x + 30,curBrick.y + 15),sf::Vector2f(curBrickIntRect.getPosition() + sf::Vector2i(30,15))));
+                brickVertArray.append(sf::Vertex(sf::Vector2f(curBrick.x + 30,curBrick.y),sf::Vector2f(curBrickIntRect.getPosition() + sf::Vector2i(30,0))));
+#endif
+// Below commented out code is the more higher-level representation of the above.
+#if 0
                 if (curBrick.isFireball)
                 {
                     brickSprite.setTextureRect(playArea->brickTexRects[fireBrickFrame]);
                 }
+                else brickSprite.setTextureRect(playArea->brickTexRects[curBrick.brickID - 1]);
                 brickSprite.setPosition(sf::Vector2f(curBrick.x, curBrick.y));
                 window->draw(brickSprite);
+#endif
             }
+        }
+
+
         for (auto &curExplBrick : explodingBricks)
         {
             if (curExplBrick.frameOffset >= 7)
@@ -904,11 +933,12 @@ int main(int argc, char *argv[])
                 curExplBrick.frameOffset = 0;
                 curExplBrick.loop++;
             }
-            brickSprite.setTextureRect(playArea->brickTexRects[128ll + curExplBrick.frameOffset]);
-            brickSprite.setPosition(curExplBrick.pos);
-            window->draw(brickSprite);
+            AppendVerticesFromRect(playArea->brickTexRects[128ll + curExplBrick.frameOffset],curExplBrick.pos,brickVertArray);
             curExplBrick.frameOffset++;
         }
+        sf::RenderStates vertexRenderstate(&playArea->brickTexture);
+        window->draw(brickVertArray,vertexRenderstate);
+#if __cplusplus <= 201703L    
         for (int i = 0; i < explodingBricks.size(); i++)
         {
             if (explodingBricks[i].loop > 4)
@@ -916,6 +946,9 @@ int main(int argc, char *argv[])
                 explodingBricks.erase(explodingBricks.begin() + i);
             }
         }
+#else
+        std::erase_if(explodingBricks, [](BTRExplodingBricks& explodingBrick){ return explodingBrick.loop > 4; });
+#endif
         fireBrickFrame++;
         if (fireBrickFrame >= 128)
             fireBrickFrame = 64;
@@ -927,7 +960,10 @@ int main(int argc, char *argv[])
         playArea = orgArea;
     };
     auto drawSparks = [&]() {
-        sf::VertexArray simpleSparkVertArray = sf::VertexArray(sf::PrimitiveType::Points, 5 * sparks.size());
+        sf::VertexArray simpleSparkVertArray;
+        if (simpleSparks)
+            simpleSparkVertArray.resize(5 * sparks.size());
+        
         for (int i = 0; i < sparks.size(); i++)
         {
             auto curSpark = sparks[i];

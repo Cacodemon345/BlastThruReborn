@@ -17,6 +17,7 @@ void BTRPlayArea::SpawnInitialBall()
 }
 void BTRPlayArea::LoadBrickTex()
 {
+	if (texLoaded) return;
 	int width, height, n;
 	auto pixels = stbi_load("./ball/bricks.png", &width, &height, &n, 4);
 	if (!pixels)
@@ -37,6 +38,7 @@ void BTRPlayArea::LoadBrickTex()
 			}
 		brickwidth = width;
 		brickheight = height;
+		texLoaded = true;
 	}
 }
 

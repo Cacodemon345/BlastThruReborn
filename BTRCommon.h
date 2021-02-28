@@ -489,6 +489,7 @@ class BTRPlayArea
 	bool randomPlay = false;
 	// angle = 0;
 	bool levelEnded = false;
+	bool texLoaded = false;
 	void Tick();
 	void LostBall();
 	void SpawnInitialBall();
