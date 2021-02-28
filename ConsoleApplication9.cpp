@@ -63,12 +63,12 @@ sf::Vector2i lastTouchPosition = sf::Vector2i(0,0);
 
 static inline void AppendVerticesFromRect(sf::IntRect& rect, sf::Vector2f pos, sf::VertexArray& vertArray)
 {
-    vertArray.append(sf::Vertex(pos,sf::Vector2f(rect.getPosition())));
-    vertArray.append(sf::Vertex(pos + sf::Vector2f(rect.width,0),sf::Vector2f(rect.getPosition() + sf::Vector2i(rect.width,0))));
-    vertArray.append(sf::Vertex(pos + sf::Vector2f(0,rect.height),sf::Vector2f(rect.getPosition() + sf::Vector2i(0,rect.height))));
-    vertArray.append(sf::Vertex(pos + sf::Vector2f(0,rect.height),sf::Vector2f(rect.getPosition() + sf::Vector2i(0,rect.height))));
-    vertArray.append(sf::Vertex(pos + sf::Vector2f(rect.width,rect.height),sf::Vector2f(rect.getPosition() + sf::Vector2i(rect.width,rect.height))));
-    vertArray.append(sf::Vertex(pos + sf::Vector2f(rect.width,0),sf::Vector2f(rect.getPosition() + sf::Vector2i(rect.width,0))));
+    vertArray.append(sf::Vertex(pos,sf::Vector2f(rect.left,rect.top)));
+    vertArray.append(sf::Vertex(pos + sf::Vector2f(rect.width,0),sf::Vector2f(sf::Vector2i(rect.left,rect.top) + sf::Vector2i(rect.width,0))));
+    vertArray.append(sf::Vertex(pos + sf::Vector2f(0,rect.height),sf::Vector2f(sf::Vector2i(rect.left,rect.top) + sf::Vector2i(0,rect.height))));
+    vertArray.append(sf::Vertex(pos + sf::Vector2f(0,rect.height),sf::Vector2f(sf::Vector2i(rect.left,rect.top) + sf::Vector2i(0,rect.height))));
+    vertArray.append(sf::Vertex(pos + sf::Vector2f(rect.width,rect.height),sf::Vector2f(sf::Vector2i(rect.left,rect.top) + sf::Vector2i(rect.width,rect.height))));
+    vertArray.append(sf::Vertex(pos + sf::Vector2f(rect.width,0),sf::Vector2f(sf::Vector2i(rect.left,rect.top) + sf::Vector2i(rect.width,0))));
 }
 
 bool sortScoreList(const std::pair<std::string, int> t1, const std::pair<std::string, int> t2)
