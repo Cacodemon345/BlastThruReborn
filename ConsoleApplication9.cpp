@@ -1,5 +1,8 @@
 // ConsoleApplication9.cpp : This file contains the 'main' function. Program execution begins and ends there.
 //
+#if __cplusplus < 201703L
+#error "C++17 or later is required to build the project."
+#endif
 #if !defined(SFML_STATIC)
 #define STB_IMAGE_IMPLEMENTATION
 #endif

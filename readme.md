@@ -14,6 +14,7 @@ Prerequisites:
 4. RtMidi17 (https://github.com/jcelerier/RtMidi17, needed when compiling on POSIX systems, optional).
 5. JACK Audio Connection Kit (should you want music support on the BSDs (installing one from the ports collection should be sufficient), https://jackaudio.org/, needed when compiling on non-Linux Unix-like systems, optional if not using RtMidi17).
 6. FluidSynth (https://github.com/FluidSynth/fluidsynth, needed when compiling on POSIX systems, default)
+7. A C++17 supporting compiler (C++20 or later recommended). On Windows, only Visual Studio 2019 or later is supported.
 
 Only 64-bit builds are supported. This game engine works on both x86-64 (known as x64 on Windows) and ARM64 systems.
 
