@@ -11,20 +11,22 @@ Prerequisites:
 1. OpenAL Soft (https://github.com/kcat/openal-soft).
 2. libsndfile (http://www.mega-nerd.com/libsndfile/#Download).
 3. SFML (2.5.1 or later, https://en.sfml-dev.org/download.php).
-4. RtMidi17 (https://github.com/jcelerier/RtMidi17, needed when compiling on POSIX systems).
-5. JACK Audio Connection Kit (should you want music support on the BSDs (installing one from the ports collection should be sufficient), https://jackaudio.org/).
+4. RtMidi17 (https://github.com/jcelerier/RtMidi17, needed when compiling on POSIX systems, optional).
+5. JACK Audio Connection Kit (should you want music support on the BSDs (installing one from the ports collection should be sufficient), https://jackaudio.org/, needed when compiling on non-Linux Unix-like systems, optional if not using RtMidi17).
+6. FluidSynth (https://github.com/FluidSynth/fluidsynth, needed when compiling on POSIX systems, default)
 
-Windows:
-Modify the included Visual Studio project files to point to the SFML SDK (or the include folder from the source itself) and other necessary dependencies and then build the solution. Make sure the library paths are correct too.
+Clone this repo:
+```git clone --recurive https://github.com/Cacodemon345/BlastThruReborn```
 
-Linux:
-Install the necessary dependencies listed here (preferably from your distro's package manager) and run makelinux.sh like this: `. makelinux.sh`. Commands must be ran as non-root from the shell. Note that you will need to clone the RtMidi17 git repo inside this project's folder. Substitute "makelinux.sh" with "makelinux-clang.sh" if you want to build with the Clang compiler.
+And run CMake like this, assuming you have all the prerequisites installed:
 
-BSD:
-Ditto, but run makebsd.sh instead like this: `. makebsd.sh`. If you get complaints about not being able to find the file (happens on OpenBSD), run makebsd.sh like this: `. ./makebsd.sh`. Commands must be ran as non-root from the shell. Note that extracting the game assets required for running the game won't be possible from a BSD.
+```cmake -S ./ -B ./build/```
 
-macOS:
-Install the necessary dependencies listed here using Homebrew and run makeapple-macos.sh like this: `. ./makeapple-macos.sh`. Note that you will need to clone the RtMidi17 git repo inside this project's folder. Extracting assets from a macOS is possible. Note that it is possible for Apple to deprecate CoreMIDI so if that happens by any chance, run the `makeapple-macos-jack.sh` script instead (assuming you got synths built and installed with JACK enabled).
+Append `-DUSE_RTMIDI17=1` to use RtMidi17 instead of FluidSynth on non-Windows systems.
+
+```cmake --build ./build```
+
+Add `--parallel numofcores` parameter to the invocation of above, where `numofcores` is the number of cores/processors your computer has to speed up building.
 
 # Running
 The repository does not contain the game assets for obvious reasons. You must own the game. To get this program running:
@@ -37,6 +39,7 @@ The repository does not contain the game assets for obvious reasons. You must ow
 7. Rename the "ball.glo" folder to "ball".
 8. Build the program as described in the Building section.
 9. Run the executable (type "./a.out" in the terminal on POSIX systems).
+
 Alternatively, just put ball.glo on the executable folder and run the program with "extractdata" argument. This requires that you got GloDecrypt from https://github.com/Cacodemon345/GloDecrypt and put the GloDecrypt executable (named GloDecrypt.exe or GloDecrypt) on this project's executable folder.
 In all cases, you must make sure the "art" and "sound" folder exists in the executable. The folders also must contain everything from the original Blast Thru installation's same folders. You won't be able to run the game otherwise.
 You will be asked to select the MIDI device on first run.
