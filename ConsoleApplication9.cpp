@@ -423,6 +423,10 @@ int main(int argc, char *argv[])
     ball = new BTRsprite("./ball/ball.png", 32);
     auto loadSplashSprite = new BTRsprite("./art/romtech.png", 1, false, 1);
     std::stack<BTRMenuUIWindow> menuWindowStack;
+    static const std::function<void()> closeMenuWindow = [&]()
+    {
+        menuWindowStack.pop();
+    };
     sf::RenderWindow *window = new sf::RenderWindow(sf::VideoMode(BTRWINDOWWIDTH, BTRWINDOWHEIGHT), "Blast Thru Reborn",
             isFullscreen ? sf::Style::Fullscreen : sf::Style::Titlebar | sf::Style::Close);
     sf::Texture windowTexture;
@@ -719,7 +723,7 @@ int main(int argc, char *argv[])
             }
         }
     };
-
+    // Game Menu buttons.
     BTRButton retToGame;
     retToGame.clickedFunc = [&]() {
         if (firstRun)
@@ -737,6 +741,9 @@ int main(int argc, char *argv[])
 
     BTRButton quitGame;
     quitGame.clickedFunc = [&]() {
+        BTRMenuUIWindow menuWindow;
+        menuWindow.nameOfWindow = "Quit Game";
+        //menuWindow.staticTexts.push(std::make_pair());
         window->display();
         windowTexture.update(*window); // Flip off the buffers.
         fadeToColor(sf::Color(0, 0, 0, 255));
@@ -809,7 +816,7 @@ int main(int argc, char *argv[])
         loadMusic("./ball/hghscr.mds");
     };
     btns.push_back(highScoreEnter);
-
+    // Level Editor stuff.
     BTRButton levEditMenu;
     levEditMenu.clickedFunc = [&]() {
         sf::Event event;
@@ -888,6 +895,23 @@ int main(int argc, char *argv[])
     levEditNew.pos = sf::Vector2f(levEditSave.pos.x - winButtonSmallImage->width - 20, 20);
     levEditBtns.push_back(levEditNew);
 
+    // In-game menu stuff.
+    BTRButton testMenuWindow;
+    testMenuWindow.clickedFunc = [&]() {
+        BTRMenuUIWindow menuWindow;
+        BTRButton menuWindowQuitButton;
+        menuWindowQuitButton.clickedFunc = closeMenuWindow;
+        menuWindowQuitButton.str = "Close";
+        menuWindowQuitButton.pos = sf::Vector2f(0,0);
+        menuWindow.buttons.push_back(menuWindowQuitButton);
+        menuWindow.position = sf::Vector2f(320,240);
+        menuWindow.size = sf::Vector2f(100,100);
+        menuWindow.nameOfWindow = "TestMenuWindow";
+        menuWindowStack.push(menuWindow);
+    };
+    testMenuWindow.pos = sf::Vector2f(highScoreEnter.pos.x, highScoreEnter.pos.y + 40);
+    testMenuWindow.str = "testMenuWindow";
+    btns.push_back(testMenuWindow);
 
     sf::Sprite brickSprite;
     playArea->LoadBrickTex();
@@ -904,14 +928,6 @@ int main(int argc, char *argv[])
             {
                 auto& curBrickIntRect = playArea->brickTexRects[curBrick.isFireball ? fireBrickFrame : curBrick.brickID - 1];
                 AppendVerticesFromRect(curBrickIntRect,sf::Vector2f(curBrick.x,curBrick.y),brickVertArray);
-#if 0
-                brickVertArray.append(sf::Vertex(sf::Vector2f(curBrick.x,curBrick.y),sf::Vector2f(curBrickIntRect.getPosition() + sf::Vector2i(0,0))));
-                brickVertArray.append(sf::Vertex(sf::Vector2f(curBrick.x + 30,curBrick.y),sf::Vector2f(curBrickIntRect.getPosition() + sf::Vector2i(30,0))));
-                brickVertArray.append(sf::Vertex(sf::Vector2f(curBrick.x,curBrick.y + 15),sf::Vector2f(curBrickIntRect.getPosition() + sf::Vector2i(0,15))));
-                brickVertArray.append(sf::Vertex(sf::Vector2f(curBrick.x,curBrick.y + 15),sf::Vector2f(curBrickIntRect.getPosition() + sf::Vector2i(0,15))));
-                brickVertArray.append(sf::Vertex(sf::Vector2f(curBrick.x + 30,curBrick.y + 15),sf::Vector2f(curBrickIntRect.getPosition() + sf::Vector2i(30,15))));
-                brickVertArray.append(sf::Vertex(sf::Vector2f(curBrick.x + 30,curBrick.y),sf::Vector2f(curBrickIntRect.getPosition() + sf::Vector2i(30,0))));
-#endif
 // Below commented out code is the more higher-level representation of the above.
 #if 0
                 if (curBrick.isFireball)
@@ -1085,7 +1101,7 @@ int main(int argc, char *argv[])
                 {
                     if (!menuWindowStack.empty())
                     {
-                        BTRMenuUIWindow menuWindow = menuWindowStack.top();
+                        BTRMenuUIWindow& menuWindow = menuWindowStack.top();
                         for (auto &curBtn : menuWindow.buttons)
                         {
                             if (event.mouseButton.x >= curBtn.pos.x + menuWindow.position.x
@@ -1095,6 +1111,7 @@ int main(int argc, char *argv[])
                             {
                                 curBtn.clickedFunc();
                                 BTRPlaySound("./ball/editselect.wav");
+                                if (menuWindowStack.empty() || (!menuWindowStack.empty() && std::addressof(menuWindow) != std::addressof(menuWindowStack.top()))) break;
                             }
                             curBtn.wasHeld = false;
                         }
@@ -1162,7 +1179,7 @@ int main(int argc, char *argv[])
                     {
                         if (!menuWindowStack.empty())
                         {
-                            BTRMenuUIWindow menuWindow = menuWindowStack.top();
+                            BTRMenuUIWindow& menuWindow = menuWindowStack.top();
                             for (auto &curBtn : menuWindow.buttons)
                             {
                                 if (event.mouseButton.x >= curBtn.pos.x + menuWindow.position.x
@@ -1393,8 +1410,11 @@ int main(int argc, char *argv[])
             window->clear();
             windowSprite.setColor(sf::Color(255, 255, 255, 255 * 0.5));
             window->draw(windowSprite);
-            pausedSprite->sprite.setPosition(sf::Vector2f(BTRWINDOWWIDTH / 2, BTRWINDOWHEIGHT / 2) - sf::Vector2f(pausedSprite->width / 2, pausedSprite->height / 2));
-            window->draw(pausedSprite->sprite);
+            if (!menu)
+            {
+                pausedSprite->sprite.setPosition(sf::Vector2f(BTRWINDOWWIDTH / 2, BTRWINDOWHEIGHT / 2) - sf::Vector2f(pausedSprite->width / 2, pausedSprite->height / 2));
+                window->draw(pausedSprite->sprite);
+            }
             if (menu)
             {
                 titleImage->sprite.setPosition(sf::Vector2f(BTRWINDOWWIDTH / 2 - titleImage->width / 2, 0));
@@ -1402,7 +1422,9 @@ int main(int argc, char *argv[])
                 sf::Vector2f pos = titleImage->sprite.getPosition() + sf::Vector2f(0, titleImage->height);
                 if (!menuWindowStack.empty())
                 {
-                    auto topMenu = menuWindowStack.top();
+                    auto& topMenu = menuWindowStack.top();
+                    DrawFrame(window,topMenu.position,topMenu.size);
+                    font->RenderChars(topMenu.nameOfWindow,topMenu.position,window);
                     for (auto &curBtn : topMenu.buttons)
                     {
                         winButtonSmallImage->sprite.setPosition(curBtn.pos + topMenu.position);
@@ -1415,18 +1437,21 @@ int main(int argc, char *argv[])
                         font->RenderChars(curBtn.str, curBtnPos, window);            
                     }
                 }
-                DrawFrame(window, pos, sf::Vector2f(300, 370));
-                font->RenderChars("Game Menu", sf::Vector2f(640 / 2 - font->GetSizeOfText("Game Menu").x / 2, font->genCharHeight + pos.y), window);
-                for (auto &curBtn : btns)
+                else
                 {
-                    winButtonImage->sprite.setPosition(curBtn.pos);
-                    winButtonImage->SetSpriteIndex(curBtn.wasHeld);
-                    window->draw(*winButtonImage);
-                    auto curBtnPos = curBtn.pos;
-                    curBtnPos.x += winButtonImage->width / 2;
-                    curBtnPos -= sf::Vector2f(font->GetSizeOfText(curBtn.str).x / 2, 0);
-                    //curBtnPos += sf::Vector2f(0, curBtn.wasHeld ? 5 : 0);
-                    font->RenderChars(curBtn.str, curBtnPos, window);
+                    DrawFrame(window, pos, sf::Vector2f(300, 370));
+                    font->RenderChars("Game Menu", sf::Vector2f(640 / 2 - font->GetSizeOfText("Game Menu").x / 2, font->genCharHeight + pos.y), window);
+                    for (auto &curBtn : btns)
+                    {
+                        winButtonImage->sprite.setPosition(curBtn.pos);
+                        winButtonImage->SetSpriteIndex(curBtn.wasHeld);
+                        window->draw(*winButtonImage);
+                        auto curBtnPos = curBtn.pos;
+                        curBtnPos.x += winButtonImage->width / 2;
+                        curBtnPos -= sf::Vector2f(font->GetSizeOfText(curBtn.str).x / 2, 0);
+                        //curBtnPos += sf::Vector2f(0, curBtn.wasHeld ? 5 : 0);
+                        font->RenderChars(curBtn.str, curBtnPos, window);
+                    }
                 }
                 if (!cursorVisible)
                 {

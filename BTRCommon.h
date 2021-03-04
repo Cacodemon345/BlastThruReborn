@@ -103,6 +103,8 @@ namespace btr
         }
 #endif
 	};
+	using Vector2f = sf::Vector2f;
+	using Vector2i = sf::Vector2i;
 }
 
 // This section composes the engine part. Should be usable for "Adventures with Chickens" game.
@@ -171,7 +173,7 @@ struct BTRsprite
 		texture.update(retval);
 		free(retval);
 		sprite.setTexture(texture);
-		sprite.setPosition(sf::Vector2f(0, 0));
+		sprite.setPosition(btr::Vector2f(0, 0));
 		widthPerTile = width / numOfFrames;
 		sprite.setTextureRect(sf::IntRect(sf::Vector2i(0, 0), sf::Vector2i(widthPerTile, heightPerTile)));
 		realWidthPerTile = widthPerTile;
@@ -249,9 +251,9 @@ struct BTRFont
 	FontType font = FontType::BTR_FONTSMALL;
 	std::vector<BTRCharBitmap> bitmaps;
 	std::unordered_map<unsigned char, BTRCharBitmap> charMaps;
-	sf::Vector2f GetSizeOfText(std::string chars)
+	btr::Vector2f GetSizeOfText(std::string chars)
 	{
-		sf::Vector2f totalSize;
+		btr::Vector2f totalSize;
 		for (int i = 0; i < chars.size(); i++)
 		{
 			if (font == FontType::BTR_FONTLARGE && !std::isdigit(chars[i], std::locale(""))) continue;
@@ -266,11 +268,11 @@ struct BTRFont
 		totalSize.y = this->genCharHeight;
 		return totalSize;
 	}	
-	void RenderChars(std::string chars, sf::Vector2f pos, sf::RenderWindow* &window, sf::Color col = sf::Color(255,255,255,255), bool renderFromCenter = false)
+	void RenderChars(std::string chars, btr::Vector2f pos, sf::RenderWindow* &window, sf::Color col = sf::Color(255,255,255,255), bool renderFromCenter = false)
 	{
 		if (renderFromCenter)
 		{
-			pos.x = (sf::Vector2f(BTRWINDOWWIDTH,BTRWINDOWHEIGHT) / 2.f - GetSizeOfText(chars) / 2.f).x;
+			pos.x = (btr::Vector2f(BTRWINDOWWIDTH,BTRWINDOWHEIGHT) / 2.f - GetSizeOfText(chars) / 2.f).x;
 		}
 		sf::Sprite sprite;
 		sprite.setTexture(fontImage, true);
@@ -289,14 +291,14 @@ struct BTRFont
 			sprite.setTextureRect(rect);
 			if (font == FontType::BTR_FONTLARGE2) fontImage.setSmooth(true);
 			window->draw(sprite);
-			sprite.move(sf::Vector2f(texWH.x, 0));
+			sprite.move(btr::Vector2f(texWH.x, 0));
 		}
 		sprite.setColor(sf::Color(255, 255, 255, 255));
 	}
 
 	void RenderChars(std::string chars, float X, float Y, sf::RenderWindow* &window, sf::Color col = sf::Color(255, 255, 255, 255), bool renderFromCenter = false)
 	{
-		return RenderChars(chars, sf::Vector2f(X, Y), window, col);
+		return RenderChars(chars, btr::Vector2f(X, Y), window, col);
 	}
 	BTRFont(const char* filename, FontType sFont = FontType::BTR_FONTSMALL)
 	{
@@ -372,15 +374,15 @@ struct BTRpowerup;
 class BTRPaddle;
 class BTRPlayArea;
 template <typename T>
-inline std::vector<sf::Vector2f> getNormals(T& obj)
+inline std::vector<btr::Vector2f> getNormals(T& obj)
 {
-	sf::Vector2f firstCorner = sf::Vector2f(obj.x, obj.y);
-	sf::Vector2f secondCorner = sf::Vector2f(obj.x + obj.width, obj.y);
-	sf::Vector2f thirdCorner = sf::Vector2f(obj.x, obj.y + obj.height);
-	sf::Vector2f fourthCorner = sf::Vector2f(obj.x + obj.width, obj.y + obj.height);
+	btr::Vector2f firstCorner = btr::Vector2f(obj.x, obj.y);
+	btr::Vector2f secondCorner = btr::Vector2f(obj.x + obj.width, obj.y);
+	btr::Vector2f thirdCorner = btr::Vector2f(obj.x, obj.y + obj.height);
+	btr::Vector2f fourthCorner = btr::Vector2f(obj.x + obj.width, obj.y + obj.height);
 	
-	std::vector<sf::Vector2f> normals;
-	std::vector<sf::Vector2f> cornerArrays = { firstCorner,secondCorner,thirdCorner,fourthCorner };
+	std::vector<btr::Vector2f> normals;
+	std::vector<btr::Vector2f> cornerArrays = { firstCorner,secondCorner,thirdCorner,fourthCorner };
 	for (int i = 0; i < cornerArrays.size(); i++)
 	{
 		auto& v = cornerArrays[i];
@@ -388,7 +390,7 @@ inline std::vector<sf::Vector2f> getNormals(T& obj)
 		if (next >= cornerArrays.size()) next = 0;
 		auto& nextVec = cornerArrays[next];
 		auto edgeVec = nextVec - v;
-		sf::Vector2f normVec = sf::Vector2f(edgeVec.x,edgeVec.y);
+		btr::Vector2f normVec = btr::Vector2f(edgeVec.x,edgeVec.y);
 		std::cout << "Printing corners: x: "  << v.x << ", y: " << v.y << std::endl;
 		normals.push_back(normVec);
 	}
@@ -421,7 +423,7 @@ struct BTRSpark : BTRObjectBase
 };
 struct BTRExplodingBricks
 {
-	sf::Vector2f pos;
+	btr::Vector2f pos;
 	sf::Sprite spr;
 	int frameOffset = 0;
 	int loop = 0;
@@ -506,7 +508,7 @@ struct BTRpowerup : BTRObjectBase
 	int powerupID = 0;
 	int aliveTick = 0;
 	bool destroyed = false;
-	BTRpowerup(sf::Vector2f pos, sf::Vector2f vel, int powerupID = 0)
+	BTRpowerup(btr::Vector2f pos, btr::Vector2f vel, int powerupID = 0)
 	{
 		this->x = pos.x;
 		this->y = pos.y;
@@ -607,7 +609,7 @@ struct BTRbrick : BTRObjectBase
 			{
 				pwrres = badpowerDist(gen);
 			}
-			auto powerup = BTRpowerup(sf::Vector2f(this->x, this->y), sf::Vector2f(hitvelX, hitvelY), pwrres);
+			auto powerup = BTRpowerup(btr::Vector2f(this->x, this->y), btr::Vector2f(hitvelX, hitvelY), pwrres);
 			BTRPlaySound("./ball/brickexplode.wav");
 			area.powerups.push_back(powerup);
 			framesPassedlastPowerup = 0;
@@ -693,13 +695,13 @@ struct BTRExplosion : BTRExplodingBricks
 	}
 };
 extern std::vector<BTRExplosion> explosions;
-inline void vectorLerp(sf::Vector2f &pos, sf::Vector2f &toPos, double t)
+inline void vectorLerp(btr::Vector2f &pos, btr::Vector2f &toPos, double t)
 {
 	pos.x = std::lerp(pos.x, toPos.x, 0.5f);
 	pos.y = std::lerp(pos.y, toPos.y, 0.5f);
 }
 template<typename T>
-inline T spawnObject(sf::Vector2f pos, std::function<void(T&)> postSpawnFunc)
+inline T spawnObject(btr::Vector2f pos, std::function<void(T&)> postSpawnFunc)
 {
 	T spawnObj = T();
 	spawnObj.x = pos.x;
@@ -708,7 +710,7 @@ inline T spawnObject(sf::Vector2f pos, std::function<void(T&)> postSpawnFunc)
 	return spawnObj;
 }
 template<typename T>
-inline T* spawnObject(sf::Vector2f pos, std::function<void(T*)> postSpawnFunc)
+inline T* spawnObject(btr::Vector2f pos, std::function<void(T*)> postSpawnFunc)
 {
 	T* spawnObj = new T();
 	spawnObj->x = pos.x;
@@ -717,7 +719,7 @@ inline T* spawnObject(sf::Vector2f pos, std::function<void(T*)> postSpawnFunc)
 	return spawnObj;
 }
 template<typename T>
-inline std::shared_ptr<T> spawnObject(sf::Vector2f pos, std::function<void(std::shared_ptr<T>)> postSpawnFunc)
+inline std::shared_ptr<T> spawnObject(btr::Vector2f pos, std::function<void(std::shared_ptr<T>)> postSpawnFunc)
 {
 	std::shared_ptr<T> spawnObj = std::shared_ptr<T>(new T());
 	spawnObj->x = pos.x;
@@ -726,7 +728,7 @@ inline std::shared_ptr<T> spawnObject(sf::Vector2f pos, std::function<void(std::
 	return spawnObj;
 }
 
-inline void spawnSpark(uint32_t count,sf::Color col,sf::Vector2f pos)
+inline void spawnSpark(uint32_t count,sf::Color col,btr::Vector2f pos)
 {
 	for (int i = 0; i < count; i++)
 	{
@@ -742,9 +744,9 @@ inline void spawnSpark(uint32_t count,sf::Color col,sf::Vector2f pos)
 
 struct BTRMovingText
 {
-	sf::Vector2f pos;
-	sf::Vector2f toPos;
-	sf::Vector2f orgPos;
+	btr::Vector2f pos;
+	btr::Vector2f toPos;
+	btr::Vector2f orgPos;
 	std::string movingText;
 	void Tick()
 	{
@@ -776,7 +778,7 @@ struct BTRChompTeeth : BTRObjectBase
 struct BTRDebris : BTRObjectBase
 {
 	sf::CircleShape shape = sf::CircleShape(4,360);	
-	BTRDebris(sf::Vector2f pos, sf::Texture& texture, sf::IntRect rectOfTexPos, sf::Vector2f vel)
+	BTRDebris(btr::Vector2f pos, sf::Texture& texture, sf::IntRect rectOfTexPos, btr::Vector2f vel)
 	{
 		shape.setPosition(pos);
 		shape.setTexture(&texture,true);
@@ -824,7 +826,7 @@ struct BTRMissileObject : BTRObjectBase
 				while (debrisCnt++ < 4)
 				{
 					auto curAngle = atan2(this->velX,this->velY) + (dis(gen) * pi / 180);					
-					auto debris = BTRDebris(sf::Vector2f(this->x,this->y),area.brickTexture,area.brickTexRects[curBrick.brickID - 1], sf::Vector2f(dis(gen),this->velY));
+					auto debris = BTRDebris(btr::Vector2f(this->x,this->y),area.brickTexture,area.brickTexRects[curBrick.brickID - 1], btr::Vector2f(dis(gen),this->velY));
 					area.debrisObjects.push_back(debris);
 				}
 				gravity = 0;
@@ -836,7 +838,7 @@ struct BTRMissileObject : BTRObjectBase
 extern BTRChompTeeth* chompteeth;
 struct BTRButton
 {
-	sf::Vector2f pos;
+	btr::Vector2f pos;
 	std::string str;
 	bool wasHeld = false;
 	bool smallButton = false;
@@ -851,6 +853,8 @@ class BTRMenuUIWindow
 {
 	public:
 	std::list<BTRButton> buttons;
+	std::list<std::pair<btr::Vector2f, std::string>> staticTexts;
 	std::string nameOfWindow;
-	sf::Vector2f position;
+	btr::Vector2f position;
+	btr::Vector2f size = sf::Vector2f(200,200);
 };

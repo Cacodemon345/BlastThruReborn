@@ -345,6 +345,8 @@ healthchecksdb
 
 openal-soft/
 openal-soft-build/
+build/
+build/*
 sound/
 art/
 ball/

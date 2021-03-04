@@ -2,7 +2,7 @@
 
 A written-from-scratch game engine for running Blast Thru (the eGames one).
 
-Copyright (c) 2020 Cacodemon345 and contributors.
+Copyright (c) 2020-2021 Cacodemon345 and contributors.
 
 See the SimpleIni.h file and ConvertUTF.h file for the individual copyright notices.
 

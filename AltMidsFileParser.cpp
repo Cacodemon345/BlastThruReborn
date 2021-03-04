@@ -8,7 +8,6 @@
 #include <cstring>
 #include <fstream>
 //#include <tchar.h>
-#define RTMIDI17_HEADER_ONLY
 #include "rtmidi17/rtmidi17.hpp"
 //HMIDIOUT midiDev;
 extern void ParseMidsFile(std::string filename);
