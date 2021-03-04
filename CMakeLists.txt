@@ -19,7 +19,7 @@ endif()
 find_package(SndFile REQUIRED)
 # SFML on OpenBSD causes the application to be killed when creating the window if the
 # X11 and Xrandr library isn't explicitly linked due to missing symbols at runtime.
-if (NOT (CMAKE_SYSTEM_NAME MATCHES "Windows" OR CMAKE_SYSTEM_NAME MATCHES "macOS"))
+if (NOT (CMAKE_SYSTEM_NAME MATCHES "Windows" OR CMAKE_SYSTEM_NAME MATCHES "Darwin"))
     find_package(X11 REQUIRED)
 else()
     set(X11_X11_LIB "")
