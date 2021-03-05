@@ -57,7 +57,7 @@ target_link_libraries(BlastThruReborn sfml-graphics sfml-system sfml-window ${OP
 if (NOT (CMAKE_SYSTEM_NAME MATCHES "Windows"))
     if (NOT USE_RTMIDI17)
         target_link_libraries(BlastThruReborn ${FLUIDSYNTH_LIBRARIES} -pthread)
-        target_include_directories(BlastThruReborn ${FLUIDSYNTH_INCLUDE_DIR})
+        target_include_directories(BlastThruReborn PUBLIC ${FLUIDSYNTH_INCLUDE_DIR})
     else()
         target_link_libraries(BlastThruReborn RtMidi17)
         target_include_directories(BlastThruReborn PUBLIC ./RtMidi17/ ./RtMidi17/include/)
