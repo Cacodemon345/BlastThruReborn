@@ -123,7 +123,7 @@ BTRPlayArea::BTRPlayArea(std::string levfilename, sf::RenderWindow* window)
 				bricks.push_back(curBrick);
 			}
 			LoadBrickTex();
-			if (window != nullptr) paddle.sprite->sprite.setPosition((sf::Vector2f)btr::Mouse::getPosition(*window));
+			if (window != nullptr) paddle.sprite->sprite.setPosition((btr::Vector2f)btr::Mouse::getPosition(*window));
 			SpawnInitialBall();
 			file.close();
 			return;
@@ -154,7 +154,7 @@ BTRPlayArea::BTRPlayArea(std::string levfilename, sf::RenderWindow* window)
 			delete[] brickBytes;
 		}
 		LoadBrickTex();
-		if (window != nullptr) paddle.sprite->sprite.setPosition((sf::Vector2f)sf::Mouse::getPosition(*window));
+		if (window != nullptr) paddle.sprite->sprite.setPosition((btr::Vector2f)sf::Mouse::getPosition(*window));
 		SpawnInitialBall();
 	}
 	else
@@ -334,7 +334,7 @@ void BTRPlayArea::Tick()
 	{
 		std::uniform_int_distribution badPowerDist(16, 21);
 		std::uniform_real_distribution randomXPos(wallWidth / 2., BTRWINDOWWIDTH - 32. - wallWidth / 2.);
-		auto badPowerup = BTRpowerup(sf::Vector2f(randomXPos(rd), 0), sf::Vector2f(0, 5), badPowerDist(rd));
+		auto badPowerup = BTRpowerup(btr::Vector2f(randomXPos(rd), 0), btr::Vector2f(0, 5), badPowerDist(rd));
 		powerups.push_back(badPowerup);
 		BTRPlaySound("./ball/rainpowerup.wav");
 		rainBadPowerups--;
@@ -343,7 +343,7 @@ void BTRPlayArea::Tick()
 	{
 		std::uniform_int_distribution goodPowerDist(0, 10);
 		std::uniform_real_distribution randomXPos(wallWidth / 2., BTRWINDOWWIDTH - 32. - wallWidth / 2.);
-		auto goodPowerup = BTRpowerup(sf::Vector2f(randomXPos(rd), 0), sf::Vector2f(0, 5), goodPowerDist(rd));
+		auto goodPowerup = BTRpowerup(btr::Vector2f(randomXPos(rd), 0), btr::Vector2f(0, 5), goodPowerDist(rd));
 		powerups.push_back(goodPowerup);
 		BTRPlaySound("./ball/rainpowerup.wav");
 		rainGoodPowerups--;
@@ -355,7 +355,7 @@ void BTRPlayArea::Tick()
 	if ((bricks.size() - bricksToExclude) <= 2) framePassedLowBricks++;
 	if (framePassedLowBricks >= 40 * 5)
 	{
-		auto explodingPowerup = BTRpowerup(sf::Vector2f(paddle.sprite->sprite.getPosition().x,0), sf::Vector2f(0, 5), 14);
+		auto explodingPowerup = BTRpowerup(btr::Vector2f(paddle.sprite->sprite.getPosition().x,0), btr::Vector2f(0, 5), 14);
 		powerups.push_back(explodingPowerup);
 		BTRPlaySound("./ball/rainpowerup.wav");
 		framePassedLowBricks = 0;
@@ -417,8 +417,8 @@ void DownBricks(BTRPlayArea& area)
 }
 bool TestAABBOverlap(BTRObjectBase& a, BTRObjectBase& b)
 {
-	sf::FloatRect aRect(sf::Vector2f(a.x,a.y),sf::Vector2f(a.width,a.height));
-	sf::FloatRect bRect(sf::Vector2f(b.x,b.y),sf::Vector2f(b.width,b.height));
+	sf::FloatRect aRect(btr::Vector2f(a.x,a.y),btr::Vector2f(a.width,a.height));
+	sf::FloatRect bRect(btr::Vector2f(b.x,b.y),btr::Vector2f(b.width,b.height));
 	if (bRect.intersects(aRect))
 	{
 		return true;
@@ -556,7 +556,7 @@ void BTRball::Tick(BTRPlayArea &area)
 				while (debrisCnt++ < 4)
 				{
 					auto addAngle = std::uniform_real_distribution<double>(0.,pi)(gen);
-					auto debris = BTRDebris(sf::Vector2f(this->x,this->y),area.brickTexture,area.brickTexRects[area.bricks[i].brickID - 1], sf::Vector2f(this->velX * (velXReversed ? -1 : 1) * 0.75 + cos(addAngle),this->velY * (velYReversed ? -1 : 1) * 0.75 + sin(addAngle)));
+					auto debris = BTRDebris(btr::Vector2f(this->x,this->y),area.brickTexture,area.brickTexRects[area.bricks[i].brickID - 1], btr::Vector2f(this->velX * (velXReversed ? -1 : 1) * 0.75 + cos(addAngle),this->velY * (velYReversed ? -1 : 1) * 0.75 + sin(addAngle)));
 					area.debrisObjects.push_back(debris);
 				}
 			}
@@ -665,7 +665,7 @@ void BTRpowerup::PowerupHandle(BTRPlayArea& area, int powerupID)
 	case 2:
 		{
 			//area.UpdateBrickGridPos();
-			std::vector<sf::Vector2f> explExpandedPositions;
+			std::vector<btr::Vector2f> explExpandedPositions;
 			for (int brickidx = 0; brickidx < area.bricks.size(); brickidx++)
 			{
 				if (area.bricks[brickidx].brickID == 64 && !area.bricks[brickidx].explosionExpanded)
@@ -676,7 +676,7 @@ void BTRpowerup::PowerupHandle(BTRPlayArea& area, int powerupID)
 			//area.UpdateBrickGridPos();
 			for (auto& curBrick : area.bricks)
 			{
-				if (curBrick.explosionExpanded) explExpandedPositions.push_back(sf::Vector2f(curBrick.curXPos,curBrick.curYPos));
+				if (curBrick.explosionExpanded) explExpandedPositions.push_back(btr::Vector2f(curBrick.curXPos,curBrick.curYPos));
 
 			}
 			std::sort(area.bricks.begin(), area.bricks.end(), [](BTRbrick& curBrick, BTRbrick& curBrick2)
@@ -858,7 +858,7 @@ void BTRpowerup::Tick(BTRPlayArea &area)
 	{
 		PowerupHandle(area, this->powerupID);
 		sf::Color col = this->powerupID > 15 ? sf::Color(255, 0, 0) : sf::Color(0, 0, 255);
-		spawnSpark(20, col, sf::Vector2f(this->x, this->y));
+		spawnSpark(20, col, btr::Vector2f(this->x, this->y));
 		destroyed = true;
 	}
 }

@@ -64,14 +64,14 @@ std::vector<unsigned char> randPlayedLevels;
 int64_t randPlayedSet;
 sf::Vector2i lastTouchPosition = sf::Vector2i(0,0);
 
-static inline void AppendVerticesFromRect(sf::IntRect& rect, sf::Vector2f pos, sf::VertexArray& vertArray)
+static inline void AppendVerticesFromRect(sf::IntRect& rect, btr::Vector2f pos, sf::VertexArray& vertArray)
 {
-    vertArray.append(sf::Vertex(pos,sf::Vector2f(rect.left,rect.top)));
-    vertArray.append(sf::Vertex(pos + sf::Vector2f(rect.width,0),sf::Vector2f(sf::Vector2i(rect.left,rect.top) + sf::Vector2i(rect.width,0))));
-    vertArray.append(sf::Vertex(pos + sf::Vector2f(0,rect.height),sf::Vector2f(sf::Vector2i(rect.left,rect.top) + sf::Vector2i(0,rect.height))));
-    vertArray.append(sf::Vertex(pos + sf::Vector2f(0,rect.height),sf::Vector2f(sf::Vector2i(rect.left,rect.top) + sf::Vector2i(0,rect.height))));
-    vertArray.append(sf::Vertex(pos + sf::Vector2f(rect.width,rect.height),sf::Vector2f(sf::Vector2i(rect.left,rect.top) + sf::Vector2i(rect.width,rect.height))));
-    vertArray.append(sf::Vertex(pos + sf::Vector2f(rect.width,0),sf::Vector2f(sf::Vector2i(rect.left,rect.top) + sf::Vector2i(rect.width,0))));
+    vertArray.append(sf::Vertex(pos,btr::Vector2f(rect.left,rect.top)));
+    vertArray.append(sf::Vertex(pos + btr::Vector2f(rect.width,0),btr::Vector2f(sf::Vector2i(rect.left,rect.top) + sf::Vector2i(rect.width,0))));
+    vertArray.append(sf::Vertex(pos + btr::Vector2f(0,rect.height),btr::Vector2f(sf::Vector2i(rect.left,rect.top) + sf::Vector2i(0,rect.height))));
+    vertArray.append(sf::Vertex(pos + btr::Vector2f(0,rect.height),btr::Vector2f(sf::Vector2i(rect.left,rect.top) + sf::Vector2i(0,rect.height))));
+    vertArray.append(sf::Vertex(pos + btr::Vector2f(rect.width,rect.height),btr::Vector2f(sf::Vector2i(rect.left,rect.top) + sf::Vector2i(rect.width,rect.height))));
+    vertArray.append(sf::Vertex(pos + btr::Vector2f(rect.width,0),btr::Vector2f(sf::Vector2i(rect.left,rect.top) + sf::Vector2i(rect.width,0))));
 }
 
 bool sortScoreList(const std::pair<std::string, int> t1, const std::pair<std::string, int> t2)
@@ -130,8 +130,8 @@ std::vector<BTRMovingText> BuildTextFromString(std::string buildStr, BTRFont*& f
     {
         std::getline(stream,moveText.movingText);
         flipVal ^= 1;
-        moveText.toPos = sf::Vector2f(BTRWINDOWWIDTH / 2 - font->GetSizeOfText(moveText.movingText).x / 2, baseYPos * font->genCharHeight);
-        moveText.pos = moveText.orgPos = sf::Vector2f(-font->GetSizeOfText(moveText.movingText).x + (BTRWINDOWWIDTH * flipVal), baseYPos++ * font->genCharHeight);
+        moveText.toPos = btr::Vector2f(BTRWINDOWWIDTH / 2 - font->GetSizeOfText(moveText.movingText).x / 2, baseYPos * font->genCharHeight);
+        moveText.pos = moveText.orgPos = btr::Vector2f(-font->GetSizeOfText(moveText.movingText).x + (BTRWINDOWWIDTH * flipVal), baseYPos++ * font->genCharHeight);
         btrmoveTexts.push_back(moveText);
     }
     return btrmoveTexts;
@@ -419,7 +419,7 @@ int main(int argc, char *argv[])
     wallTex.setSmooth(1);
     free(wallPixels);
     sf::Sprite wallSprite;
-    wallSprite.setPosition(sf::Vector2f(wallWidth / -2, 0));
+    wallSprite.setPosition(btr::Vector2f(wallWidth / -2, 0));
     wallSprite.setTexture(wallTex);
     wallSprite.setScale(1, 24);
 
@@ -495,7 +495,7 @@ int main(int argc, char *argv[])
     playArea = new BTRPlayArea("./lev/0.lev");
     //playArea->paddle.sprite = new BTRsprite("./ball/rockpaddle.png", 1, true, 32);
     long double fade = 1.0;
-    sf::RectangleShape scrRect((sf::Vector2f)window->getSize());
+    sf::RectangleShape scrRect((btr::Vector2f)window->getSize());
     scrRect.setFillColor(sf::Color(0, 0, 0, 255));
     bool cursorVisible = true;
     auto cursor = new BTRsprite("./ball/cursor.png", 1, false, 1);
@@ -533,7 +533,7 @@ int main(int argc, char *argv[])
         for (int posY = 0; posY < BTRWINDOWHEIGHT; posY += y)
             for (int posX = 0; posX < BTRWINDOWWIDTH; posX += x)
             {
-                sprite.setPosition(sf::Vector2f(posX, posY));
+                sprite.setPosition(btr::Vector2f(posX, posY));
                 //gammaShader.setUniform("gamma", 1.f);
                 //gammaShader.setUniform("texture", tex);
                 colShader.setUniform("texture",tex);
@@ -542,7 +542,7 @@ int main(int argc, char *argv[])
             }
         wallSprite.setPosition(BTRWINDOWWIDTH - wallWidth / 2, 0);
         window->draw(wallSprite);
-        wallSprite.setPosition(sf::Vector2f(wallWidth / -2, 0));
+        wallSprite.setPosition(btr::Vector2f(wallWidth / -2, 0));
         window->draw(wallSprite);
     };
     DrawBackground();
@@ -606,11 +606,11 @@ int main(int argc, char *argv[])
     auto wincornerImage = new BTRsprite("./ball/wincorner.png", 14, 0, 1);
     auto winButtonImage = new BTRsprite("./ball/winbutton2.png", 1);
     auto winButtonSmallImage = new BTRsprite("./ball/winbutton.png", 1);
-    wincornerImage->sprite.setOrigin(sf::Vector2f(wincornerImage->realWidthPerTile / 2, wincornerImage->height / 2));
+    wincornerImage->sprite.setOrigin(btr::Vector2f(wincornerImage->realWidthPerTile / 2, wincornerImage->height / 2));
     titleImage->SetTexRect(0, 0);
     titleImage->texture.setRepeated(true);
     bool isLevEdit = false;
-    auto DrawFrame = [&](sf::RenderWindow *window, sf::Vector2f pos, sf::Vector2f size) {
+    auto DrawFrame = [&](sf::RenderWindow *window, btr::Vector2f pos, btr::Vector2f size) {
         sf::RectangleShape rect;
         rect.setFillColor(sf::Color(16, 24, 32));
         rect.setPosition(pos);
@@ -632,7 +632,7 @@ int main(int argc, char *argv[])
             wincornerImage->sprite.setPosition(pos);
             window->draw(*wincornerImage);
         }
-        pos = sf::Vector2f(orgPosX, orgPosY);
+        pos = btr::Vector2f(orgPosX, orgPosY);
         for (; pos.y < orgPosY + size.y; pos.y += wincornerImage->height)
         {
             wincornerImage->SetTexRect(3, 0);
@@ -640,7 +640,7 @@ int main(int argc, char *argv[])
             window->draw(*wincornerImage);
             wincornerImage->SetTexRect(0, 0);
         }
-        pos = sf::Vector2f(orgPosX + size.x, orgPosY);
+        pos = btr::Vector2f(orgPosX + size.x, orgPosY);
         for (; pos.y < orgPosY + size.y; pos.y += wincornerImage->height)
         {
             wincornerImage->SetTexRect(3, 0);
@@ -648,15 +648,15 @@ int main(int argc, char *argv[])
             window->draw(*wincornerImage);
             wincornerImage->SetTexRect(0, 0);
         }
-        pos = sf::Vector2f(orgPosX, orgPosY);
+        pos = btr::Vector2f(orgPosX, orgPosY);
         wincornerImage->SetTexRect(0, 0);
         wincornerImage->sprite.setPosition(pos);
         window->draw(*wincornerImage);
-        wincornerImage->sprite.setPosition(pos + sf::Vector2f(size.x, 0));
+        wincornerImage->sprite.setPosition(pos + btr::Vector2f(size.x, 0));
         window->draw(*wincornerImage);
         wincornerImage->sprite.setPosition(pos + size);
         window->draw(*wincornerImage);
-        wincornerImage->sprite.setPosition(pos + sf::Vector2f(0, size.y));
+        wincornerImage->sprite.setPosition(pos + btr::Vector2f(0, size.y));
         window->draw(*wincornerImage);
     };
     auto editPlayArea = new BTRPlayArea();
@@ -717,8 +717,8 @@ int main(int argc, char *argv[])
                 istr << std::to_string(std::get<int>(curScore));
                 auto moveText = BTRMovingText();
                 flipVal ^= 1;
-                moveText.toPos = sf::Vector2f(90, scoreY * font->genCharHeight);
-                moveText.pos = sf::Vector2f(-font->GetSizeOfText(str).x + (BTRWINDOWWIDTH * flipVal), scoreY * font->genCharHeight);
+                moveText.toPos = btr::Vector2f(90, scoreY * font->genCharHeight);
+                moveText.pos = btr::Vector2f(-font->GetSizeOfText(str).x + (BTRWINDOWWIDTH * flipVal), scoreY * font->genCharHeight);
                 scoreY++;
                 moveText.movingText = str;
                 scoreTexts.push_back(moveText);
@@ -740,7 +740,7 @@ int main(int argc, char *argv[])
         //BTRPlaySound("./ball/editselect.wav");
     };
     retToGame.str = "Return to Game";
-    retToGame.pos = sf::Vector2f(640 / 2 - winButtonImage->width / 2, BTRWINDOWHEIGHT - 100);
+    retToGame.pos = btr::Vector2f(640 / 2 - winButtonImage->width / 2, BTRWINDOWHEIGHT - 100);
 
     BTRButton quitGame;
     quitGame.clickedFunc = [&]() {
@@ -752,7 +752,7 @@ int main(int argc, char *argv[])
         fadeToColor(sf::Color(0, 0, 0, 255));
         window->close();
     };
-    quitGame.pos = sf::Vector2f(640 / 2 - winButtonImage->width / 2, BTRWINDOWHEIGHT - 80);
+    quitGame.pos = btr::Vector2f(640 / 2 - winButtonImage->width / 2, BTRWINDOWHEIGHT - 80);
     quitGame.str = "Quit Game";
 
     BTRButton randomLevel;
@@ -774,12 +774,12 @@ int main(int argc, char *argv[])
         isLevEdit = false;
     };
     randomLevel.str = "Random Play";
-    randomLevel.pos = sf::Vector2f(640 / 2 - winButtonImage->width / 2, BTRWINDOWHEIGHT - 340);
+    randomLevel.pos = btr::Vector2f(640 / 2 - winButtonImage->width / 2, BTRWINDOWHEIGHT - 340);
     btns.push_back(randomLevel);
 
     BTRButton singlePlay;
     singlePlay.str = "Single Play";
-    singlePlay.pos = sf::Vector2f(randomLevel.pos.x, randomLevel.pos.y - 20);
+    singlePlay.pos = btr::Vector2f(randomLevel.pos.x, randomLevel.pos.y - 20);
     singlePlay.clickedFunc = [&]() {
         btns[0].clickedFunc();
         playArea->levnum = 0;
@@ -798,12 +798,12 @@ int main(int argc, char *argv[])
         flipPaused(event, false);
     };
     levEdit.str = "Level Editor";
-    levEdit.pos = sf::Vector2f(randomLevel.pos.x, randomLevel.pos.y + 20);
+    levEdit.pos = btr::Vector2f(randomLevel.pos.x, randomLevel.pos.y + 20);
     btns.push_back(levEdit);
 
     BTRButton highScoreEnter;
     highScoreEnter.str = "High Scores";
-    highScoreEnter.pos = sf::Vector2f(randomLevel.pos.x, randomLevel.pos.y + 40);
+    highScoreEnter.pos = btr::Vector2f(randomLevel.pos.x, randomLevel.pos.y + 40);
     highScoreEnter.clickedFunc = [&]() {
         sf::Event event;
         event.type = sf::Event::KeyPressed;
@@ -828,7 +828,7 @@ int main(int argc, char *argv[])
         flipPaused(event);
         //BTRPlaySound("./ball/editselect.wav");
     };
-    levEditMenu.pos = sf::Vector2f(BTRWINDOWWIDTH - winButtonSmallImage->width - 20 - wallWidth / 2, 20);
+    levEditMenu.pos = btr::Vector2f(BTRWINDOWWIDTH - winButtonSmallImage->width - 20 - wallWidth / 2, 20);
     levEditMenu.str = "Menu";
     levEditBtns.push_back(levEditMenu);
 
@@ -845,7 +845,7 @@ int main(int argc, char *argv[])
     };
     levEditPlay.smallButton = 1;
     levEditPlay.str = "Play";
-    levEditPlay.pos = sf::Vector2f(levEditMenu.pos.x - winButtonSmallImage->width - 20, 20);
+    levEditPlay.pos = btr::Vector2f(levEditMenu.pos.x - winButtonSmallImage->width - 20, 20);
     levEditBtns.push_back(levEditPlay);
 
     BTRButton levEditLoad;
@@ -877,7 +877,7 @@ int main(int argc, char *argv[])
         }
     };
     levEditLoad.str = "Load";
-    levEditLoad.pos = sf::Vector2f(levEditPlay.pos.x - winButtonSmallImage->width - 20, 20);
+    levEditLoad.pos = btr::Vector2f(levEditPlay.pos.x - winButtonSmallImage->width - 20, 20);
     levEditBtns.push_back(levEditLoad);
 
     BTRButton levEditSave;
@@ -886,7 +886,7 @@ int main(int argc, char *argv[])
     };
     levEditSave.smallButton = 1;
     levEditSave.str = "Save";
-    levEditSave.pos = sf::Vector2f(levEditLoad.pos.x - winButtonSmallImage->width - 20, 20);
+    levEditSave.pos = btr::Vector2f(levEditLoad.pos.x - winButtonSmallImage->width - 20, 20);
     levEditBtns.push_back(levEditSave);
 
     BTRButton levEditNew;
@@ -895,7 +895,7 @@ int main(int argc, char *argv[])
     };
     levEditNew.smallButton = 1;
     levEditNew.str = "New";
-    levEditNew.pos = sf::Vector2f(levEditSave.pos.x - winButtonSmallImage->width - 20, 20);
+    levEditNew.pos = btr::Vector2f(levEditSave.pos.x - winButtonSmallImage->width - 20, 20);
     levEditBtns.push_back(levEditNew);
 
     // In-game menu stuff.
@@ -905,14 +905,14 @@ int main(int argc, char *argv[])
         BTRButton menuWindowQuitButton;
         menuWindowQuitButton.clickedFunc = closeMenuWindow;
         menuWindowQuitButton.str = "Close";
-        menuWindowQuitButton.pos = sf::Vector2f(0,0);
+        menuWindowQuitButton.pos = btr::Vector2f(0,0);
         menuWindow.buttons.push_back(menuWindowQuitButton);
-        menuWindow.position = sf::Vector2f(320,240);
-        menuWindow.size = sf::Vector2f(100,100);
+        menuWindow.position = btr::Vector2f(320,240);
+        menuWindow.size = btr::Vector2f(100,100);
         menuWindow.nameOfWindow = "TestMenuWindow";
         menuWindowStack.push(menuWindow);
     };
-    testMenuWindow.pos = sf::Vector2f(highScoreEnter.pos.x, highScoreEnter.pos.y + 40);
+    testMenuWindow.pos = btr::Vector2f(highScoreEnter.pos.x, highScoreEnter.pos.y + 40);
     testMenuWindow.str = "testMenuWindow";
     btns.push_back(testMenuWindow);
 
@@ -930,7 +930,7 @@ int main(int argc, char *argv[])
             if (curBrick.brickID != 63 || (curBrick.brickID == 63 && isLevEdit))
             {
                 auto& curBrickIntRect = playArea->brickTexRects[curBrick.isFireball ? fireBrickFrame : curBrick.brickID - 1];
-                AppendVerticesFromRect(curBrickIntRect,sf::Vector2f(curBrick.x,curBrick.y),brickVertArray);
+                AppendVerticesFromRect(curBrickIntRect,btr::Vector2f(curBrick.x,curBrick.y),brickVertArray);
 // Below commented out code is the more higher-level representation of the above.
 #if 0
                 if (curBrick.isFireball)
@@ -938,7 +938,7 @@ int main(int argc, char *argv[])
                     brickSprite.setTextureRect(playArea->brickTexRects[fireBrickFrame]);
                 }
                 else brickSprite.setTextureRect(playArea->brickTexRects[curBrick.brickID - 1]);
-                brickSprite.setPosition(sf::Vector2f(curBrick.x, curBrick.y));
+                brickSprite.setPosition(btr::Vector2f(curBrick.x, curBrick.y));
                 window->draw(brickSprite);
 #endif
             }
@@ -999,11 +999,11 @@ int main(int argc, char *argv[])
                                               252 * double(1. - sparks[i].sparkRect.left / (15. * 3.)))
                                               * sparks[i].color;
                 //sf::VertexArray vertArray = sf::VertexArray(sf::PrimitiveType::Points,5);
-                simpleSparkVertArray[i * 5 + 0] = sf::Vertex(sf::Vector2f(sparks[i].x,sparks[i].y) + sf::Vector2f(-1,0),sideCol);
-                simpleSparkVertArray[i * 5 + 1] = sf::Vertex(sf::Vector2f(sparks[i].x,sparks[i].y) + sf::Vector2f(1,0),sideCol);
-                simpleSparkVertArray[i * 5 + 2] = sf::Vertex(sf::Vector2f(sparks[i].x,sparks[i].y) + sf::Vector2f(0,1),sideCol);
-                simpleSparkVertArray[i * 5 + 3] = sf::Vertex(sf::Vector2f(sparks[i].x,sparks[i].y) + sf::Vector2f(0,-1),sideCol);
-                simpleSparkVertArray[i * 5 + 4] = sf::Vertex(sf::Vector2f(sparks[i].x,sparks[i].y),mainCol);
+                simpleSparkVertArray[i * 5 + 0] = sf::Vertex(btr::Vector2f(sparks[i].x,sparks[i].y) + btr::Vector2f(-1,0),sideCol);
+                simpleSparkVertArray[i * 5 + 1] = sf::Vertex(btr::Vector2f(sparks[i].x,sparks[i].y) + btr::Vector2f(1,0),sideCol);
+                simpleSparkVertArray[i * 5 + 2] = sf::Vertex(btr::Vector2f(sparks[i].x,sparks[i].y) + btr::Vector2f(0,1),sideCol);
+                simpleSparkVertArray[i * 5 + 3] = sf::Vertex(btr::Vector2f(sparks[i].x,sparks[i].y) + btr::Vector2f(0,-1),sideCol);
+                simpleSparkVertArray[i * 5 + 4] = sf::Vertex(btr::Vector2f(sparks[i].x,sparks[i].y),mainCol);
                 //window->draw(vertArray);
             }
             else
@@ -1036,7 +1036,7 @@ int main(int argc, char *argv[])
     };
     char explBrickOffset = 0;
     bool explBrickReverse = false;
-    auto brickDisplayPos = sf::Vector2f(BTRWINDOWWIDTH / 2 - editPlayArea->brickwidth / 2, BTRWINDOWHEIGHT - (editPlayArea->brickheight - 15 * 4.5) - wincornerImage->height / 4);
+    auto brickDisplayPos = btr::Vector2f(BTRWINDOWWIDTH / 2 - editPlayArea->brickwidth / 2, BTRWINDOWHEIGHT - (editPlayArea->brickheight - 15 * 4.5) - wincornerImage->height / 4);
 #if defined(__ANDROID__) || defined(ANDROID)
     cursorVisible = false;
     window->setMouseCursorVisible(false);
@@ -1216,6 +1216,7 @@ int main(int argc, char *argv[])
                 break;
             case sf::Event::MouseWheelScrolled:
             {
+                if (!isLevEdit) break;
                 if (event.mouseWheelScroll.delta < 0)
                 {
                     brickID -= 1;
@@ -1343,15 +1344,12 @@ int main(int argc, char *argv[])
             window->draw(highScoreSprite);
             if (newScoreAt != -1)
             {
-                //font->RenderChars(std::string("Congratulations!"),sf::Vector2f(0.f,font->genCharHeight * 3),window,sf::Color(255,255,255,255),true);
-                //font->RenderChars(std::string("You have entered the Hall Of Scores!"),sf::Vector2f(0.f,font->genCharHeight * 4),window,sf::Color(255,255,255,255),true);
-                //font->RenderChars(std::string("Enter your name in the box below"),sf::Vector2f(0.f,font->genCharHeight * 5),window,sf::Color(255,255,255,255),true);
                 for (auto &curMovingText : moveTexts)
                 {
                     curMovingText.Tick();
                     font->RenderChars(curMovingText.movingText, curMovingText.pos, window);
                 }
-                winBoxImage2->sprite.setPosition(sf::Vector2f(BTRWINDOWWIDTH,BTRWINDOWHEIGHT) / 2.f - sf::Vector2f(winBoxImage2->width / 2,0));
+                winBoxImage2->sprite.setPosition(btr::Vector2f(BTRWINDOWWIDTH,BTRWINDOWHEIGHT) / 2.f - btr::Vector2f(winBoxImage2->width / 2,0));
                 window->draw(*winBoxImage2);
                 font->RenderChars(cheatstr + '|',winBoxImage2->sprite.getPosition(),window);
                 window->display();
@@ -1362,7 +1360,7 @@ int main(int argc, char *argv[])
                 curMovingText.Tick();
                 font->RenderChars(curMovingText.movingText, curMovingText.pos, window);
             }
-            font->RenderChars("Hall of Scores", sf::Vector2f(BTRWINDOWWIDTH / 2, font->genCharHeight * 2) - sf::Vector2f(font->GetSizeOfText("Hall of Fame").x / 2, 0), window);
+            font->RenderChars("Hall of Scores", btr::Vector2f(BTRWINDOWWIDTH / 2, font->genCharHeight * 2) - btr::Vector2f(font->GetSizeOfText("Hall of Fame").x / 2, 0), window);
             window->display();
             continue;
         }
@@ -1386,8 +1384,8 @@ int main(int argc, char *argv[])
             window->clear();
             windowSprite.setColor(sf::Color(255, 255, 255, 255 * 0.5));
             window->draw(windowSprite);
-            largeFont2->RenderChars("excellent", sf::Vector2f(BTRWINDOWWIDTH / 2 - font->GetSizeOfText("excellent").x / 2, 0), window, sf::Color(255, 255, 0));
-            font->RenderChars("You completed the game!", sf::Vector2f(BTRWINDOWWIDTH / 2, largeFont2->GetSizeOfText("excellent").y) - sf::Vector2f(font->GetSizeOfText("You completed the game!").x / 2, 0), window);
+            largeFont2->RenderChars("excellent", btr::Vector2f(BTRWINDOWWIDTH / 2 - font->GetSizeOfText("excellent").x / 2, 0), window, sf::Color(255, 255, 0));
+            font->RenderChars("You completed the game!", btr::Vector2f(BTRWINDOWWIDTH / 2, largeFont2->GetSizeOfText("excellent").y) - btr::Vector2f(font->GetSizeOfText("You completed the game!").x / 2, 0), window);
             window->display();
             continue;
         }
@@ -1396,9 +1394,9 @@ int main(int argc, char *argv[])
             window->clear();
             windowSprite.setColor(sf::Color(255, 255, 255, 255 * 0.5));
             window->draw(windowSprite);
-            winBoxImage->sprite.setPosition(sf::Vector2f(BTRWINDOWWIDTH / 2 - winBoxImage->width / 2, BTRWINDOWHEIGHT / 2));
+            winBoxImage->sprite.setPosition(btr::Vector2f(BTRWINDOWWIDTH / 2 - winBoxImage->width / 2, BTRWINDOWHEIGHT / 2));
             window->draw(*winBoxImage);
-            font->RenderChars("Cheaters never prosper...", winBoxImage->sprite.getPosition() - sf::Vector2f(0, font->genCharHeight), window);
+            font->RenderChars("Cheaters never prosper...", winBoxImage->sprite.getPosition() - btr::Vector2f(0, font->genCharHeight), window);
             font->RenderChars(cheatstr + '|', winBoxImage->sprite.getPosition(), window);
             window->display();
             continue;
@@ -1415,14 +1413,14 @@ int main(int argc, char *argv[])
             window->draw(windowSprite);
             if (!menu)
             {
-                pausedSprite->sprite.setPosition(sf::Vector2f(BTRWINDOWWIDTH / 2, BTRWINDOWHEIGHT / 2) - sf::Vector2f(pausedSprite->width / 2, pausedSprite->height / 2));
+                pausedSprite->sprite.setPosition(btr::Vector2f(BTRWINDOWWIDTH / 2, BTRWINDOWHEIGHT / 2) - btr::Vector2f(pausedSprite->width / 2, pausedSprite->height / 2));
                 window->draw(pausedSprite->sprite);
             }
             if (menu)
             {
-                titleImage->sprite.setPosition(sf::Vector2f(BTRWINDOWWIDTH / 2 - titleImage->width / 2, 0));
+                titleImage->sprite.setPosition(btr::Vector2f(BTRWINDOWWIDTH / 2 - titleImage->width / 2, 0));
                 window->draw(*titleImage);
-                sf::Vector2f pos = titleImage->sprite.getPosition() + sf::Vector2f(0, titleImage->height);
+                btr::Vector2f pos = titleImage->sprite.getPosition() + btr::Vector2f(0, titleImage->height);
                 if (!menuWindowStack.empty())
                 {
                     auto& topMenu = menuWindowStack.top();
@@ -1435,15 +1433,15 @@ int main(int argc, char *argv[])
                         window->draw(*winButtonSmallImage);
                         auto curBtnPos = curBtn.pos  + topMenu.position;
                         curBtnPos.x += winButtonSmallImage->width / 2;
-                        curBtnPos -= sf::Vector2f(font->GetSizeOfText(curBtn.str).x / 2, 0);
-                        //curBtnPos += sf::Vector2f(0, curBtn.wasHeld ? 5 : 0);
+                        curBtnPos -= btr::Vector2f(font->GetSizeOfText(curBtn.str).x / 2, 0);
+                        //curBtnPos += btr::Vector2f(0, curBtn.wasHeld ? 5 : 0);
                         font->RenderChars(curBtn.str, curBtnPos, window);            
                     }
                 }
                 else
                 {
-                    DrawFrame(window, pos, sf::Vector2f(300, 370));
-                    font->RenderChars("Game Menu", sf::Vector2f(640 / 2 - font->GetSizeOfText("Game Menu").x / 2, font->genCharHeight + pos.y), window);
+                    DrawFrame(window, pos, btr::Vector2f(300, 370));
+                    font->RenderChars("Game Menu", btr::Vector2f(640 / 2 - font->GetSizeOfText("Game Menu").x / 2, font->genCharHeight + pos.y), window);
                     for (auto &curBtn : btns)
                     {
                         winButtonImage->sprite.setPosition(curBtn.pos);
@@ -1451,16 +1449,16 @@ int main(int argc, char *argv[])
                         window->draw(*winButtonImage);
                         auto curBtnPos = curBtn.pos;
                         curBtnPos.x += winButtonImage->width / 2;
-                        curBtnPos -= sf::Vector2f(font->GetSizeOfText(curBtn.str).x / 2, 0);
-                        //curBtnPos += sf::Vector2f(0, curBtn.wasHeld ? 5 : 0);
+                        curBtnPos -= btr::Vector2f(font->GetSizeOfText(curBtn.str).x / 2, 0);
+                        //curBtnPos += btr::Vector2f(0, curBtn.wasHeld ? 5 : 0);
                         font->RenderChars(curBtn.str, curBtnPos, window);
                     }
                 }
                 if (!cursorVisible)
                 {
                     ball->SetSpriteIndex(1);
-                    ball->sprite.setPosition((sf::Vector2f)btr::Mouse::getPosition(*window) - sf::Vector2f(ball->realWidthPerTile / 2, ball->realHeightPerTile / 2));
-                    cursor->sprite.setPosition((sf::Vector2f)btr::Mouse::getPosition(*window) - sf::Vector2f(cursor->width / 2, cursor->height / 2));
+                    ball->sprite.setPosition((btr::Vector2f)btr::Mouse::getPosition(*window) - btr::Vector2f(ball->realWidthPerTile / 2, ball->realHeightPerTile / 2));
+                    cursor->sprite.setPosition((btr::Vector2f)btr::Mouse::getPosition(*window) - btr::Vector2f(cursor->width / 2, cursor->height / 2));
                     window->draw(cursor->sprite);
                     window->draw(ball->sprite);
                     ball->Animate();
@@ -1576,8 +1574,8 @@ int main(int argc, char *argv[])
         {
             window->setFramerateLimit(40);
             drawBricksFromArea(editPlayArea);
-            DrawFrame(window, sf::Vector2f(wallWidth / 2, wincornerImage->height / 2), sf::Vector2f(BTRWINDOWWIDTH - wallWidth, 50));
-            DrawFrame(window, sf::Vector2f(wallWidth / 2, BTRWINDOWHEIGHT - (editPlayArea->brickheight - 15 * 4)), sf::Vector2f(BTRWINDOWWIDTH - wallWidth, editPlayArea->brickheight - 15 * 4 - wincornerImage->height / 2));
+            DrawFrame(window, btr::Vector2f(wallWidth / 2, wincornerImage->height / 2), btr::Vector2f(BTRWINDOWWIDTH - wallWidth, 50));
+            DrawFrame(window, btr::Vector2f(wallWidth / 2, BTRWINDOWHEIGHT - (editPlayArea->brickheight - 15 * 4)), btr::Vector2f(BTRWINDOWWIDTH - wallWidth, editPlayArea->brickheight - 15 * 4 - wincornerImage->height / 2));
             for (auto &curBtn : levEditBtns)
             {
                 winButtonSmallImage->sprite.setPosition(curBtn.pos);
@@ -1585,8 +1583,8 @@ int main(int argc, char *argv[])
                 window->draw(*winButtonSmallImage);
                 auto curBtnPos = curBtn.pos;
                 curBtnPos.x += winButtonSmallImage->width / 2;
-                curBtnPos -= sf::Vector2f(font->GetSizeOfText(curBtn.str).x / 2, 0);
-                //curBtnPos += sf::Vector2f(0, curBtn.wasHeld ? 5 : 0);
+                curBtnPos -= btr::Vector2f(font->GetSizeOfText(curBtn.str).x / 2, 0);
+                //curBtnPos += btr::Vector2f(0, curBtn.wasHeld ? 5 : 0);
                 font->RenderChars(curBtn.str, curBtnPos, window);
             }
             auto brickRect = sf::IntRect(sf::Vector2i(), sf::Vector2i(editPlayArea->brickwidth, editPlayArea->brickheight - 15 * 5));
@@ -1596,9 +1594,9 @@ int main(int argc, char *argv[])
             brickSprite.setPosition(brickDisplayPos);
             window->draw(brickSprite);
             auto brickTexPos = brickSprite.getPosition();
-            sf::RectangleShape outlineRect(sf::Vector2f(30, 15));
+            sf::RectangleShape outlineRect(btr::Vector2f(30, 15));
             sf::IntRect rect = editPlayArea->brickTexRects[brickID - 1];
-            outlineRect.setPosition(brickTexPos + sf::Vector2f(rect.left, rect.top));
+            outlineRect.setPosition(brickTexPos + btr::Vector2f(rect.left, rect.top));
             outlineRect.setOutlineColor(sf::Color(255, 0, 0, 255));
             outlineRect.setOutlineThickness(-1);
             outlineRect.setFillColor(sf::Color::Transparent);
@@ -1613,14 +1611,14 @@ int main(int argc, char *argv[])
                 if (explBrickOffset < 0)
                     explBrickOffset = 0;
             }
-            brickSprite.setPosition(brickTexPos + sf::Vector2f(rect.left, rect.top));
+            brickSprite.setPosition(brickTexPos + btr::Vector2f(rect.left, rect.top));
             brickSprite.setTextureRect(editPlayArea->brickTexRects[128ll + explBrickOffset]);
             window->draw(brickSprite);
             if (!cursorVisible)
             {
                 ball->SetSpriteIndex(1);
-                ball->sprite.setPosition((sf::Vector2f)btr::Mouse::getPosition(*window) - sf::Vector2f(ball->realWidthPerTile / 2, ball->realHeightPerTile / 2));
-                cursor->sprite.setPosition((sf::Vector2f)btr::Mouse::getPosition(*window) - sf::Vector2f(cursor->width / 2, cursor->height / 2));
+                ball->sprite.setPosition((btr::Vector2f)btr::Mouse::getPosition(*window) - btr::Vector2f(ball->realWidthPerTile / 2, ball->realHeightPerTile / 2));
+                cursor->sprite.setPosition((btr::Vector2f)btr::Mouse::getPosition(*window) - btr::Vector2f(cursor->width / 2, cursor->height / 2));
                 window->draw(cursor->sprite);
                 window->draw(ball->sprite);
                 //ball->Animate();
@@ -1669,9 +1667,9 @@ int main(int argc, char *argv[])
                     curPos.x -= wallWidth / 2;
                     auto gridAlignX = curPos.x % 30;
                     auto gridAlignY = curPos.y % 15;
-                    spawnSpark(30, sf::Color(255, 255, 255), ((sf::Vector2f)curPos - sf::Vector2f(gridAlignX, gridAlignY)) + sf::Vector2f(wallWidth / 2, 0));
+                    spawnSpark(30, sf::Color(255, 255, 255), ((btr::Vector2f)curPos - btr::Vector2f(gridAlignX, gridAlignY)) + btr::Vector2f(wallWidth / 2, 0));
                     spawnObject(
-                        sf::Vector2f((curPos.x - gridAlignX) + wallWidth / 2, curPos.y - gridAlignY),
+                        btr::Vector2f((curPos.x - gridAlignX) + wallWidth / 2, curPos.y - gridAlignY),
                         std::function<void(BTRbrick &)>() = [editPlayArea](BTRbrick &brick) {
                             brick.brickID = brickID;
                             if (brick.brickID > 64)
@@ -1694,7 +1692,7 @@ int main(int argc, char *argv[])
         playArea->paddle.sprite->sprite.setOrigin(-playArea->paddle.paddleRadius / 2 + playArea->paddle.drawPaddleRadius / 2, 0);
 
         if (drawCornerText)
-            font->RenderChars(textToDraw, sf::Vector2f(wallWidth / 2, BTRWINDOWHEIGHT - font->genCharHeight), window);
+            font->RenderChars(textToDraw, btr::Vector2f(wallWidth / 2, BTRWINDOWHEIGHT - font->genCharHeight), window);
         if (frameCnt % 10 == 0 && cornerTextBlinkTime < 7)
         {
             drawCornerText ^= 1;
@@ -1730,7 +1728,7 @@ int main(int argc, char *argv[])
                 ball->SetSpriteIndex(1);
             else
                 ball->SetSpriteIndex(0);
-            ball->sprite.setPosition(sf::Vector2f(curball->x, curball->y));
+            ball->sprite.setPosition(btr::Vector2f(curball->x, curball->y));
             if (!curball->invisibleSparkling)
                 window->draw(ball->sprite);
             if (curball->ballHeld)
@@ -1740,18 +1738,18 @@ int main(int argc, char *argv[])
         {
             powerupSprite->sprite.setPosition(curMissile->x, curMissile->y);
             powerupSprite->SetTexRect(15, 1);
-            //powerupSprite->sprite.setOrigin(sf::Vector2f(8, 0));
+            //powerupSprite->sprite.setOrigin(btr::Vector2f(8, 0));
             window->draw(powerupSprite->sprite);
-            //powerupSprite->sprite.setOrigin(sf::Vector2f(0, 0));
+            //powerupSprite->sprite.setOrigin(btr::Vector2f(0, 0));
         }
         drawSparks();
-        largeFont->RenderChars(std::to_string(score), sf::Vector2f(wallWidth / 2, 0), window);
-        font->RenderChars(playArea->levnum == -1 ? "custom level" : "level " + std::to_string(playArea->levnum), sf::Vector2f(wallWidth / 2, largeFont->genCharHeight), window);
+        largeFont->RenderChars(std::to_string(score), btr::Vector2f(wallWidth / 2, 0), window);
+        font->RenderChars(playArea->levnum == -1 ? "custom level" : "level " + std::to_string(playArea->levnum), btr::Vector2f(wallWidth / 2, largeFont->genCharHeight), window);
         if (!cursorVisible)
         {
             ball->SetSpriteIndex(1);
-            ball->sprite.setPosition((sf::Vector2f)btr::Mouse::getPosition(*window) - sf::Vector2f(ball->realWidthPerTile / 2, ball->realHeightPerTile / 2));
-            cursor->sprite.setPosition((sf::Vector2f)btr::Mouse::getPosition(*window) - sf::Vector2f(cursor->width / 2, cursor->height / 2));
+            ball->sprite.setPosition((btr::Vector2f)btr::Mouse::getPosition(*window) - btr::Vector2f(ball->realWidthPerTile / 2, ball->realHeightPerTile / 2));
+            cursor->sprite.setPosition((btr::Vector2f)btr::Mouse::getPosition(*window) - btr::Vector2f(cursor->width / 2, cursor->height / 2));
         }
         for (auto &curExpl : explosions)
         {
@@ -1850,8 +1848,8 @@ int main(int argc, char *argv[])
         playArea->paddle.drawPaddleRadius = std::lerp(playArea->paddle.drawPaddleRadius, playArea->paddle.paddleRadius, 0.25);
         if (playArea->paddle.stateFlags & playArea->paddle.PADDLE_TRACTOR)
         {
-            DrawFrame(window, sf::Vector2f(BTRWINDOWWIDTH / 2 - 120, 0), sf::Vector2f(240, 20));
-            tractorSprite->sprite.setPosition(sf::Vector2f(BTRWINDOWWIDTH / 2 - 120, 0));
+            DrawFrame(window, btr::Vector2f(BTRWINDOWWIDTH / 2 - 120, 0), btr::Vector2f(240, 20));
+            tractorSprite->sprite.setPosition(btr::Vector2f(BTRWINDOWWIDTH / 2 - 120, 0));
             tractorSprite->intRect.width = playArea->paddle.tractorBeamPower;
             tractorSprite->sprite.setTextureRect(tractorSprite->intRect);
             window->draw(*tractorSprite);
@@ -1904,7 +1902,7 @@ int main(int argc, char *argv[])
             ball->sprite.setOrigin(0, 0);
         }
         ball->SetSpriteIndex(0);
-        scrRect.setSize((sf::Vector2f)window->getSize());
+        scrRect.setSize((btr::Vector2f)window->getSize());
         scrRect.setFillColor(sf::Color(0, 0, 0, 255 * fade));
         if (fade > 0)
             fade -= 1 / (long double)40;
