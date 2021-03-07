@@ -27,6 +27,6 @@ jobs:
         run: |
              cd $GITHUB_WORKSPACE
              git clone https://github.com/jcelerier/RtMidi17
-             sudo apt install libsfml-dev libsndfile-dev libopenal-dev libasound-dev cmake
+             sudo apt install libsfml-dev libsndfile-dev libopenal-dev libasound-dev cmake libfluidsynth-dev libxrandr-dev
              cmake -S ./ -B ./build/
              cmake --build ./build/ --parallel $(nproc)
