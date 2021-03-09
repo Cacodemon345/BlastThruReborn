@@ -1316,8 +1316,9 @@ int main(int argc, char *argv[])
                         else
                         {
                             windowTexture.update(*window);
-                            playArea->levnum = 0;
+                            playArea->levnum = std::uniform_int_distribution<long long>(1ll, 40ll)(rd) - 1ll;
                             playArea->levelEnded = true;
+                            playArea->randomPlay = true;
                             highScore =
                                 ballLost =
                                     endofgame = false;
