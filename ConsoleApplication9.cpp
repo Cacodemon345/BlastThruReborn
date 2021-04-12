@@ -62,8 +62,14 @@ BTRChompTeeth *chompteeth = NULL;
 BTRPlayArea *playArea = NULL;
 std::vector<unsigned char> randPlayedLevels;
 int64_t randPlayedSet;
-sf::Vector2i lastTouchPosition = sf::Vector2i(0,0);
-
+btr::Vector2i lastTouchPosition = btr::Vector2i(0,0);
+#ifdef BTR_USE_SDL
+namespace btr
+{
+    SDL_Renderer* context = nullptr;
+}
+#endif
+#ifndef BTR_USE_SDL
 static inline void AppendVerticesFromRect(sf::IntRect& rect, btr::Vector2f pos, sf::VertexArray& vertArray)
 {
     vertArray.append(sf::Vertex(pos,btr::Vector2f(rect.left,rect.top)));
@@ -73,7 +79,7 @@ static inline void AppendVerticesFromRect(sf::IntRect& rect, btr::Vector2f pos, 
     vertArray.append(sf::Vertex(pos + btr::Vector2f(rect.width,rect.height),btr::Vector2f(sf::Vector2i(rect.left,rect.top) + sf::Vector2i(rect.width,rect.height))));
     vertArray.append(sf::Vertex(pos + btr::Vector2f(rect.width,0),btr::Vector2f(sf::Vector2i(rect.left,rect.top) + sf::Vector2i(rect.width,0))));
 }
-
+#endif
 bool sortScoreList(const std::pair<std::string, int> t1, const std::pair<std::string, int> t2)
 {
     if (std::get<1>(t1) > std::get<1>(t2))
@@ -339,6 +345,7 @@ int main(int argc, char *argv[])
         {"funyons", 30},
         {"i never prosper", 31}
     };
+#ifndef BTR_USE_SDL
     sf::Shader gammaShader;
     auto loaded = gammaShader.loadFromMemory(gammaShaderCode, sf::Shader::Fragment);
     if (!loaded)
@@ -351,6 +358,7 @@ int main(int argc, char *argv[])
     {
         std::cout << "Loading color shader failed" << std::endl;
     }
+#endif
 #if 0
         L = lua_open();
         luaL_openlibs(L);
@@ -401,7 +409,9 @@ int main(int argc, char *argv[])
         std::cerr << stbi_failure_reason() << std::endl;
         return -1;
     }
-    sf::Texture tex;
+    btr::RenderWindow *window = new btr::RenderWindow(btr::VideoMode(BTRWINDOWWIDTH, BTRWINDOWHEIGHT), "Blast Thru Reborn",
+    isFullscreen ? btr::Style::Fullscreen : btr::Style::Titlebar | btr::Style::Close);
+    btr::Texture tex;
     tex.create(x, y);
     tex.update(retval);
     free(retval);
@@ -413,12 +423,12 @@ int main(int argc, char *argv[])
         std::cerr << stbi_failure_reason() << std::endl;
         return -1;
     }
-    sf::Texture wallTex;
+    btr::Texture wallTex;
     wallTex.create(wallWidth, wallHeight);
     wallTex.update(wallPixels);
     wallTex.setSmooth(1);
     free(wallPixels);
-    sf::Sprite wallSprite;
+    btr::Sprite wallSprite;
     wallSprite.setPosition(btr::Vector2f(wallWidth / -2, 0));
     wallSprite.setTexture(wallTex);
     wallSprite.setScale(1, 24);
@@ -430,28 +440,28 @@ int main(int argc, char *argv[])
     {
         menuWindowStack.pop();
     };
-    sf::RenderWindow *window = new sf::RenderWindow(sf::VideoMode(BTRWINDOWWIDTH, BTRWINDOWHEIGHT), "Blast Thru Reborn",
-            isFullscreen ? sf::Style::Fullscreen : sf::Style::Titlebar | sf::Style::Close);
-    sf::Texture windowTexture;
+    btr::Texture windowTexture;
     windowTexture.create(window->getSize().x,window->getSize().y);
-    sf::Sprite windowSprite;
+    btr::Sprite windowSprite;
     windowSprite.setTexture(windowTexture, true);
     window->setFramerateLimit(40);
     window->clear();
     window->draw(*loadSplashSprite);
     windowTexture.update(*window);
     window->display();
-    auto fadeToColor = [&](sf::Color fadeColor) {
+    auto fadeToColor = [&](btr::Color fadeColor) {
         uint32_t framerate = 60;
-#ifdef WIN32
+#if defined WIN32 && !defined BTR_USE_SDL
         framerate = GetDeviceCaps(GetDC(window->getSystemHandle()), VREFRESH);
 #endif
         window->setFramerateLimit(framerate);
+        windowTexture.update(*window);
         double alpha = 1.0;
         int localFrameCnt = 0;
         while (localFrameCnt < framerate)
         {
-            if (fadeColor == sf::Color(0, 0, 0, 255) && sf::Shader::isAvailable())
+            #ifndef BTR_USE_SDL
+            if (fadeColor == btr::Color(0, 0, 0, 255) && btr::Shader::isAvailable())
             {                
                 gammaShader.setUniform("texture", windowTexture);
                 gammaShader.setUniform("gamma", (float)alpha);
@@ -462,9 +472,15 @@ int main(int argc, char *argv[])
                 localFrameCnt++;
                 continue;
             }
-            windowSprite.setColor(sf::Color(255, 255, 255, 255 * alpha));
-            window->clear(fadeColor);
+            #endif
+            btr::RectangleShape shape;
+            shape.setSize(btr::Vector2f(window->getSize().x,window->getSize().y));
+            shape.setFillColor(btr::Color(fadeColor.r,fadeColor.g,fadeColor.b,255 * (1.f - alpha)));
+            shape.setPosition(0.f,0.f);
+            windowSprite.setColor(btr::Color(255, 255, 255, 255));
+            window->clear();
             window->draw(windowSprite);
+            window->draw(shape);
             window->display();
             alpha -= 1. / framerate;
             localFrameCnt++;
@@ -473,7 +489,7 @@ int main(int argc, char *argv[])
     };
     BTRPlaySound("./sound/intro.wav");
     window->requestFocus();
-    sf::Event event;
+    btr::Event event;
     DoFuncForDuration(3, [&]()
                       {                          
                           window->pollEvent(event);
@@ -481,7 +497,7 @@ int main(int argc, char *argv[])
                           window->draw(*loadSplashSprite);
                           window->display();
                       });
-    fadeToColor(sf::Color(0, 0, 0, 255));
+    fadeToColor(btr::Color(0, 0, 0, 255));
 
     BTRPlaySound("./ball/grow.wav");
     window->setFramerateLimit(40);
@@ -495,8 +511,8 @@ int main(int argc, char *argv[])
     playArea = new BTRPlayArea("./lev/0.lev");
     //playArea->paddle.sprite = new BTRsprite("./ball/rockpaddle.png", 1, true, 32);
     long double fade = 1.0;
-    sf::RectangleShape scrRect((btr::Vector2f)window->getSize());
-    scrRect.setFillColor(sf::Color(0, 0, 0, 255));
+    btr::RectangleShape scrRect((btr::Vector2f)window->getSize());
+    scrRect.setFillColor(btr::Color(0, 0, 0, 255));
     bool cursorVisible = true;
     auto cursor = new BTRsprite("./ball/cursor.png", 1, false, 1);
     auto sparkSprite = new BTRsprite("./ball/sparks.png", 15, false, 3);
@@ -526,7 +542,7 @@ int main(int argc, char *argv[])
     PauseMidiPlayback();
     BTRPlaySound("./sound/menu.wav", 1, 0, 1);
     auto DrawBackground = [&]() {
-        sf::Sprite sprite;
+        btr::Sprite sprite;
         sprite.setTexture(tex, true);
 
         window->clear();
@@ -536,9 +552,13 @@ int main(int argc, char *argv[])
                 sprite.setPosition(btr::Vector2f(posX, posY));
                 //gammaShader.setUniform("gamma", 1.f);
                 //gammaShader.setUniform("texture", tex);
+#ifdef BTR_USE_SDL
+                window->draw(sprite);
+#else                
                 colShader.setUniform("texture",tex);
                 colShader.setUniform("col",sf::Glsl::Vec4(backgrndr,backgrndg,backgrndb,1));
                 window->draw(sprite, backgrndcol ? &colShader : NULL /*,&gammaShader*/);
+#endif
             }
         wallSprite.setPosition(BTRWINDOWWIDTH - wallWidth / 2, 0);
         window->draw(wallSprite);
@@ -560,11 +580,11 @@ int main(int argc, char *argv[])
             playArea->paddle.sprite->sprite.setPosition(std::clamp(cursor->sprite.getPosition().x, wallWidth / 2.f, BTRWINDOWWIDTH - wallWidth / 2.f - (float)playArea->paddle.paddleRadius), BTRWINDOWHEIGHT - 30);
         //paddle.sprite->Animate();
         window->draw(playArea->paddle.sprite->sprite);
-        playArea->paddle.sprite->sprite.setTextureRect(sf::IntRect(sf::Vector2i(0, playArea->paddle.sprite->realHeightPerTile * (playArea->paddle.sprite->animFramePos - 1)), sf::Vector2i(3, playArea->paddle.sprite->realHeightPerTile)));
+        playArea->paddle.sprite->sprite.setTextureRect(btr::IntRect(btr::Vector2i(0, playArea->paddle.sprite->realHeightPerTile * (playArea->paddle.sprite->animFramePos - 1)), btr::Vector2i(3, playArea->paddle.sprite->realHeightPerTile)));
         auto orgpos = playArea->paddle.sprite->sprite.getPosition();
         playArea->paddle.sprite->sprite.setPosition(orgpos.x - 3, orgpos.y);
         window->draw(playArea->paddle.sprite->sprite);
-        playArea->paddle.sprite->sprite.setTextureRect(sf::IntRect(sf::Vector2i(playArea->paddle.sprite->width - 3, playArea->paddle.sprite->realHeightPerTile * (playArea->paddle.sprite->animFramePos - 1)), sf::Vector2i(3, playArea->paddle.sprite->realHeightPerTile)));
+        playArea->paddle.sprite->sprite.setTextureRect(btr::IntRect(btr::Vector2i(playArea->paddle.sprite->width - 3, playArea->paddle.sprite->realHeightPerTile * (playArea->paddle.sprite->animFramePos - 1)), btr::Vector2i(3, playArea->paddle.sprite->realHeightPerTile)));
         playArea->paddle.sprite->sprite.setPosition(orgpos.x + playArea->paddle.paddleRadius, orgpos.y);
         window->draw(playArea->paddle.sprite->sprite);
         playArea->paddle.sprite->sprite.setPosition(orgpos);
@@ -574,15 +594,15 @@ int main(int argc, char *argv[])
         auto orgPos = playArea->paddle.sprite->sprite.getPosition();
         playArea->paddle.sprite->sprite.setPosition(x, y);
         playArea->paddle.paddleRadius = width;
-        playArea->paddle.sprite->sprite.setTextureRect(sf::IntRect(sf::Vector2i(playArea->paddle.sprite->width / 2 - playArea->paddle.paddleRadius / 2, playArea->paddle.sprite->realHeightPerTile * (playArea->paddle.sprite->animFramePos - 1)), sf::Vector2i(playArea->paddle.paddleRadius, playArea->paddle.sprite->realHeightPerTile)));
+        playArea->paddle.sprite->sprite.setTextureRect(btr::IntRect(btr::Vector2i(playArea->paddle.sprite->width / 2 - playArea->paddle.paddleRadius / 2, playArea->paddle.sprite->realHeightPerTile * (playArea->paddle.sprite->animFramePos - 1)), btr::Vector2i(playArea->paddle.paddleRadius, playArea->paddle.sprite->realHeightPerTile)));
         drawPaddle(false);
         playArea->paddle.paddleRadius = orgRad;
         playArea->paddle.sprite->sprite.setPosition(orgPos);
     };
 
-    sf::Texture highScoreTexture;
+    btr::Texture highScoreTexture;
     highScoreTexture.create(BTRWINDOWWIDTH, BTRWINDOWHEIGHT);
-    sf::Sprite highScoreSprite;
+    btr::Sprite highScoreSprite;
     highScoreSprite.setTexture(highScoreTexture, true);
 
     std::vector<BTRMovingText> scoreTexts;
@@ -605,14 +625,16 @@ int main(int argc, char *argv[])
     auto titleImage = new BTRsprite("./ball/bibleball.png", 1, false, 1);
     auto wincornerImage = new BTRsprite("./ball/wincorner.png", 14, 0, 1);
     auto winButtonImage = new BTRsprite("./ball/winbutton2.png", 1);
+    winButtonImage->SetTexRect(0,0);
     auto winButtonSmallImage = new BTRsprite("./ball/winbutton.png", 1);
+    winButtonSmallImage->SetTexRect(0,0);
     wincornerImage->sprite.setOrigin(btr::Vector2f(wincornerImage->realWidthPerTile / 2, wincornerImage->height / 2));
     titleImage->SetTexRect(0, 0);
     titleImage->texture.setRepeated(true);
     bool isLevEdit = false;
-    auto DrawFrame = [&](sf::RenderWindow *window, btr::Vector2f pos, btr::Vector2f size) {
-        sf::RectangleShape rect;
-        rect.setFillColor(sf::Color(16, 24, 32));
+    auto DrawFrame = [&](btr::RenderWindow *window, btr::Vector2f pos, btr::Vector2f size) {
+        btr::RectangleShape rect;
+        rect.setFillColor(btr::Color(16, 24, 32));
         rect.setPosition(pos);
         rect.setSize(size);
         window->draw(rect);
@@ -660,14 +682,15 @@ int main(int argc, char *argv[])
         window->draw(*wincornerImage);
     };
     auto editPlayArea = new BTRPlayArea();
-    auto flipPaused = [&](sf::Event event, bool musRestart = true) {
+    auto flipPaused = [&](btr::Event event, bool musRestart = true) {
         paused ^= 1;
         BTRStopAllSounds();
         PauseMidiPlayback();
+        windowTexture.update(*window);
         if (paused)
         {
             BTRPlaySound("./sound/menu.wav", 1, 0, 1);
-            if (event.key.code == sf::Keyboard::Escape)
+            if (event.key.code == btr::Keyboard::Escape)
             {
                 menu = true;
             }
@@ -733,9 +756,9 @@ int main(int argc, char *argv[])
         {
             return;
         }
-        sf::Event event;
-        event.type = sf::Event::KeyPressed;
-        event.key.code = sf::Keyboard::Escape;
+        btr::Event event;
+        event.type = btr::Event::KeyPressed;
+        event.key.code = btr::Keyboard::Escape;
         flipPaused(event);
         //BTRPlaySound("./ball/editselect.wav");
     };
@@ -749,7 +772,7 @@ int main(int argc, char *argv[])
         //menuWindow.staticTexts.push(std::make_pair());
         window->display();
         windowTexture.update(*window); // Flip off the buffers.
-        fadeToColor(sf::Color(0, 0, 0, 255));
+        fadeToColor(btr::Color(0, 0, 0, 255));
         window->close();
     };
     quitGame.pos = btr::Vector2f(640 / 2 - winButtonImage->width / 2, BTRWINDOWHEIGHT - 80);
@@ -762,9 +785,9 @@ int main(int argc, char *argv[])
         score = 0;
         lives = 2;
         playArea->levnum = std::uniform_int_distribution<int>(1, 40)(rd) - 1;
-        sf::Event event;
-        event.type = sf::Event::KeyPressed;
-        event.key.code = sf::Keyboard::Escape;
+        btr::Event event;
+        event.type = btr::Event::KeyPressed;
+        event.key.code = btr::Keyboard::Escape;
         flipPaused(event, false);
         GetCurPlayingFilename() = "";
         //BTRPlaySound("./ball/editselect.wav");
@@ -792,9 +815,9 @@ int main(int argc, char *argv[])
     BTRButton levEdit;
     levEdit.clickedFunc = [&]() {
         isLevEdit = true;
-        sf::Event event;
-        event.type = sf::Event::KeyPressed;
-        event.key.code = sf::Keyboard::Escape;
+        btr::Event event;
+        event.type = btr::Event::KeyPressed;
+        event.key.code = btr::Keyboard::Escape;
         flipPaused(event, false);
     };
     levEdit.str = "Level Editor";
@@ -805,9 +828,9 @@ int main(int argc, char *argv[])
     highScoreEnter.str = "High Scores";
     highScoreEnter.pos = btr::Vector2f(randomLevel.pos.x, randomLevel.pos.y + 40);
     highScoreEnter.clickedFunc = [&]() {
-        sf::Event event;
-        event.type = sf::Event::KeyPressed;
-        event.key.code = sf::Keyboard::Escape;
+        btr::Event event;
+        event.type = btr::Event::KeyPressed;
+        event.key.code = btr::Keyboard::Escape;
         flipPaused(event, false);
         BTRPlaySound("./ball/whoosh.wav");
         score = 0;
@@ -822,9 +845,9 @@ int main(int argc, char *argv[])
     // Level Editor stuff.
     BTRButton levEditMenu;
     levEditMenu.clickedFunc = [&]() {
-        sf::Event event;
-        event.type = sf::Event::KeyPressed;
-        event.key.code = sf::Keyboard::Escape;
+        btr::Event event;
+        event.type = btr::Event::KeyPressed;
+        event.key.code = btr::Keyboard::Escape;
         flipPaused(event);
         //BTRPlaySound("./ball/editselect.wav");
     };
@@ -836,9 +859,9 @@ int main(int argc, char *argv[])
     levEditPlay.clickedFunc = [&]() {
         *playArea = *editPlayArea;
         singlePlay.clickedFunc();
-        sf::Event event;
-        event.type = sf::Event::KeyPressed;
-        event.key.code = sf::Keyboard::Escape;
+        btr::Event event;
+        event.type = btr::Event::KeyPressed;
+        event.key.code = btr::Keyboard::Escape;
         flipPaused(event, false);
         playArea->levnum = -1;
         playArea->SpawnInitialBall();
@@ -916,23 +939,26 @@ int main(int argc, char *argv[])
     testMenuWindow.str = "testMenuWindow";
     btns.push_back(testMenuWindow);
 
-    sf::Sprite brickSprite;
+    btr::Sprite brickSprite;
     playArea->LoadBrickTex();
     brickSprite.setTexture(playArea->brickTexture, true);
     auto drawBricks = [&]() {
-        sf::Sprite brickSprite;
+        btr::Sprite brickSprite;
         playArea->LoadBrickTex();
         brickSprite.setTexture(playArea->brickTexture, true);
-        sf::VertexArray brickVertArray;
-        brickVertArray.setPrimitiveType(sf::PrimitiveType::Triangles);
+#ifndef BTR_USE_SDL
+        btr::VertexArray brickVertArray;
+        brickVertArray.setPrimitiveType(btr::PrimitiveType::Triangles);
+#endif
         for (auto &curBrick : playArea->bricks)
         {
             if (curBrick.brickID != 63 || (curBrick.brickID == 63 && isLevEdit))
             {
+#ifndef BTR_USE_SDL                
                 auto& curBrickIntRect = playArea->brickTexRects[curBrick.isFireball ? fireBrickFrame : curBrick.brickID - 1];
                 AppendVerticesFromRect(curBrickIntRect,btr::Vector2f(curBrick.x,curBrick.y),brickVertArray);
-// Below commented out code is the more higher-level representation of the above.
-#if 0
+// Below ifdef'd code is the more higher-level representation of the above.
+#else
                 if (curBrick.isFireball)
                 {
                     brickSprite.setTextureRect(playArea->brickTexRects[fireBrickFrame]);
@@ -952,11 +978,19 @@ int main(int argc, char *argv[])
                 curExplBrick.frameOffset = 0;
                 curExplBrick.loop++;
             }
+#ifndef BTR_USE_SDL
             AppendVerticesFromRect(playArea->brickTexRects[128ll + curExplBrick.frameOffset],curExplBrick.pos,brickVertArray);
+#else
+            brickSprite.setTextureRect(playArea->brickTexRects[128ll + curExplBrick.frameOffset]);
+            brickSprite.setPosition(curExplBrick.pos);
+            window->draw(brickSprite);
+#endif
             curExplBrick.frameOffset++;
         }
-        sf::RenderStates vertexRenderstate(&playArea->brickTexture);
+#ifndef BTR_USE_SDL
+        btr::RenderStates vertexRenderstate(&playArea->brickTexture);
         window->draw(brickVertArray,vertexRenderstate);
+#endif
 #if __cplusplus <= 201703L    
         for (int i = 0; i < explodingBricks.size(); i++)
         {
@@ -979,15 +1013,19 @@ int main(int argc, char *argv[])
         playArea = orgArea;
     };
     auto drawSparks = [&]() {
+#ifndef BTR_USE_SDL
         sf::VertexArray simpleSparkVertArray;
         if (simpleSparks)
             simpleSparkVertArray.resize(5 * sparks.size());
+#endif
         
         for (int i = 0; i < sparks.size(); i++)
         {
+
             auto curSpark = sparks[i];
             if (frameCnt % 3 == 0)
                 sparks[i].sparkRect.left += 3;
+#ifndef BTR_USE_SDL
             if (simpleSparks)
             {
                 sf::Color sideCol = sf::Color(116 * double(1. - sparks[i].sparkRect.left / (15. * 3.)),
@@ -1007,6 +1045,7 @@ int main(int argc, char *argv[])
                 //window->draw(vertArray);
             }
             else
+#endif
             {
                 sparkSprite->sprite.setPosition(sparks[i].x, sparks[i].y);
                 sparkSprite->sprite.setColor(sparks[i].color);
@@ -1032,7 +1071,9 @@ int main(int argc, char *argv[])
 #if __cplusplus > 201703L
         std::erase_if(sparks, removeSparkObject);
 #endif
+#ifndef BTR_USE_SDL
         if (simpleSparks) window->draw(simpleSparkVertArray);
+#endif
     };
     char explBrickOffset = 0;
     bool explBrickReverse = false;
@@ -1048,23 +1089,23 @@ int main(int argc, char *argv[])
     }
     while (window->isOpen())
     {
-        sf::Event event;
+        btr::Event event;
         while (window->pollEvent(event))
         {
             switch (event.type)
             {
-            case sf::Event::Closed:
+            case btr::Event::Closed:
                 quitGame.clickedFunc();
                 break;
-            case sf::Event::MouseEntered:
+            case btr::Event::MouseEntered:
                 cursorVisible = false;
                 window->setMouseCursorVisible(false);
                 break;
-            case sf::Event::MouseLeft:
+            case btr::Event::MouseLeft:
                 cursorVisible = true;
                 window->setMouseCursorVisible(true);
                 break;
-            case sf::Event::TextEntered:
+            case btr::Event::TextEntered:
                 /*if (std::isdigit(static_cast<unsigned char>(event.text.unicode), std::locale("")))
                 {
                     std::string str;
@@ -1082,7 +1123,7 @@ int main(int argc, char *argv[])
                             std::get<std::string>(scoresAndNames[newScoreAt]) = cheatstr;  
                             scoreTexts[newScoreAt].movingText.replace(newScoreAt > 9 ? 4 : 3,cheatstr.size(),cheatstr);
                             newScoreAt = -1;
-                            sf::Keyboard::setVirtualKeyboardVisible(false);
+                            btr::Keyboard::setVirtualKeyboardVisible(false);
                             BTRPlaySound("./ball/whoosh.wav");
                         }                        
                     }
@@ -1090,16 +1131,17 @@ int main(int argc, char *argv[])
                         cheatstr += static_cast<char>(event.text.unicode);
                 }
                 break;
-            case sf::Event::TouchEnded:
+#ifndef BTR_USE_SDL
+            case btr::Event::TouchEnded:
                 {
-                    int x = ((double)event.touch.x / sf::VideoMode::getDesktopMode().width) * (double)BTRWINDOWWIDTH;
-                    int y = ((double)event.touch.y / sf::VideoMode::getDesktopMode().height) * (double)BTRWINDOWHEIGHT;
-                    event.type = sf::Event::MouseButtonReleased;
+                    int x = ((double)event.touch.x / btr::VideoMode::getDesktopMode().width) * (double)BTRWINDOWWIDTH;
+                    int y = ((double)event.touch.y / btr::VideoMode::getDesktopMode().height) * (double)BTRWINDOWHEIGHT;
+                    event.type = btr::Event::MouseButtonReleased;
                     event.mouseButton.x = x;
                     event.mouseButton.y = y;
                 }
-                
-            case sf::Event::MouseButtonReleased:
+#endif
+            case btr::Event::MouseButtonReleased:
                 if (menu)
                 {
                     if (!menuWindowStack.empty())
@@ -1142,14 +1184,16 @@ int main(int argc, char *argv[])
                     }
                 }
                 break;
-                case sf::Event::TouchBegan:
+#ifndef BTR_USE_SDL
+                case btr::Event::TouchBegan:
                 {
-                    int x = ((double)event.touch.x / sf::VideoMode::getDesktopMode().width) * (double)BTRWINDOWWIDTH;
-                    int y = ((double)event.touch.y / sf::VideoMode::getDesktopMode().height) * (double)BTRWINDOWHEIGHT;
-                    event.type = sf::Event::MouseButtonPressed;
+                    int x = ((double)event.touch.x / btr::VideoMode::getDesktopMode().width) * (double)BTRWINDOWWIDTH;
+                    int y = ((double)event.touch.y / btr::VideoMode::getDesktopMode().height) * (double)BTRWINDOWHEIGHT;
+                    event.type = btr::Event::MouseButtonPressed;
                     event.mouseButton.x = x;
                     event.mouseButton.y = y;
                 }
+#endif
 // Disabled until I implement proper resizing support.            
 #if 0
             case sf::Event::Resized:
@@ -1164,9 +1208,9 @@ int main(int argc, char *argv[])
             }
 #endif            
             
-            case sf::Event::MouseButtonPressed:
+            case btr::Event::MouseButtonPressed:
 
-                if (event.mouseButton.button == sf::Mouse::Left)
+                if (event.mouseButton.button == btr::Mouse::Left)
                 {
                     for (auto &curBall : playArea->balls)
                     {
@@ -1214,7 +1258,7 @@ int main(int argc, char *argv[])
                     }
                 }
                 break;
-            case sf::Event::MouseWheelScrolled:
+            case btr::Event::MouseWheelScrolled:
             {
                 if (!isLevEdit) break;
                 if (event.mouseWheelScroll.delta < 0)
@@ -1231,13 +1275,13 @@ int main(int argc, char *argv[])
                 }
                 break;
             }
-            case sf::Event::KeyPressed:
+            case btr::Event::KeyPressed:
                 if (endofgame)
                 {
                     eot = true;
                     thread->detach();
                 }
-                if (event.key.code == sf::Keyboard::Pause || event.key.code == sf::Keyboard::Escape)
+                if (event.key.code == btr::Keyboard::Pause || event.key.code == btr::Keyboard::Escape)
                 {
                     if (!highScore)
                     {
@@ -1252,7 +1296,7 @@ int main(int argc, char *argv[])
                             ballLost =
                                 endofgame = false;
                         fadeOut = true;
-                        scrRect.setFillColor(sf::Color(0, 0, 0, 255));
+                        scrRect.setFillColor(btr::Color(0, 0, 0, 255));
                         fade = 1;
                         lives = 0;
                         demo = true;
@@ -1262,22 +1306,28 @@ int main(int argc, char *argv[])
                         //midiStreamPause(midiDev)
                     }
                 }
-                if (event.key.code == sf::Keyboard::Enter)
+                if (event.key.code == btr::Keyboard::Enter)
                 {
                     if (event.key.alt)
                     {
+#ifdef BTR_USE_SDL
+                        isFullscreen ^= 1;
+                        window->setFullscreen(isFullscreen);
+#else
                         delete window;
                         isFullscreen ^= 1;
                         if (isFullscreen)
                         {
-                            window = new sf::RenderWindow(sf::VideoMode(BTRWINDOWWIDTH, BTRWINDOWHEIGHT), "Blast Thru Reborn", sf::Style::Titlebar | sf::Style::Close | sf::Style::Fullscreen);
+                            window = new btr::RenderWindow(btr::VideoMode(BTRWINDOWWIDTH, BTRWINDOWHEIGHT), "Blast Thru Reborn", btr::Style::Titlebar | btr::Style::Close | btr::Style::Fullscreen);
                             windowTexture.create(BTRWINDOWWIDTH,BTRWINDOWHEIGHT);
                         }
                         else
-                            window = new sf::RenderWindow(sf::VideoMode(BTRWINDOWWIDTH, BTRWINDOWHEIGHT), "Blast Thru Reborn", sf::Style::Titlebar | sf::Style::Close);
+                            window = new btr::RenderWindow(btr::VideoMode(BTRWINDOWWIDTH, BTRWINDOWHEIGHT), "Blast Thru Reborn", btr::Style::Titlebar | btr::Style::Close);
                         window->setFramerateLimit(40);
                         //break;
+#endif
                     }
+
                     if (cheatText)
                     {   
                         try
@@ -1310,7 +1360,7 @@ int main(int argc, char *argv[])
                             std::get<std::string>(scoresAndNames[newScoreAt]) = cheatstr;  
                             scoreTexts[newScoreAt].movingText.replace(newScoreAt > 9 ? 4 : 3,cheatstr.size(),cheatstr);
                             newScoreAt = -1;
-                            sf::Keyboard::setVirtualKeyboardVisible(false);
+                            btr::Keyboard::setVirtualKeyboardVisible(false);
                             BTRPlaySound("./ball/whoosh.wav");
                         }
                         else
@@ -1323,7 +1373,7 @@ int main(int argc, char *argv[])
                                 ballLost =
                                     endofgame = false;
                             fadeOut = true;
-                            scrRect.setFillColor(sf::Color(0, 0, 0, 255));
+                            scrRect.setFillColor(btr::Color(0, 0, 0, 255));
                             fade = 1;
                             lives = 0;
                             demo = true;
@@ -1383,9 +1433,9 @@ int main(int argc, char *argv[])
                 continue;
             }
             window->clear();
-            windowSprite.setColor(sf::Color(255, 255, 255, 255 * 0.5));
+            windowSprite.setColor(btr::Color(255, 255, 255, 255 * 0.5));
             window->draw(windowSprite);
-            largeFont2->RenderChars("excellent", btr::Vector2f(BTRWINDOWWIDTH / 2 - font->GetSizeOfText("excellent").x / 2, 0), window, sf::Color(255, 255, 0));
+            largeFont2->RenderChars("excellent", btr::Vector2f(BTRWINDOWWIDTH / 2 - font->GetSizeOfText("excellent").x / 2, 0), window, btr::Color(255, 255, 0));
             font->RenderChars("You completed the game!", btr::Vector2f(BTRWINDOWWIDTH / 2, largeFont2->GetSizeOfText("excellent").y) - btr::Vector2f(font->GetSizeOfText("You completed the game!").x / 2, 0), window);
             window->display();
             continue;
@@ -1393,7 +1443,7 @@ int main(int argc, char *argv[])
         if (cheatText)
         {
             window->clear();
-            windowSprite.setColor(sf::Color(255, 255, 255, 255 * 0.5));
+            windowSprite.setColor(btr::Color(255, 255, 255, 255 * 0.5));
             window->draw(windowSprite);
             winBoxImage->sprite.setPosition(btr::Vector2f(BTRWINDOWWIDTH / 2 - winBoxImage->width / 2, BTRWINDOWHEIGHT / 2));
             window->draw(*winBoxImage);
@@ -1402,7 +1452,7 @@ int main(int argc, char *argv[])
             window->display();
             continue;
         }
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::LAlt) && sf::Keyboard::isKeyPressed(sf::Keyboard::H))
+        if (btr::Keyboard::isKeyPressed(btr::Keyboard::LAlt) && btr::Keyboard::isKeyPressed(btr::Keyboard::H))
         {
             cheatText = true;
             cheatstr.clear();
@@ -1410,8 +1460,12 @@ int main(int argc, char *argv[])
         if (paused)
         {
             window->clear();
-            windowSprite.setColor(sf::Color(255, 255, 255, 255 * 0.5));
+            windowSprite.setColor(btr::Color(255, 255, 255, 255));
             window->draw(windowSprite);
+            btr::RectangleShape shape;
+            shape.setSize(sf::Vector2f(window->getSize()));
+            shape.setFillColor(sf::Color(0,0,0,255 * 0.5));
+            window->draw(shape);
             if (!menu)
             {
                 pausedSprite->sprite.setPosition(btr::Vector2f(BTRWINDOWWIDTH / 2, BTRWINDOWHEIGHT / 2) - btr::Vector2f(pausedSprite->width / 2, pausedSprite->height / 2));
@@ -1430,7 +1484,7 @@ int main(int argc, char *argv[])
                     for (auto &curBtn : topMenu.buttons)
                     {
                         winButtonSmallImage->sprite.setPosition(curBtn.pos + topMenu.position);
-                        winButtonSmallImage->SetSpriteIndex(curBtn.wasHeld);
+                        winButtonSmallImage->SetTexRect(0,curBtn.wasHeld);
                         window->draw(*winButtonSmallImage);
                         auto curBtnPos = curBtn.pos  + topMenu.position;
                         curBtnPos.x += winButtonSmallImage->width / 2;
@@ -1446,8 +1500,8 @@ int main(int argc, char *argv[])
                     for (auto &curBtn : btns)
                     {
                         winButtonImage->sprite.setPosition(curBtn.pos);
-                        winButtonImage->SetSpriteIndex(curBtn.wasHeld);
-                        window->draw(*winButtonImage);
+                        winButtonImage->SetTexRect(0,curBtn.wasHeld);
+                        window->draw(winButtonImage->sprite);
                         auto curBtnPos = curBtn.pos;
                         curBtnPos.x += winButtonImage->width / 2;
                         curBtnPos -= btr::Vector2f(font->GetSizeOfText(curBtn.str).x / 2, 0);
@@ -1580,7 +1634,7 @@ int main(int argc, char *argv[])
             for (auto &curBtn : levEditBtns)
             {
                 winButtonSmallImage->sprite.setPosition(curBtn.pos);
-                winButtonSmallImage->SetSpriteIndex(curBtn.wasHeld);
+                winButtonSmallImage->SetTexRect(0,curBtn.wasHeld);
                 window->draw(*winButtonSmallImage);
                 auto curBtnPos = curBtn.pos;
                 curBtnPos.x += winButtonSmallImage->width / 2;
@@ -1595,13 +1649,7 @@ int main(int argc, char *argv[])
             brickSprite.setPosition(brickDisplayPos);
             window->draw(brickSprite);
             auto brickTexPos = brickSprite.getPosition();
-            sf::RectangleShape outlineRect(btr::Vector2f(30, 15));
             sf::IntRect rect = editPlayArea->brickTexRects[brickID - 1];
-            outlineRect.setPosition(brickTexPos + btr::Vector2f(rect.left, rect.top));
-            outlineRect.setOutlineColor(sf::Color(255, 0, 0, 255));
-            outlineRect.setOutlineThickness(-1);
-            outlineRect.setFillColor(sf::Color::Transparent);
-            window->draw(outlineRect);
             if (explBrickReverse)
                 explBrickOffset--;
             else
@@ -1682,7 +1730,7 @@ int main(int argc, char *argv[])
                 }
             }
             drawSparks();
-            windowTexture.update(*window);
+            //windowTexture.update(*window);
             window->display();
             frameCnt++;
             continue;
@@ -1771,25 +1819,7 @@ int main(int argc, char *argv[])
                 continue;
             }
         }
-        for (auto &curDebris : playArea->debrisObjects)
-        {
-            auto pos = curDebris.shape.getPosition();
-            curDebris.velY += curDebris.gravity;
-            pos.x += curDebris.velX;
-            pos.y += curDebris.velY;
-            curDebris.shape.setPosition(pos);
-            curDebris.shape.setRotation(curDebris.shape.getRotation() + 9.);
-            window->draw(curDebris.shape);
-            curDebris.shape.setFillColor(curDebris.shape.getFillColor() - sf::Color(0,0,0,255 * (1/40.)));
-            if (curDebris.shape.getFillColor().a <= 0) curDebris.destroyed = true;
-        }
-        for (int i = 0; i < playArea->debrisObjects.size(); i++)
-        {
-            if (playArea->debrisObjects[i].destroyed)
-            {
-                playArea->debrisObjects.erase(playArea->debrisObjects.begin() + i);
-            }
-        }
+
         if (!ballLost)
         {
             if (demo)
@@ -1917,7 +1947,7 @@ int main(int argc, char *argv[])
         windowTexture.create(window->getSize().x,window->getSize().y);
         windowSprite.setTexture(windowTexture,true);
 #endif
-        windowTexture.update(*window);
+        //windowTexture.update(*window);
         window->display();
 
         frameCnt++;

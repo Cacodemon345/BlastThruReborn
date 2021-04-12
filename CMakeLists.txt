@@ -31,7 +31,7 @@ else()
     set(X11_Xrandr_LIB "")
 endif()
 
-set( BTR_PROJECT_FILES BTRPlayArea.cpp ConsoleApplication9.cpp  SoundPlayback.cpp )
+set( BTR_PROJECT_FILES BTRPlayArea.cpp ConsoleApplication9.cpp  SoundPlayback.cpp ConvertUTF.c )
 
 if (CMAKE_SYSTEM_NAME MATCHES "Windows")
     set( BTR_PROJECT_FILES MidsFileParser.cpp ${BTR_PROJECT_FILES})

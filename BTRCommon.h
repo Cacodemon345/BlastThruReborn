@@ -1,9 +1,14 @@
 #pragma once
+
 #include <iostream>
 //#include <direct.h>
 #include "stb_image.h"
+#ifdef BTR_USE_SDL
+#include "BTRTypes.h"
+#else
 #include <SFML/Graphics.hpp>
 #include <SFML/Window/Touch.hpp>
+#endif
 #if __has_include("windows.h")
 #include <windows.h>
 #include <mmsystem.h>
@@ -53,11 +58,12 @@ void PauseMidiPlayback();
 void ContinueMidiPlayback();
 void SelectMidiDevice(int selection);
 void SelectMidiDevice();
-inline sf::Color colors[2] = { sf::Color(252,128,0),sf::Color(255,255,0) };
-extern sf::Vector2i lastTouchPosition;
+
+
 extern bool demo;
 namespace btr
 {
+#ifndef BTR_USE_SDL
 	class Mouse
 	{
 	public:
@@ -102,11 +108,55 @@ namespace btr
             else return sf::Mouse::isButtonPressed(val);
         }
 #endif
+		enum Button
+		{
+			Left,       ///< The left mouse button
+			Right,      ///< The right mouse button
+			Middle,     ///< The middle (wheel) mouse button
+			XButton1,   ///< The first extra mouse button
+			XButton2,   ///< The second extra mouse button
+
+			ButtonCount ///< Keep last -- the total number of mouse buttons
+		};
+
 	};
 	using Vector2f = sf::Vector2f;
 	using Vector2i = sf::Vector2i;
+	using Sprite = sf::Sprite;
+	using Texture = sf::Texture;
+	using IntRect = sf::IntRect;
+	using Color = sf::Color;
+	using CircleShape = sf::CircleShape;
+	using RenderWindow = sf::RenderWindow;
+	using Event = sf::Event;
+	using Keyboard = sf::Keyboard;
+	using VideoMode = sf::VideoMode;
+	using Shader = sf::Shader;
+	using Color = sf::Color;
+	using VertexArray = sf::VertexArray;
+	using RectangleShape = sf::RectangleShape;
+	using PrimitiveType = sf::PrimitiveType;
+	using RenderStates = sf::RenderStates;
+	namespace Style = sf::Style;
+#endif
 }
-
+#ifdef BTR_USE_SDL
+// Alias 'sf' to 'btr'.
+namespace sf
+{
+	using Mouse = btr::Mouse;
+	using Color = btr::Color;
+	using Vector2i = btr::Vector2i;
+	using Vector2f = btr::Vector2f;
+	using Sprite = btr::Sprite;
+	using IntRect = btr::IntRect;
+	using FloatRect = btr::FloatRect;
+	using Keyboard = btr::Keyboard;
+	using RenderWindow = btr::RenderWindow;
+}
+#endif
+extern btr::Vector2i lastTouchPosition;
+inline btr::Color colors[2] = { btr::Color(252,128,0),btr::Color(255,255,0) };
 // This section composes the engine part. Should be usable for "Adventures with Chickens" game.
 inline void preprocess8bitpal(stbi_uc* pixels, int width, int height)
 {
@@ -142,9 +192,9 @@ inline void preprocess8bitpalalpha(stbi_uc* pixels, int width, int height)
 }
 struct BTRsprite
 {
-	sf::Texture texture;
-	sf::Sprite sprite;
-	sf::IntRect intRect;
+	btr::Texture texture;
+	btr::Sprite sprite;
+	btr::IntRect intRect;
 	int width, height;
 	int realWidthPerTile, realHeightPerTile;
 	int realnumofSprites;
@@ -156,8 +206,8 @@ struct BTRsprite
 	BTRsprite(const char* filename, int numOfFrames, bool verticalFrame = false, int numofSprites = 2, bool alphaMap = false)
 	{
 		//std::cout << "Loading " << filename << "..." << std::endl;
-		sprite = sf::Sprite();
-		texture = sf::Texture();
+		sprite = btr::Sprite();
+		texture = btr::Texture();
 		int n;
 		int widthPerTile;
 		auto retval = stbi_load(filename, &width, &height, &n, 4);
@@ -175,7 +225,7 @@ struct BTRsprite
 		sprite.setTexture(texture);
 		sprite.setPosition(btr::Vector2f(0, 0));
 		widthPerTile = width / numOfFrames;
-		sprite.setTextureRect(sf::IntRect(sf::Vector2i(0, 0), sf::Vector2i(widthPerTile, heightPerTile)));
+		sprite.setTextureRect(btr::IntRect(btr::Vector2i(0, 0), btr::Vector2i(widthPerTile, heightPerTile)));
 		realWidthPerTile = widthPerTile;
 		realHeightPerTile = heightPerTile;
 		isVerticalFrame = verticalFrame;
@@ -183,24 +233,29 @@ struct BTRsprite
 		realnumofSprites = numofSprites;
 		texture.setRepeated(true);
 	}
-	inline void SetSpriteIndex(int index)
-	{
-		intRect = sf::IntRect(sf::Vector2i(realWidthPerTile * (animFramePos-1), realHeightPerTile * index), sf::Vector2i(realWidthPerTile, realHeightPerTile));
-		y = index;
-		return sprite.setTextureRect(intRect);
-	}
+
 	inline void SetTexRect(int x, int y)
 	{
-		intRect = sf::IntRect(sf::Vector2i(realWidthPerTile * x, realHeightPerTile * y), sf::Vector2i(realWidthPerTile, realHeightPerTile));
+		intRect = btr::IntRect(btr::Vector2i(realWidthPerTile * x, realHeightPerTile * y), btr::Vector2i(realWidthPerTile, realHeightPerTile));
 		this->x = x;
 		this->y = y;
 		sprite.setTextureRect(intRect);
 	}
-	operator sf::Sprite&()
+	inline void SetSpriteIndex(int index)
+	{
+		#if 0
+		intRect = btr::IntRect(btr::Vector2i(realWidthPerTile * (animFramePos-1), realHeightPerTile * index), btr::Vector2i(realWidthPerTile, realHeightPerTile));
+		y = index;
+		return sprite.setTextureRect(intRect);
+		#else
+		return SetTexRect(animFramePos - 1, index);
+		#endif
+	}
+	operator btr::Sprite&()
 	{
 		return this->sprite;
 	}
-	operator sf::Sprite*()
+	operator btr::Sprite*()
 	{
 		return &this->sprite;
 	}
@@ -218,10 +273,10 @@ struct BTRsprite
 			animFramePos = 0;
 		}
 		if (!isVerticalFrame)
-			intRect = sf::IntRect(sf::Vector2i(realWidthPerTile * animFramePos, 0), sf::Vector2i(realWidthPerTile, realHeightPerTile));
+			intRect = btr::IntRect(btr::Vector2i(realWidthPerTile * animFramePos, 0), btr::Vector2i(realWidthPerTile, realHeightPerTile));
 		else
 		{
-			intRect = sf::IntRect(sf::Vector2i(0, realHeightPerTile * animFramePos), sf::Vector2i(realWidthPerTile, realHeightPerTile));
+			intRect = btr::IntRect(btr::Vector2i(0, realHeightPerTile * animFramePos), btr::Vector2i(realWidthPerTile, realHeightPerTile));
 		}
 		sprite.setTextureRect(intRect);
 		animFramePos++;
@@ -237,7 +292,7 @@ struct BTRCharBitmap
 
 struct BTRFont
 {
-	sf::Texture fontImage;
+	btr::Texture fontImage;
 	int width, height, n;
 	int genCharHeight = 0;
 	int spacebetweenChars = 0;
@@ -257,10 +312,10 @@ struct BTRFont
 		for (int i = 0; i < chars.size(); i++)
 		{
 			if (font == FontType::BTR_FONTLARGE && !std::isdigit(chars[i], std::locale(""))) continue;
-			sf::Vector2i texPos;
+			btr::Vector2i texPos;
 			texPos.x = charMaps[chars[i]].x;
 			texPos.y = charMaps[chars[i]].y;
-			sf::Vector2i texWH;
+			btr::Vector2i texWH;
 			texWH.x = charMaps[chars[i]].width;
 			texWH.y = charMaps[chars[i]].height;
 			totalSize.x += texWH.x;
@@ -268,35 +323,35 @@ struct BTRFont
 		totalSize.y = this->genCharHeight;
 		return totalSize;
 	}	
-	void RenderChars(std::string chars, btr::Vector2f pos, sf::RenderWindow* &window, sf::Color col = sf::Color(255,255,255,255), bool renderFromCenter = false)
+	void RenderChars(std::string chars, btr::Vector2f pos, btr::RenderWindow* &window, btr::Color col = btr::Color(255,255,255,255), bool renderFromCenter = false)
 	{
 		if (renderFromCenter)
 		{
 			pos.x = (btr::Vector2f(BTRWINDOWWIDTH,BTRWINDOWHEIGHT) / 2.f - GetSizeOfText(chars) / 2.f).x;
 		}
-		sf::Sprite sprite;
+		btr::Sprite sprite;
 		sprite.setTexture(fontImage, true);
 		sprite.setPosition(pos);
 		sprite.setColor(col);
 		for (int i = 0; i < chars.size(); i++)
 		{
 			if (font == FontType::BTR_FONTLARGE && !std::isdigit(chars[i],std::locale(""))) continue;
-			sf::Vector2i texPos;
+			btr::Vector2i texPos;
 			texPos.x = charMaps[chars[i]].x;
 			texPos.y = charMaps[chars[i]].y;
-			sf::Vector2i texWH;
+			btr::Vector2i texWH;
 			texWH.x = charMaps[chars[i]].width;
 			texWH.y = charMaps[chars[i]].height;
-			sf::IntRect rect = sf::IntRect(texPos,texWH);
+			btr::IntRect rect = btr::IntRect(texPos,texWH);
 			sprite.setTextureRect(rect);
 			if (font == FontType::BTR_FONTLARGE2) fontImage.setSmooth(true);
 			window->draw(sprite);
 			sprite.move(btr::Vector2f(texWH.x, 0));
 		}
-		sprite.setColor(sf::Color(255, 255, 255, 255));
+		sprite.setColor(btr::Color(255, 255, 255, 255));
 	}
 
-	void RenderChars(std::string chars, float X, float Y, sf::RenderWindow* &window, sf::Color col = sf::Color(255, 255, 255, 255), bool renderFromCenter = false)
+	void RenderChars(std::string chars, float X, float Y, btr::RenderWindow* &window, btr::Color col = btr::Color(255, 255, 255, 255), bool renderFromCenter = false)
 	{
 		return RenderChars(chars, btr::Vector2f(X, Y), window, col);
 	}
@@ -418,13 +473,13 @@ struct BTRObjectBase
 struct BTRSpark : BTRObjectBase
 {
 	int width = height = 3;
-	sf::Color color = sf::Color(255, 255, 255, 255);
-	sf::IntRect sparkRect = sf::IntRect(sf::Vector2i(0, 0), sf::Vector2i(3, 3));
+	btr::Color color = btr::Color(255, 255, 255, 255);
+	btr::IntRect sparkRect = btr::IntRect(btr::Vector2i(0, 0), btr::Vector2i(3, 3));
 };
 struct BTRExplodingBricks
 {
 	btr::Vector2f pos;
-	sf::Sprite spr;
+	btr::Sprite spr;
 	int frameOffset = 0;
 	int loop = 0;
 };
@@ -462,7 +517,7 @@ struct BTRLevInfo
 	unsigned char brickID;
 	int x,y;
 };
-struct BTRDebris;
+
 class BTRPlayArea
 {
 	public:
@@ -473,12 +528,11 @@ class BTRPlayArea
 	};
 	std::vector<std::shared_ptr<BTRball>> balls;
 	std::vector<BTRbrick> bricks;
-	std::vector<sf::IntRect> brickTexRects;
+	std::vector<btr::IntRect> brickTexRects;
 	std::vector<BTRpowerup> powerups;
 	std::vector<std::shared_ptr<BTRMissileObject>> missiles;
-	std::vector<BTRDebris> debrisObjects;
 	std::set<float> horzPosOfBricks;
-	sf::Texture brickTexture;
+	btr::Texture brickTexture;
 	std::string levelname;
 	BTRPaddle paddle;
 	int levnum;
@@ -495,7 +549,7 @@ class BTRPlayArea
 	void Tick();
 	void LostBall();
 	void SpawnInitialBall();
-	BTRPlayArea(std::string levfilename, sf::RenderWindow* window = nullptr);
+	BTRPlayArea(std::string levfilename, btr::RenderWindow* window = nullptr);
 	BTRPlayArea();
 	void ExportBricks();
 	void LoadBrickTex();
@@ -592,7 +646,7 @@ struct BTRbrick : BTRObjectBase
 				spark.velY = dis(gen);
 				spark.x = this->x + this->width * 0.5;
 				spark.y = this->y + this->height * 0.5;
-				spark.color = sf::Color(255, 255, 255);
+				spark.color = btr::Color(255, 255, 255);
 				sparks.push_back(spark);
 			}
 			std::uniform_int_distribution<int> powerDist(0, 10);
@@ -623,7 +677,7 @@ struct BTRbrick : BTRObjectBase
 				spark.velY = dis(gen);
 				spark.x = this->x + this->width * 0.5;
 				spark.y = this->y + this->height * 0.5;
-				spark.color = sf::Color(255, 255, 255);
+				spark.color = btr::Color(255, 255, 255);
 				sparks.push_back(spark);
 			}
 			BTRPlaySound("./ball/brickbreak.wav");
@@ -728,7 +782,7 @@ inline std::shared_ptr<T> spawnObject(btr::Vector2f pos, std::function<void(std:
 	return spawnObj;
 }
 
-inline void spawnSpark(uint32_t count,sf::Color col,btr::Vector2f pos)
+inline void spawnSpark(uint32_t count,btr::Color col,btr::Vector2f pos)
 {
 	for (int i = 0; i < count; i++)
 	{
@@ -775,18 +829,7 @@ struct BTRChompTeeth : BTRObjectBase
 	virtual ~BTRChompTeeth() = default;
 };
 
-struct BTRDebris : BTRObjectBase
-{
-	sf::CircleShape shape = sf::CircleShape(4,360);	
-	BTRDebris(btr::Vector2f pos, sf::Texture& texture, sf::IntRect rectOfTexPos, btr::Vector2f vel)
-	{
-		shape.setPosition(pos);
-		shape.setTexture(&texture,true);
-		shape.setTextureRect(rectOfTexPos);
-		velX = vel.x;
-		velY = vel.y;
-	}
-};
+
 struct BTRMissileObject : BTRObjectBase
 {
 	int height = 32;
@@ -798,7 +841,7 @@ struct BTRMissileObject : BTRObjectBase
 		if (frameCnt % 5 == 0)
 		{
 			auto trailSpark = BTRSpark();
-			trailSpark.color = sf::Color::Yellow;
+			trailSpark.color = btr::Color::Yellow;
 			trailSpark.x = this->x + 8;
 			trailSpark.y = this->y;
 			sparks.push_back(trailSpark);
@@ -822,13 +865,6 @@ struct BTRMissileObject : BTRObjectBase
 				expl.pos.x = this->x - expl.spr->realWidthPerTile * 0.5;
 				expl.pos.y = this->y - expl.spr->realHeightPerTile * 0.5;
 				explosions.push_back(expl);
-				int debrisCnt = 0;
-				while (debrisCnt++ < 4)
-				{
-					auto curAngle = atan2(this->velX,this->velY) + (dis(gen) * pi / 180);					
-					auto debris = BTRDebris(btr::Vector2f(this->x,this->y),area.brickTexture,area.brickTexRects[curBrick.brickID - 1], btr::Vector2f(dis(gen),this->velY));
-					area.debrisObjects.push_back(debris);
-				}
 				gravity = 0;
 				BTRPlaySound("./ball/missile.wav");
 			}
@@ -856,5 +892,5 @@ class BTRMenuUIWindow
 	std::list<std::pair<btr::Vector2f, std::string>> staticTexts;
 	std::string nameOfWindow;
 	btr::Vector2f position;
-	btr::Vector2f size = sf::Vector2f(200,200);
+	btr::Vector2f size = btr::Vector2f(200,200);
 };

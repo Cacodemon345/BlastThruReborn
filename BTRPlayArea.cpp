@@ -415,6 +415,7 @@ void DownBricks(BTRPlayArea& area)
 		}
 	}
 }
+#if 0
 bool TestAABBOverlap(BTRObjectBase& a, BTRObjectBase& b)
 {
 	sf::FloatRect aRect(btr::Vector2f(a.x,a.y),btr::Vector2f(a.width,a.height));
@@ -425,6 +426,7 @@ bool TestAABBOverlap(BTRObjectBase& a, BTRObjectBase& b)
 	}
 	return false;
 }
+#endif
 void BTRball::Tick(BTRPlayArea &area)
 {
 	if (!ballHeld)
@@ -552,13 +554,6 @@ void BTRball::Tick(BTRPlayArea &area)
 				expl.pos.x = this->x - expl.spr->realWidthPerTile * 0.5;
 				expl.pos.y = this->y - expl.spr->realHeightPerTile * 0.5;
 				explosions.push_back(expl);
-				int debrisCnt = 0;
-				while (debrisCnt++ < 4)
-				{
-					auto addAngle = std::uniform_real_distribution<double>(0.,pi)(gen);
-					auto debris = BTRDebris(btr::Vector2f(this->x,this->y),area.brickTexture,area.brickTexRects[area.bricks[i].brickID - 1], btr::Vector2f(this->velX * (velXReversed ? -1 : 1) * 0.75 + cos(addAngle),this->velY * (velYReversed ? -1 : 1) * 0.75 + sin(addAngle)));
-					area.debrisObjects.push_back(debris);
-				}
 			}
 			area.bricks[i].destroyed++;
 			area.bricks[i].hitTimes++;
