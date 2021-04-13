@@ -4,26 +4,11 @@
 #include <chrono>
 #include <thread>
 #include <vector>
+#include <cuchar>
 #include "ConvertUTF.h"
 #include <SDL2/SDL.h>
 
 extern bool demo;
-#ifdef _WIN32
-char *strndup(const char *str, size_t chars)
-{
-    char *buffer;
-    int n;
-
-    buffer = (char *) malloc(chars +1);
-    if (buffer)
-    {
-        for (n = 0; ((n < chars) && (str[n] != 0)) ; n++) buffer[n] = str[n];
-        buffer[n] = 0;
-    }
-
-    return buffer;
-}
-#endif
 
 namespace btr
 {
@@ -334,7 +319,8 @@ namespace btr
             Pause = SDL_SCANCODE_PAUSE,
             Enter = SDL_SCANCODE_RETURN,
             LAlt = SDL_SCANCODE_LALT,
-            RAlt = SDL_SCANCODE_RALT
+            RAlt = SDL_SCANCODE_RALT,
+            Backspace = SDL_SCANCODE_BACKSPACE
         };
         static bool isKeyPressed(Key key)
         {
@@ -503,7 +489,7 @@ namespace btr
             }
             window = SDL_CreateWindow(str.c_str(),SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED,mode.width, mode.height, style | SDL_WINDOW_OPENGL);
             if (!window) throw std::runtime_error("Failed to create SDL window.");
-            SDL_GetMouseFocus();
+            
             renderer = SDL_CreateRenderer(window,-1,0);
             if (!renderer) throw std::runtime_error("Failed to create SDL renderer.");
             SDL_SetRenderDrawBlendMode(renderer, SDL_BlendMode::SDL_BLENDMODE_BLEND);
@@ -527,6 +513,12 @@ namespace btr
                 SDL_DestroyWindow(window);
             }
             context = NULL;
+        }
+        Vector2i getPosition() const
+        {
+            Vector2i pos;
+            SDL_GetWindowPosition(this->window,&pos.x,&pos.y);
+            return pos;
         }
         void clear(Color color = Color(0,0,0,255))
         {
@@ -563,11 +555,27 @@ namespace btr
         SDL_Window* getSystemHandle() const { return window; };
         bool pollEvent(btr::Event& event)
         {
+            static bool mouseInsideWindow = false;
             if (pendingTextEvents.size() != 0)
             {
                 event.text.unicode = pendingTextEvents[0];
                 event.type = btr::Event::TextEntered;
                 pendingTextEvents.erase(pendingTextEvents.begin());
+                return true;
+            }
+            if (IntRect(this->getPosition(),this->getSize()).contains(Mouse::getPosition()))
+            {
+                if (!mouseInsideWindow)
+                {
+                    mouseInsideWindow = true;
+                    event.type = Event::MouseEntered;
+                    return true;
+                }
+            }
+            else if (mouseInsideWindow)
+            {
+                mouseInsideWindow = false;
+                event.type = Event::MouseLeft;
                 return true;
             }
             SDL_Event ev;
@@ -585,12 +593,6 @@ namespace btr
                     event.size.height = ev.window.data2;
                     break;
                 }
-            case SDL_WINDOWEVENT_ENTER:
-                event.type = Event::MouseEntered;
-                break;
-            case SDL_WINDOWEVENT_LEAVE:
-                event.type = Event::MouseLeft;
-                break;
             case SDL_WINDOWEVENT_FOCUS_GAINED:
                 event.type = Event::GainedFocus;
                 break;
@@ -604,6 +606,10 @@ namespace btr
                     event.key.alt = (btr::Keyboard::Key)ev.key.keysym.mod & KMOD_ALT;
                     event.key.control = (btr::Keyboard::Key)ev.key.keysym.mod & KMOD_CTRL;
                     event.key.shift = (btr::Keyboard::Key)ev.key.keysym.mod & KMOD_SHIFT;
+                    if (ev.key.keysym.scancode == SDL_SCANCODE_BACKSPACE)
+                    {
+                        pendingTextEvents.push_back('\b');
+                    }
                 }
                 break;
             case SDL_KEYUP:
@@ -644,19 +650,37 @@ namespace btr
                 {
                     uint32_t* utf32array = new uint32_t[SDL_TEXTINPUTEVENT_TEXT_SIZE];
                     uint32_t* origutf32array = utf32array;
-                    unsigned char* utf8array = (unsigned char*)strndup(ev.text.text,SDL_TEXTINPUTEVENT_TEXT_SIZE);
+                    unsigned char* utf8array = (unsigned char*)ev.text.text;
                     unsigned char* origutf8array = utf8array;
-                    auto res = ConvertUTF8toUTF32((const unsigned char**)&utf8array, &utf8array[SDL_TEXTINPUTEVENT_TEXT_SIZE - 1],&utf32array,utf32array + SDL_TEXTINPUTEVENT_TEXT_SIZE,strictConversion);
+                    int lengthoftext = strlen((char*)utf8array);
+#if 0
+                    auto res = ConvertUTF8toUTF32((const unsigned char**)&utf8array, &utf8array[lengthoftext],&utf32array,utf32array + lengthoftext,strictConversion);
                     if (res != conversionOK)
                     {
-                        fprintf(stderr, "Could not decode UTF-8 SDL sequence.\n");
+                        const char* errorStr;
+                        switch(res)
+                        {
+                            case sourceIllegal:
+                                errorStr = "Illegal UTF-8 sequence.";
+                                break;
+                            case sourceExhausted:
+                                errorStr = "String buffer underflow.";
+                                break;
+                            case targetExhausted:
+                                errorStr = "Target buffer underflow.";
+                                break;
+                            default: errorStr = ""; break;
+                        }
+                        fprintf(stderr, "Could not decode UTF-8 SDL sequence. %s\n",errorStr);
                         delete[] origutf32array;
-                        delete[] origutf8array;
+                        free(origutf8array);
                         break;
                     }
-                    while (*(utf32array++) != 0)
+#endif
+                    for (int i = 0; i < lengthoftext + 1; i++)
                     {
-                        pendingTextEvents.push_back(*utf32array);
+                        utf32array[i] = utf8array[i];
+                        if (utf32array[i] != 0) pendingTextEvents.push_back(utf32array[i]);
                     }
                     event.text.unicode = pendingTextEvents[0];
                     event.type = btr::Event::TextEntered;
@@ -688,6 +712,7 @@ namespace btr
         void requestFocus()
         {
             SDL_RaiseWindow(this->window);
+            SDL_SetWindowInputFocus(this->window);
         }
         bool isOpen()
         {

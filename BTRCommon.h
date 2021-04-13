@@ -248,7 +248,7 @@ struct BTRsprite
 		y = index;
 		return sprite.setTextureRect(intRect);
 		#else
-		return SetTexRect(animFramePos - 1, index);
+		return SetTexRect(std::clamp(animFramePos - 1,0,0xFFFF), index);
 		#endif
 	}
 	operator btr::Sprite&()

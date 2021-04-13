@@ -1456,6 +1456,7 @@ int main(int argc, char *argv[])
         {
             cheatText = true;
             cheatstr.clear();
+            windowTexture.update(*window);
         }
         if (paused)
         {
