@@ -7,12 +7,14 @@
 #include <cuchar>
 #include "ConvertUTF.h"
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_gpu.h>
 
 extern bool demo;
+inline std::chrono::steady_clock waitClock;
 
 namespace btr
 {
-    extern SDL_Renderer* context;
+    extern GPU_Renderer* context;
     class RenderWindow;
 
     template <class T>
@@ -54,6 +56,15 @@ namespace btr
             this->g = g;
             this->b = b;
             this->a = a;
+        }
+        operator SDL_Color() const
+        {
+            SDL_Color color;
+            color.a = this->a;
+            color.r = this->r;
+            color.g = this->g;
+            color.b = this->b;
+            return color;
         }
         static const Color Black;
         static const Color White;
@@ -117,6 +128,22 @@ namespace btr
             rect.h = this->height;
             return rect;
         }
+        inline operator SDL_FRect()
+        {
+            SDL_FRect rect;
+            rect.x = (float)this->left;
+            rect.y = (float)this->top;
+            rect.w = (float)this->width;
+            rect.h = (float)this->height;
+            return rect;
+        }
+        inline operator GPU_Rect()
+        {
+            SDL_FRect rect = *this;
+            GPU_Rect gpurect;
+            memcpy(&gpurect, &rect, sizeof(gpurect));
+            return gpurect;
+        }
         inline bool contains(Vector2i pos)
         {
             auto sdlrect = (SDL_Rect)*this;
@@ -139,17 +166,17 @@ namespace btr
     class Texture
     {
     private:
-        SDL_Texture* tex = NULL;
+        GPU_Image* tex = NULL;
         uint32_t width = 0, height = 0;
     public:
         inline Texture() = default;
         inline ~Texture()
         {
-            if (tex != NULL) SDL_DestroyTexture(tex);
+            if (tex != NULL) GPU_FreeImage(tex);
         }
         inline void create(uint32_t w, uint32_t h)
         {
-            tex = SDL_CreateTexture(context,SDL_PIXELFORMAT_RGBA32,SDL_TEXTUREACCESS_STREAMING,w,h);
+            tex = GPU_CreateImage(w, h, GPU_FormatEnum::GPU_FORMAT_RGBA);
             if (!tex)
             {
                 fprintf(stderr,"Failed to create texture: %s\n",SDL_GetError());
@@ -159,21 +186,22 @@ namespace btr
         }
         inline void update(uint8_t* pixels)
         {
-            SDL_Rect rect{0,0,(int)width,(int)height};
-            fprintf(stderr, "SDL_Rect rect{%d,%d,%d,%d};\n",rect.x,rect.y,rect.w,rect.h);
-            SDL_Surface* texsurface;
-            SDL_LockTextureToSurface(tex,&rect,&texsurface);
-            SDL_FillRect(texsurface, NULL,0);
-            uint32_t colkey = SDL_MapRGBA(texsurface->format,0,0,0,255);
-            SDL_SetColorKey(texsurface,SDL_TRUE,colkey);
-            memcpy(texsurface->pixels,pixels,width * height * 4);
-            SDL_UnlockTexture(tex);
-            SDL_SetTextureBlendMode(tex, SDL_BlendMode::SDL_BLENDMODE_BLEND);
+            GPU_Rect rect{0,0,(float)width,(float)height};
+            fprintf(stderr, "SDL_Rect rect{%f,%f,%f,%f};\n",rect.x,rect.y,rect.w,rect.h);
+            GPU_UpdateImageBytes(tex, &rect, pixels, width * 4);
         }
         inline void update(btr::RenderWindow& window);
-        inline void setSmooth(bool smooth) { SDL_SetTextureScaleMode(tex, smooth ? SDL_ScaleModeLinear : SDL_ScaleModeNearest); }
-        inline void setRepeated(bool) { }
-        inline const SDL_Texture* getTextureHandle() const
+        inline void setSmooth(bool smooth)
+        {
+            GPU_SetImageFilter(tex, smooth ? GPU_FilterEnum::GPU_FILTER_LINEAR : GPU_FilterEnum::GPU_FILTER_NEAREST);
+        }
+        inline void setRepeated(bool repeated)
+        {
+            GPU_SetWrapMode(tex,
+                            repeated ? GPU_WrapEnum::GPU_WRAP_REPEAT : GPU_WrapEnum::GPU_WRAP_NONE,
+                            repeated ? GPU_WrapEnum::GPU_WRAP_REPEAT : GPU_WrapEnum::GPU_WRAP_NONE);
+        }
+        inline const GPU_Image* getTextureHandle() const
         {
             return this->tex;
         }
@@ -467,7 +495,7 @@ namespace btr
     {
     private:
         SDL_Window* window;
-        SDL_Renderer* renderer;
+        GPU_Target* renderer;
         int fps;
         std::vector<uint32_t> pendingTextEvents;
     public:
@@ -477,40 +505,20 @@ namespace btr
         {
             fprintf(stderr, "SDL RENDERER IS WIP!!! DON'T REPORT ISSUES ON GITHUB!!!\n");
             SDL_LogSetAllPriority(SDL_LOG_PRIORITY_VERBOSE);
-            //if (!(SDL_WasInit(SDL_INIT_VIDEO)))
-            //{
-            //    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
-            //    atexit(SDL_Quit);
-            //}
-            if (!SDL_WasInit(SDL_INIT_VIDEO))
-            {
-                SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
-                atexit(SDL_Quit);
-            }
-            window = SDL_CreateWindow(str.c_str(),SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED,mode.width, mode.height, style | SDL_WINDOW_OPENGL);
-            if (!window) throw std::runtime_error("Failed to create SDL window.");
-            
-            renderer = SDL_CreateRenderer(window,-1,0);
-            if (!renderer) throw std::runtime_error("Failed to create SDL renderer.");
-            SDL_SetRenderDrawBlendMode(renderer, SDL_BlendMode::SDL_BLENDMODE_BLEND);
-            context = renderer;
-            SDL_RendererInfo info;
-            if (SDL_GetRendererInfo(renderer,&info) == 0)
-            {
-                fprintf(stderr,"Using render driver %s", info.name);
-            }
-            else
-            {
-                fprintf(stderr,"Failed to get render info: %s\n",SDL_GetError());
-            }
+            GPU_SetPreInitFlags(GPU_INIT_DISABLE_VSYNC | GPU_INIT_DISABLE_DOUBLE_BUFFER);
+            SDL_InitSubSystem(SDL_INIT_TIMER);
+            renderer = GPU_Init(mode.width, mode.height, style);
+            if (!renderer) throw std::runtime_error("Failed to create SDL_gpu renderer.");
+            window = SDL_GetWindowFromID(renderer->renderer->current_context_target->context->windowID);
+            SDL_SetWindowTitle(window, "Blast Thru Reborn");
         }
         ~RenderWindow()
         {
-            if (renderer) SDL_DestroyRenderer(renderer);
             if (window)
             {
-                SDL_SetWindowFullscreen(window,0);
                 SDL_DestroyWindow(window);
+                SDL_QuitSubSystem(SDL_INIT_TIMER);
+                GPU_Quit();
             }
             context = NULL;
         }
@@ -518,13 +526,12 @@ namespace btr
         {
             Vector2i pos;
             SDL_GetWindowPosition(this->window,&pos.x,&pos.y);
+            //printf("Window position reported: %dx%d\n",pos.x,pos.y);
             return pos;
         }
         void clear(Color color = Color(0,0,0,255))
         {
-            SDL_SetRenderDrawColor(renderer,color.r,color.g,color.b,color.a);
-            SDL_RenderClear(renderer);
-            SDL_SetRenderDrawColor(renderer,255,255,255,255);
+            GPU_ClearColor(renderer, SDL_Color{color.r, color.g, color.b, color.a});
         }
         void setFramerateLimit(int fps)
         {
@@ -533,23 +540,24 @@ namespace btr
         void draw(const Sprite& sprite)
         {
             //SDL_SetRenderDrawColor(renderer,sprite.getColor().r,sprite.getColor().g,sprite.getColor().b,sprite.getColor().a);
-            SDL_SetTextureColorMod((SDL_Texture*)sprite.getTexture()->getTextureHandle(),sprite.getColor().r,sprite.getColor().g,sprite.getColor().b);
-            SDL_SetTextureAlphaMod((SDL_Texture*)sprite.getTexture()->getTextureHandle(),sprite.getColor().a);
-            SDL_Rect srcrect = sprite.getTextureRect();
-            SDL_FRect dstrect{sprite.getPosition().x - sprite.getOrigin().x, sprite.getPosition().y - sprite.getOrigin().y, (float)srcrect.w * sprite.getScale().x, (float)srcrect.h * sprite.getScale().y};
-            SDL_RenderCopyF(renderer,(SDL_Texture*)sprite.getTexture()->getTextureHandle(), &srcrect, &dstrect);
+            //SDL_SetTextureColorMod((SDL_Texture*)sprite.getTexture()->getTextureHandle(),sprite.getColor().r,sprite.getColor().g,sprite.getColor().b);
+            //SDL_SetTextureAlphaMod((SDL_Texture*)sprite.getTexture()->getTextureHandle(),sprite.getColor().a);
+            GPU_UnsetTargetColor(renderer);
+            GPU_SetTargetRGBA(renderer, sprite.getColor().r,sprite.getColor().g,sprite.getColor().b, sprite.getColor().a);
+            GPU_Rect srcrect = sprite.getTextureRect();
+            GPU_Rect dstrect{sprite.getPosition().x - sprite.getOrigin().x, sprite.getPosition().y - sprite.getOrigin().y, (float)srcrect.w * sprite.getScale().x, (float)srcrect.h * sprite.getScale().y};
+            //SDL_RenderCopyF(renderer,(SDL_Texture*)sprite.getTexture()->getTextureHandle(), &srcrect, &dstrect);
+            GPU_BlitRect((GPU_Image*)sprite.getTexture()->getTextureHandle(), &srcrect, renderer, &dstrect);
         }
         void draw(const RectangleShape& rectshape) const
         {
 #if 1            
             IntRect rect = rectshape;
-            SDL_Rect sdlrect = rect;
+            GPU_Rect sdlrect = rect;
             uint8_t r,g,b,a;
             auto col = rectshape.getFillColor();
-            SDL_GetRenderDrawColor(renderer,&r,&g,&b,&a);
-            SDL_SetRenderDrawColor(renderer,col.r,col.g,col.b,col.a);
-            SDL_RenderFillRect(renderer, &sdlrect);
-            SDL_SetRenderDrawColor(renderer,r,g,b,a);
+            
+            GPU_RectangleFilled2(renderer,(GPU_Rect)sdlrect,col);
 #endif
         }
         SDL_Window* getSystemHandle() const { return window; };
@@ -563,25 +571,16 @@ namespace btr
                 pendingTextEvents.erase(pendingTextEvents.begin());
                 return true;
             }
-            if (IntRect(this->getPosition(),this->getSize()).contains(Mouse::getPosition()))
-            {
-                if (!mouseInsideWindow)
-                {
-                    mouseInsideWindow = true;
-                    event.type = Event::MouseEntered;
-                    return true;
-                }
-            }
-            else if (mouseInsideWindow)
-            {
-                mouseInsideWindow = false;
-                event.type = Event::MouseLeft;
-                return true;
-            }
             SDL_Event ev;
             int res = SDL_PollEvent(&ev);
             switch(ev.type)
             {
+            case SDL_WINDOWEVENT_ENTER:
+                event.type = Event::MouseEntered;
+                break;
+            case SDL_WINDOWEVENT_LEAVE:
+                event.type = Event::MouseLeft;
+                break;
             case SDL_QUIT:
             case SDL_WINDOWEVENT_CLOSE:
                 event.type = Event::Closed;
@@ -626,6 +625,25 @@ namespace btr
                 {
                     event.mouseMove.x = ev.motion.x;
                     event.mouseMove.y = ev.motion.y;
+#if 1
+                    if (IntRect(this->getPosition(),this->getSize()).contains(Mouse::getPosition()))
+                    {
+                        if (!mouseInsideWindow)
+                        {
+                            SDL_Event mouseEnterEvent;
+                            mouseEnterEvent.type = SDL_WINDOWEVENT_ENTER;
+                            SDL_PushEvent(&mouseEnterEvent);
+                            mouseInsideWindow = true;
+                        }
+                    }
+                    else if (mouseInsideWindow)
+                    {
+                        SDL_Event mouseExitEvent;
+                        mouseExitEvent.type = SDL_WINDOWEVENT_LEAVE;
+                        SDL_PushEvent(&mouseExitEvent);
+                        mouseInsideWindow = false;
+                    }
+#endif
                 }
                 break;
             case SDL_MOUSEWHEEL:
@@ -692,20 +710,29 @@ namespace btr
         }
         void display()
         {
-            SDL_RenderPresent(renderer);
-            if (fps != 0) std::this_thread::sleep_for(std::chrono::duration<double>(1. / fps));
+            GPU_Flip(renderer);
+            if (fps != 0)
+            {
+                auto time = waitClock.now().time_since_epoch().count();
+                while ((waitClock.now().time_since_epoch().count() - time) <= (1000 * 1000 * 1000) / fps)
+                {
+
+                }
+            }
         }
         Vector2i getSize() const
         {
             Vector2i size;
             SDL_GetWindowSize(window,&size.x,&size.y);
+            //printf("Window size reported: %dx%d\n",size.x,size.y);
             return size;
         }
         void setFullscreen(bool fullscreen)
         {
-            SDL_SetWindowFullscreen(window,fullscreen);
+            GPU_SetFullscreen(fullscreen, false);
+            //SDL_SetWindowFullscreen(window,fullscreen);
         }
-        SDL_Renderer* getRenderer()
+        GPU_Target* getRenderer()
         {
             return renderer;
         }
@@ -731,11 +758,11 @@ namespace btr
     };
     void Texture::update(RenderWindow& window)
     {
-        SDL_Rect rect{0,0,window.getSize().x,window.getSize().y};
+        GPU_Rect rect{0,0,(float)window.getSize().x,(float)window.getSize().y};
         SDL_Surface* surface;
-        SDL_LockTextureToSurface(this->tex,&rect,&surface);        
-        SDL_RenderReadPixels(window.getRenderer(),&rect,SDL_PIXELFORMAT_RGBA32,surface->pixels,surface->pitch);
-        SDL_UnlockTexture(tex);
+        surface = GPU_CopySurfaceFromTarget(window.getRenderer());
+        GPU_UpdateImage(this->tex, &rect, surface, &rect);
+        SDL_FreeSurface(surface);
     }
     Vector2i Mouse::getPosition(RenderWindow& window)
     {

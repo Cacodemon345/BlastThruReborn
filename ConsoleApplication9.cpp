@@ -66,7 +66,7 @@ btr::Vector2i lastTouchPosition = btr::Vector2i(0,0);
 #ifdef BTR_USE_SDL
 namespace btr
 {
-    SDL_Renderer* context = nullptr;
+    GPU_Renderer* context = nullptr;
 }
 #endif
 #ifndef BTR_USE_SDL
