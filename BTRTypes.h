@@ -187,7 +187,7 @@ namespace btr
         inline void update(uint8_t* pixels)
         {
             GPU_Rect rect{0,0,(float)width,(float)height};
-            fprintf(stderr, "SDL_Rect rect{%f,%f,%f,%f};\n",rect.x,rect.y,rect.w,rect.h);
+//            fprintf(stderr, "SDL_Rect rect{%f,%f,%f,%f};\n",rect.x,rect.y,rect.w,rect.h);
             GPU_UpdateImageBytes(tex, &rect, pixels, width * 4);
         }
         inline void update(btr::RenderWindow& window);
@@ -209,6 +209,10 @@ namespace btr
         {
             return Vector2u(this->width, this->height);
         }
+    };
+    class VertexArray
+    {
+        
     };
     class Sprite
     {
@@ -494,8 +498,8 @@ namespace btr
     class RenderWindow
     {
     private:
-        SDL_Window* window;
-        GPU_Target* renderer;
+        SDL_Window* window = NULL;
+        GPU_Target* renderer = NULL;
         int fps;
         std::vector<uint32_t> pendingTextEvents;
     public:
@@ -507,8 +511,15 @@ namespace btr
             SDL_LogSetAllPriority(SDL_LOG_PRIORITY_VERBOSE);
             GPU_SetPreInitFlags(GPU_INIT_DISABLE_VSYNC | GPU_INIT_DISABLE_DOUBLE_BUFFER);
             SDL_InitSubSystem(SDL_INIT_TIMER);
-            renderer = GPU_Init(mode.width, mode.height, style);
+            if (getenv("BTR_SDLGPU_RENDERERNUM"))
+            {
+                GPU_RendererEnum renderindex = (GPU_RendererEnum)atoi(getenv("BTR_SDLGPU_RENDERERNUM"));
+                renderer = GPU_InitRenderer(renderindex, mode.width, mode.height, style);
+            }
+            if (!renderer) renderer = GPU_Init(mode.width, mode.height, style);
+
             if (!renderer) throw std::runtime_error("Failed to create SDL_gpu renderer.");
+            printf("Using renderer: %s\n", renderer->renderer->id.name);
             window = SDL_GetWindowFromID(renderer->renderer->current_context_target->context->windowID);
             SDL_SetWindowTitle(window, "Blast Thru Reborn");
         }

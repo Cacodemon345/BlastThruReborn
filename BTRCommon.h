@@ -110,13 +110,13 @@ namespace btr
 #endif
 		enum Button
 		{
-			Left,       ///< The left mouse button
-			Right,      ///< The right mouse button
-			Middle,     ///< The middle (wheel) mouse button
-			XButton1,   ///< The first extra mouse button
-			XButton2,   ///< The second extra mouse button
+			Left,
+			Right,
+			Middle,
+			XButton1,
+			XButton2,
 
-			ButtonCount ///< Keep last -- the total number of mouse buttons
+			ButtonCount
 		};
 
 	};
