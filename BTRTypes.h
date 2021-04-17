@@ -21,16 +21,121 @@ namespace btr
     class Vector2
     {
     public:
-        T x;
-        T y;
+        T x = 0;
+        T y = 0;
         static_assert(std::is_integral_v<T> || std::numeric_limits<T>::is_iec559);
-        Vector2();
+        Vector2() = default;
         ~Vector2() = default;
-        Vector2(T x, T y);
+        Vector2(T x, T y)
+        {
+            this->x = x;
+            this->y = y;
+        }
         template <typename U>
-        explicit Vector2(const Vector2<U>& vector);
+        explicit Vector2(const Vector2<U>& vector)
+        {
+            this->x = vector.x;
+            this->y = vector.y;
+        }
     };
-    #include <SFML/System/Vector2.inl>
+    
+    template<typename T>
+    inline Vector2<T>& operator -(const Vector2<T>& right)
+    {
+        return Vector2<T>(-right.x, -right.y);
+    }
+
+    template<typename T>
+    inline Vector2<T>& operator +=(Vector2<T>& left, const Vector2<T>& right)
+    {
+        left.x += right.x;
+        left.y += right.y;
+        return left;
+    }
+
+    template<typename T>
+    inline Vector2<T>& operator -=(Vector2<T>& left, const Vector2<T>& right)
+    {
+        left.x -= right.x;
+        left.y -= right.y;
+        return left;
+    }
+
+    template<typename T>
+    inline Vector2<T>& operator *=(Vector2<T>& left, const Vector2<T>& right)
+    {
+        left.x *= right.x;
+        left.y *= right.y;
+        return left;    
+    }
+
+    template<typename T>
+    inline Vector2<T>& operator /=(Vector2<T>& left, const Vector2<T>& right)
+    {
+        left.x /= right.x;
+        left.y /= right.y;
+        return left;
+    }
+
+    template<typename T>
+    inline Vector2<T> operator +(const Vector2<T>& left, const Vector2<T>& right)
+    {
+        return Vector2<T>(left.x + right.x, left.y + right.y);
+    }
+
+    template<typename T>
+    inline Vector2<T> operator +(const Vector2<T>& left, T right)
+    {
+        return Vector2<T>(left.x + right, left.y + right);
+    }
+    
+    template<typename T>
+    inline Vector2<T> operator -(const Vector2<T>& left, T right)
+    {
+        return Vector2<T>(left.x - right, left.y - right);
+    }
+
+    template<typename T>
+    inline Vector2<T> operator *(const Vector2<T>& left, T right)
+    {
+        return Vector2<T>(left.x * right, left.y * right);
+    }
+
+    template<typename T>
+    inline Vector2<T> operator /(const Vector2<T>& left, T right)
+    {
+        return Vector2<T>(left.x / right, left.y / right);
+    }
+
+    template<typename T>
+    inline Vector2<T> operator -(const Vector2<T>& left, const Vector2<T>& right)
+    {
+        return Vector2<T>(left.x - right.x, left.y - right.y);
+    }
+
+    template<typename T>
+    inline Vector2<T> operator *(const Vector2<T>& left, const Vector2<T>& right)
+    {
+        return Vector2<T>(left.x * right.x, left.y * right.y);
+    }
+
+    template<typename T>
+    inline Vector2<T> operator /(const Vector2<T>& left, const Vector2<T>& right)
+    {
+        return Vector2<T>(left.x / right.x, left.y / right.y);
+    }
+    
+    template<typename T>
+    inline bool operator ==(const Vector2<T>& left, const Vector2<T>& right)
+    {
+        return left.x == right.x && left.y == right.y;
+    }
+
+    template<typename T>
+    inline bool operator !=(const Vector2<T>& left, const Vector2<T>& right)
+    {
+        return !(left == right);
+    }
 
     typedef Vector2<int> Vector2i;
     typedef Vector2<unsigned int> Vector2u;
@@ -87,6 +192,31 @@ namespace btr
     inline const Color Color::Cyan(0, 255, 255);
     inline const Color Color::Transparent(0, 0, 0, 0);
 
+    inline bool operator == (const Color& left, const Color& right)
+    {
+        return left.r == right.r && left.g == right.g && left.b == right.b && left.a == right.a;
+    }
+    inline bool operator != (const Color& left, const Color& right)
+    {
+        return !(left == right);
+    }
+    inline Color operator + (const Color& left, const Color& right)
+    {
+        Color retcol;
+        uint32_t a = std::clamp((uint32_t)(left.a) + (uint32_t)(right.a), 0u, 255u);
+        uint32_t r = std::clamp((uint32_t)(left.r) + (uint32_t)(right.r), 0u, 255u);
+        uint32_t g = std::clamp((uint32_t)(left.g) + (uint32_t)(right.g), 0u, 255u);
+        uint32_t b = std::clamp((uint32_t)(left.b) + (uint32_t)(right.b), 0u, 255u);
+        return Color(uint8_t(r), uint8_t(g), uint8_t(b), uint8_t(a));
+    }
+    inline Color operator * (const Color& left, const Color& right)
+    {
+        uint32_t a = (uint32_t)(left.a) * (uint32_t)(right.a);
+        uint32_t r = (uint32_t)(left.r) * (uint32_t)(right.r);
+        uint32_t g = (uint32_t)(left.g) * (uint32_t)(right.g);
+        uint32_t b = (uint32_t)(left.b) * (uint32_t)(right.b);
+        return Color(r / 255u, g / 255u, b / 255u, a / 255u);
+    }
 
     template<class T>
     class Rect
@@ -174,8 +304,17 @@ namespace btr
         {
             if (tex != NULL) GPU_FreeImage(tex);
         }
+        Texture& operator =(const Texture& right)
+        {
+            if (this->tex) GPU_FreeImage(tex);
+            this->tex = GPU_CopyImage(right.tex);
+            this->width = right.width;
+            this->height = right.height;
+            return *this;
+        }
         inline void create(uint32_t w, uint32_t h)
         {
+            if (tex) { GPU_FreeImage(tex); tex = NULL; }
             tex = GPU_CreateImage(w, h, GPU_FormatEnum::GPU_FORMAT_RGBA);
             if (!tex)
             {
@@ -210,9 +349,35 @@ namespace btr
             return Vector2u(this->width, this->height);
         }
     };
-    class VertexArray
+    enum PrimitiveType
     {
-        
+        Points,
+        Lines,
+        Triangles
+    };
+    class Vertex
+    {
+    public:
+        Vector2f vertPos = Vector2f(0,0);
+        Color color = Color(0,0,0,255);
+
+        Vertex() = default;
+        Vertex(const Vector2f& pos) { vertPos = pos; }
+        Vertex(const Vector2f& pos, const Color& col) { vertPos = pos; color = col; }
+        Vertex(const Vector2f& pos, const Vector2f& texPos) { vertPos = pos; }
+        Vertex(const Vector2f& pos, const Color& col, const Vector2f texPos) { vertPos = pos; color = col; }
+    };
+    class VertexArray : public std::vector<Vertex>
+    {
+    private:
+        PrimitiveType type;
+    public:
+        void append(const Vertex& vert) { this->push_back(vert); }
+        VertexArray() : std::vector<Vertex>() {}
+        explicit VertexArray(PrimitiveType type, std::size_t count) : std::vector<Vertex>(count) { this->type = type; }
+        std::size_t getVertexCount() { return this->size(); }
+        void setPrimitiveType(PrimitiveType newType) { type = newType; }
+        PrimitiveType getPrimitiveType() const { return type; }
     };
     class Sprite
     {
@@ -561,15 +726,26 @@ namespace btr
             GPU_BlitRect((GPU_Image*)sprite.getTexture()->getTextureHandle(), &srcrect, renderer, &dstrect);
         }
         void draw(const RectangleShape& rectshape) const
-        {
-#if 1            
+        {          
             IntRect rect = rectshape;
             GPU_Rect sdlrect = rect;
             uint8_t r,g,b,a;
             auto col = rectshape.getFillColor();
             
             GPU_RectangleFilled2(renderer,(GPU_Rect)sdlrect,col);
-#endif
+        }
+        void draw(const VertexArray& vertArray)
+        {
+            auto primitiveType = vertArray.getPrimitiveType();
+            auto vertData = vertArray.data();
+            GPU_PrimitiveEnum targetPrimitive;
+            switch (primitiveType)
+            {
+                case PrimitiveType::Lines: targetPrimitive = GPU_LINES; break;
+                case PrimitiveType::Points: targetPrimitive = GPU_POINTS; break;
+            }
+            GPU_FlushBlitBuffer();
+            GPU_PrimitiveBatchV(NULL,renderer, targetPrimitive, (unsigned short)vertArray.size(), (void*)vertData,0,NULL,GPU_BATCH_XY_RGBA8);
         }
         SDL_Window* getSystemHandle() const { return window; };
         bool pollEvent(btr::Event& event)

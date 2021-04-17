@@ -815,6 +815,8 @@ int main(int argc, char *argv[])
     BTRButton levEdit;
     levEdit.clickedFunc = [&]() {
         isLevEdit = true;
+        //editPlayArea->texLoaded = false;
+        //editPlayArea->LoadBrickTex();
         btr::Event event;
         event.type = btr::Event::KeyPressed;
         event.key.code = btr::Keyboard::Escape;
@@ -1055,7 +1057,10 @@ int main(int argc, char *argv[])
             if (sparks[i].sparkRect.left < 15 * 3)
 #endif
             {
-                if (!simpleSparks) window->draw(sparkSprite->sprite);
+#ifndef BTR_USE_SDL
+                if (!simpleSparks)
+#endif
+                window->draw(sparkSprite->sprite);
             }
 #if __cplusplus <= 201703L
             else

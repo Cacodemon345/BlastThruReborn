@@ -108,7 +108,7 @@ void QueueMidiEvent(MidsEvent midsevent)
 	while(paused) {}
 	//usleep(tempoPerBeat / timeDiv * midsevent.dwDeltaTime);
 	auto time = curClock.now().time_since_epoch().count();
-	while ((curClock.now().time_since_epoch().count() - time ) <= (tempoPerBeat * 1000) / timeDiv * midsevent.dwDeltaTime)
+	while ((curClock.now().time_since_epoch().count() - time ) <= (tempoPerBeat * 1000ll) / (long long)timeDiv * midsevent.dwDeltaTime)
 	{
         if (eot) return; // Cancel counting immediatly.
 	}

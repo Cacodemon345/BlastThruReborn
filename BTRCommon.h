@@ -134,6 +134,7 @@ namespace btr
 	using Shader = sf::Shader;
 	using Color = sf::Color;
 	using VertexArray = sf::VertexArray;
+	using Vertex = sf::Vertex;
 	using RectangleShape = sf::RectangleShape;
 	using PrimitiveType = sf::PrimitiveType;
 	using RenderStates = sf::RenderStates;
@@ -668,7 +669,7 @@ struct BTRbrick : BTRObjectBase
 			area.powerups.push_back(powerup);
 			framesPassedlastPowerup = 0;
 		}
-		if (this->brickID == 63)
+		if (this->brickID == 63 && !this->goneThrough)
 		{
 			for (int iii = 0; iii < 30; iii++)
 			{
