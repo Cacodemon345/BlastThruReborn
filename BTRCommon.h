@@ -719,6 +719,7 @@ struct BTRball : BTRObjectBase
 	bool isFireball = false;
 	bool ballHeld = false;
 	bool invisibleSparkling = false;
+	bool hitBrick = false;
 	int offsetFromPaddle = 0;
 	double angle = 0;
 //	luabridge::LuaRef* ballRef;

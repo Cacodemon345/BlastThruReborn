@@ -240,17 +240,23 @@ void BTRPlayArea::Tick()
 	if (paddle.stateFlags & paddle.PADDLE_TRACTOR && btr::Mouse::isButtonPressed(sf::Mouse::Button::Left))
 	{
 		auto centerPaddle = paddle.sprite->sprite.getPosition().x + paddle.paddleRadius / 2;
-		auto lengthOfBall = 15;
+		constexpr auto lengthOfBall = 15;
+		auto centerPaddleAreaLeftX = centerPaddle - 45;
+		auto centerPaddleAreaRightX = centerPaddle + 45;
 		for (auto& curBall : balls)
 		{
+			if (curBall->hitBrick)
+			{
+				curBall->hitBrick = false;
+				continue;
+			}
 			curBall->angle += 1;
 			if (curBall->angle >= 180) curBall->angle = -curBall->angle;
 			auto angleToPaddle = atan2(paddle.sprite->sprite.getPosition().y - curBall->y ,curBall->x - centerPaddle);
 			auto offsetFromCenter = cos(curBall->angle * 180 / pi) * lengthOfBall;
-			curBall->x = std::lerp(curBall->x, centerPaddle, 0.25);
-			//curBall->velX = lerp(curBall->x,centerPaddle,0.5);
-			curBall->velX = offsetFromCenter;
+			curBall->velX = std::clamp(std::lerp(curBall->x, centerPaddle + offsetFromCenter * 4., 0.25) - curBall->x, -25., 25.);
 		}
+		
 		BTRPlaySound("./ball/tractorbeam.wav",0,0,true,true);
 		paddle.tractorBeamPower--;
 		if (paddle.tractorBeamPower <= 0) paddle.stateFlags &= ~BTRPaddle::PADDLE_TRACTOR;
@@ -497,6 +503,7 @@ void BTRball::Tick(BTRPlayArea &area)
 			area.bricks[i].hitvelY = this->velY;
 			if (!this->goThrough)
 			{
+				this->hitBrick = true;
 				this->x -= this->velX;
 				this->y -= this->velY;
 				auto thishalfWidthX = this->x + this->width * 0.5;

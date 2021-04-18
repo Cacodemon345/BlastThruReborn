@@ -468,7 +468,7 @@ int main(int argc, char *argv[])
                 window->clear();
                 window->draw(windowSprite, &gammaShader);
                 window->display();
-                alpha -= 1.f / (float)framerate;
+                alpha = std::lerp(alpha, 0, ((double)framerate / 10.) / framerate);
                 localFrameCnt++;
                 continue;
             }
@@ -1087,7 +1087,7 @@ int main(int argc, char *argv[])
     cursorVisible = false;
     window->setMouseCursorVisible(false);
 #endif
-    if (isFullscreen)
+    if (isFullscreen || btr::IntRect(window->getPosition(), (sf::Vector2i)window->getSize()).contains(btr::Mouse::getPosition(*window)))
     {
         cursorVisible = false;
         window->setMouseCursorVisible(false);

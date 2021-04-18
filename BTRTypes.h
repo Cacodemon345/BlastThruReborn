@@ -200,15 +200,17 @@ namespace btr
     {
         return !(left == right);
     }
+#define CLAMP(a, min, max) (a < min ? min : (a > max ? max : a))
     inline Color operator + (const Color& left, const Color& right)
     {
         Color retcol;
-        uint32_t a = std::clamp((uint32_t)(left.a) + (uint32_t)(right.a), 0u, 255u);
-        uint32_t r = std::clamp((uint32_t)(left.r) + (uint32_t)(right.r), 0u, 255u);
-        uint32_t g = std::clamp((uint32_t)(left.g) + (uint32_t)(right.g), 0u, 255u);
-        uint32_t b = std::clamp((uint32_t)(left.b) + (uint32_t)(right.b), 0u, 255u);
+        uint32_t a = CLAMP((uint32_t)(left.a) + (uint32_t)(right.a), 0u, 255u);
+        uint32_t r = CLAMP((uint32_t)(left.r) + (uint32_t)(right.r), 0u, 255u);
+        uint32_t g = CLAMP((uint32_t)(left.g) + (uint32_t)(right.g), 0u, 255u);
+        uint32_t b = CLAMP((uint32_t)(left.b) + (uint32_t)(right.b), 0u, 255u);
         return Color(uint8_t(r), uint8_t(g), uint8_t(b), uint8_t(a));
     }
+#undef CLAMP
     inline Color operator * (const Color& left, const Color& right)
     {
         uint32_t a = (uint32_t)(left.a) * (uint32_t)(right.a);
