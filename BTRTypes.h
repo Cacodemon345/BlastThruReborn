@@ -7,7 +7,11 @@
 #include <cuchar>
 #include "ConvertUTF.h"
 #include <SDL2/SDL.h>
+#if __has_include("SDL_gpu.h")
+#include "SDL_gpu.h"
+#else
 #include <SDL2/SDL_gpu.h>
+#endif
 
 extern bool demo;
 inline std::chrono::steady_clock waitClock;

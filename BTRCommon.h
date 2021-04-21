@@ -4,6 +4,7 @@
 //#include <direct.h>
 #include "stb_image.h"
 #ifdef BTR_USE_SDL
+#define SDL_MAIN_HANDLED 1 // We handle it by ourselves.
 #include "BTRTypes.h"
 #else
 #include <SFML/Graphics.hpp>
@@ -27,8 +28,13 @@
 #include <cmath>
 #include <stack>
 #include <list>
+#include <array>
+#include <locale>
 #ifndef __APPLE__
 #include <SFML/OpenGL.hpp>
+#endif
+#ifdef _MSC_VER
+#pragma comment(lib, "opengl32")
 #endif
 
 /*#include "LuaBridge/LuaBridge.h"
