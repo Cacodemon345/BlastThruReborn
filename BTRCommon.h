@@ -4,7 +4,9 @@
 //#include <direct.h>
 #include "stb_image.h"
 #ifdef BTR_USE_SDL
-#define SDL_MAIN_HANDLED 1 // We handle it by ourselves.
+#ifdef WIN32
+#define SDL_MAIN_HANDLED 1
+#endif
 #include "BTRTypes.h"
 #else
 #include <SFML/Graphics.hpp>
