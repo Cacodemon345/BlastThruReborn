@@ -775,7 +775,6 @@ namespace btr
                 event.type = Event::MouseLeft;
                 break;
             case SDL_QUIT:
-            case SDL_WINDOWEVENT_CLOSE:
                 event.type = Event::Closed;
                 break;
             case SDL_WINDOWEVENT_RESIZED:
