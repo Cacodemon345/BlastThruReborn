@@ -32,7 +32,7 @@
 #include <list>
 #include <array>
 #include <locale>
-#ifndef __APPLE__
+#if !defined __APPLE__ && !defined BTR_USE_SDL
 #include <SFML/OpenGL.hpp>
 #endif
 #ifdef _MSC_VER

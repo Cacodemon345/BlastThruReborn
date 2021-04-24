@@ -4,7 +4,6 @@
 #include <chrono>
 #include <thread>
 #include <vector>
-#include <cuchar>
 #include "ConvertUTF.h"
 #include <SDL2/SDL.h>
 #if __has_include("SDL_gpu.h")
