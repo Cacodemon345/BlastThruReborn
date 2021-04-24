@@ -645,7 +645,7 @@ namespace btr
             None = SDL_WINDOW_BORDERLESS,
             Resize = SDL_WINDOW_RESIZABLE,
             Fullscreen = SDL_WINDOW_FULLSCREEN,
-            Default = Resize,
+            Default = 0,
             Close = Default,
             Titlebar = Default
         };
@@ -671,11 +671,11 @@ namespace btr
     private:
         SDL_Window* window = NULL;
         GPU_Target* renderer = NULL;
-        int fps;
+        int fps = 0;
+        bool closed = false;
         std::vector<uint32_t> pendingTextEvents;
     public:
-        RenderWindow()
-        {}
+        RenderWindow() = default;
         RenderWindow(VideoMode mode, std::string str, uint32_t style)
         {
             fprintf(stderr, "SDL RENDERER IS WIP!!! DON'T REPORT ISSUES ON GITHUB!!!\n");
@@ -692,7 +692,14 @@ namespace btr
             if (!renderer) throw std::runtime_error("Failed to create SDL_gpu renderer.");
             printf("Using renderer: %s\n", renderer->renderer->id.name);
             window = SDL_GetWindowFromID(renderer->renderer->current_context_target->context->windowID);
-            SDL_SetWindowTitle(window, "Blast Thru Reborn");
+            SDL_SetWindowTitle(window, str.c_str());
+            // Force displaying of window on Wayland.
+            clear();
+            display();
+            clear();
+            display();
+            SDL_GL_SetSwapInterval(0);
+            SDL_SetWindowResizable(window, (SDL_bool)!!(style & SDL_WINDOW_RESIZABLE));
         }
         ~RenderWindow()
         {
@@ -782,8 +789,11 @@ namespace btr
                 {
                     event.size.width = ev.window.data1;
                     event.size.height = ev.window.data2;
+                    GPU_SetWindowResolution(event.size.width, event.size.height);
+                    GPU_SetVirtualResolution(renderer, 640, 480);
                     break;
                 }
+                break;
             case SDL_WINDOWEVENT_FOCUS_GAINED:
                 event.type = Event::GainedFocus;
                 break;
@@ -935,7 +945,7 @@ namespace btr
         }
         bool isOpen()
         {
-            return !!(SDL_GetWindowFlags(window) & SDL_WINDOW_SHOWN);
+            return !closed;
         }
         void setKeyRepeatEnabled(bool) {}
         void setMouseCursorVisible(bool visible)
@@ -946,6 +956,7 @@ namespace btr
         {
             // Hiding the window seems to be the only option here.
             SDL_HideWindow(window);
+            closed = true;
         }
     };
     void Texture::update(RenderWindow& window)
