@@ -1103,13 +1103,17 @@ int main(int argc, char *argv[])
                 quitGame.clickedFunc();
                 break;
             case btr::Event::MouseEntered:
+            {
                 cursorVisible = false;
                 window->setMouseCursorVisible(false);
                 break;
+            }
             case btr::Event::MouseLeft:
+            {
                 cursorVisible = true;
                 window->setMouseCursorVisible(true);
                 break;
+            }
             case btr::Event::TextEntered:
                 /*if (std::isdigit(static_cast<unsigned char>(event.text.unicode), std::locale("")))
                 {

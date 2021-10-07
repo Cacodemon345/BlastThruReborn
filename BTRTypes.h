@@ -762,7 +762,6 @@ namespace btr
         SDL_Window* getSystemHandle() const { return window; };
         bool pollEvent(btr::Event& event)
         {
-            static bool mouseInsideWindow = false;
             if (pendingTextEvents.size() != 0)
             {
                 event.text.unicode = pendingTextEvents[0];
@@ -774,31 +773,42 @@ namespace btr
             int res = SDL_PollEvent(&ev);
             switch(ev.type)
             {
-            case SDL_WINDOWEVENT_ENTER:
-                event.type = Event::MouseEntered;
-                break;
-            case SDL_WINDOWEVENT_LEAVE:
-                event.type = Event::MouseLeft;
-                break;
             case SDL_QUIT:
                 event.type = Event::Closed;
                 break;
-            case SDL_WINDOWEVENT_RESIZED:
-                event.type = Event::Resized;
+            case SDL_WINDOWEVENT:
+            {
+                switch (ev.window.event)
                 {
-                    event.size.width = ev.window.data1;
-                    event.size.height = ev.window.data2;
-                    GPU_SetWindowResolution(event.size.width, event.size.height);
-                    GPU_SetVirtualResolution(renderer, 640, 480);
-                    break;
+                    case SDL_WINDOWEVENT_ENTER:
+                        event.type = Event::MouseEntered;
+                        break;
+                    case SDL_WINDOWEVENT_LEAVE:
+                        event.type = Event::MouseLeft;
+                        break;
+
+                    case SDL_WINDOWEVENT_RESIZED:
+                        event.type = Event::Resized;
+                        {
+                            event.size.width = ev.window.data1;
+                            event.size.height = ev.window.data2;
+                            GPU_SetWindowResolution(event.size.width, event.size.height);
+                            GPU_SetVirtualResolution(renderer, 640, 480);
+                            break;
+                        }
+                        break;
+                    case SDL_WINDOWEVENT_FOCUS_GAINED:
+                        event.type = Event::GainedFocus;
+                        break;
+                    case SDL_WINDOWEVENT_FOCUS_LOST:
+                        event.type = Event::LostFocus;
+                        break;
+                
+                    default:
+                        break;
                 }
                 break;
-            case SDL_WINDOWEVENT_FOCUS_GAINED:
-                event.type = Event::GainedFocus;
-                break;
-            case SDL_WINDOWEVENT_FOCUS_LOST:
-                event.type = Event::LostFocus;
-                break;
+            }
             case SDL_KEYDOWN:
                 event.type = Event::KeyPressed;
                 {
@@ -826,25 +836,6 @@ namespace btr
                 {
                     event.mouseMove.x = ev.motion.x;
                     event.mouseMove.y = ev.motion.y;
-#if 1
-                    if (IntRect(this->getPosition(),this->getSize()).contains(Mouse::getPosition()))
-                    {
-                        if (!mouseInsideWindow)
-                        {
-                            SDL_Event mouseEnterEvent;
-                            mouseEnterEvent.type = SDL_WINDOWEVENT_ENTER;
-                            SDL_PushEvent(&mouseEnterEvent);
-                            mouseInsideWindow = true;
-                        }
-                    }
-                    else if (mouseInsideWindow)
-                    {
-                        SDL_Event mouseExitEvent;
-                        mouseExitEvent.type = SDL_WINDOWEVENT_LEAVE;
-                        SDL_PushEvent(&mouseExitEvent);
-                        mouseInsideWindow = false;
-                    }
-#endif
                 }
                 break;
             case SDL_MOUSEWHEEL:
@@ -907,7 +898,7 @@ namespace btr
                 }
                 break;
             }
-            return !!res;
+            return res;
         }
         void display()
         {

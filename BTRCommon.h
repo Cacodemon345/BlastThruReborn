@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include <memory>
 //#include <direct.h>
 #include "stb_image.h"
 #ifdef BTR_USE_SDL
