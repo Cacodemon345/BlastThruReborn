@@ -678,7 +678,6 @@ namespace btr
         RenderWindow(VideoMode mode, std::string str, uint32_t style)
         {
             fprintf(stderr, "SDL RENDERER IS WIP!!! DON'T REPORT ISSUES ON GITHUB!!!\n");
-            SDL_LogSetAllPriority(SDL_LOG_PRIORITY_VERBOSE);
             GPU_SetPreInitFlags(GPU_INIT_DISABLE_VSYNC | GPU_INIT_DISABLE_DOUBLE_BUFFER);
             SDL_InitSubSystem(SDL_INIT_TIMER);
             if (getenv("BTR_SDLGPU_RENDERERNUM"))
@@ -689,7 +688,7 @@ namespace btr
             if (!renderer) renderer = GPU_Init(mode.width, mode.height, style);
 
             if (!renderer) throw std::runtime_error("Failed to create SDL_gpu renderer.");
-            printf("Using renderer: %s\n", renderer->renderer->id.name);
+            printf("\nUsing renderer: %s\n", renderer->renderer->id.name);
             window = SDL_GetWindowFromID(renderer->renderer->current_context_target->context->windowID);
             SDL_SetWindowTitle(window, str.c_str());
             // Force displaying of window on Wayland.
@@ -879,7 +878,6 @@ namespace btr
                         
                     }
                     event.text.unicode = pendingTextEvents[0];
-                    fprintf(stderr, "Char 0x%X\n", pendingTextEvents[0]);
                     event.type = btr::Event::TextEntered;
                     pendingTextEvents.erase(pendingTextEvents.begin());
                 }
