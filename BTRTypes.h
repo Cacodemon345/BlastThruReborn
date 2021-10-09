@@ -869,8 +869,7 @@ namespace btr
                         }
                         if (*it & 0x10000000)
                         {
-                            reschar |= (*it & 0x3F) << (6 * len);
-                            len++;
+                            reschar |= (*it & 0x3F) << (6 * ++len);
                             continue;
                         }
                         if (reschar != 0) pendingTextEvents.push_back(reschar);
