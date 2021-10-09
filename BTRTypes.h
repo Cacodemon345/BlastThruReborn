@@ -771,6 +771,7 @@ namespace btr
             }
             SDL_Event ev;
             int res = SDL_PollEvent(&ev);
+            if (res)
             switch(ev.type)
             {
             case SDL_QUIT:
@@ -858,41 +859,27 @@ namespace btr
                 break;
             case SDL_TEXTINPUT:
                 {
-                    uint32_t* utf32array = new uint32_t[SDL_TEXTINPUTEVENT_TEXT_SIZE];
-                    uint32_t* origutf32array = utf32array;
-                    unsigned char* utf8array = (unsigned char*)ev.text.text;
-                    unsigned char* origutf8array = utf8array;
-                    int lengthoftext = strlen((char*)utf8array);
-#if 0
-                    auto res = ConvertUTF8toUTF32((const unsigned char**)&utf8array, &utf8array[lengthoftext],&utf32array,utf32array + lengthoftext,strictConversion);
-                    if (res != conversionOK)
+                    uint32_t len = 0;
+                    uint32_t reschar = 0;
+                    for (auto it = ev.text.text; it < &ev.text.text[32]; it++)
                     {
-                        const char* errorStr;
-                        switch(res)
+                        if (*it == 0)
                         {
-                            case sourceIllegal:
-                                errorStr = "Illegal UTF-8 sequence.";
-                                break;
-                            case sourceExhausted:
-                                errorStr = "String buffer underflow.";
-                                break;
-                            case targetExhausted:
-                                errorStr = "Target buffer underflow.";
-                                break;
-                            default: errorStr = ""; break;
+                            if (reschar != 0) pendingTextEvents.push_back(reschar);
+                            break;
                         }
-                        fprintf(stderr, "Could not decode UTF-8 SDL sequence. %s\n",errorStr);
-                        delete[] origutf32array;
-                        free(origutf8array);
-                        break;
-                    }
-#endif
-                    for (int i = 0; i < lengthoftext + 1; i++)
-                    {
-                        utf32array[i] = utf8array[i];
-                        if (utf32array[i] != 0) pendingTextEvents.push_back(utf32array[i]);
+                        if (*it & 0x10000000)
+                        {
+                            reschar |= (*it & 0x3F) << (6 * len);
+                            len++;
+                            continue;
+                        }
+                        if (reschar != 0) pendingTextEvents.push_back(reschar);
+                        reschar = *it;
+                        
                     }
                     event.text.unicode = pendingTextEvents[0];
+                    fprintf(stderr, "Char 0x%X\n", pendingTextEvents[0]);
                     event.type = btr::Event::TextEntered;
                     pendingTextEvents.erase(pendingTextEvents.begin());
                 }
