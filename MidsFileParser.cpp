@@ -48,6 +48,12 @@ uint32_t swap_uint32(uint32_t val)
 	val = ((val << 8) & 0xFF00FF00) | ((val >> 8) & 0xFF00FF);
 	return (val << 16) | (val >> 16);
 }
+
+void TerminateMidiPlayback()
+{
+
+}
+
 void CALLBACK MidiCallBack(HMIDIOUT hmo, UINT wMsg, DWORD_PTR dwInstance, DWORD_PTR dwParam1, DWORD_PTR dwParam2)
 {
 	switch (wMsg)

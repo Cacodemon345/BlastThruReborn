@@ -8,11 +8,17 @@
 #include <cstring>
 #include <fstream>
 //#include <tchar.h>
+#if __has_include("RtMidi17/include/libremidi/libremidi.hpp")
+#define LIBREMIDI_HEADER_ONLY
+#include "RtMidi17/include/libremidi/libremidi.hpp"
+namespace rtmidi = libremidi;
+#else
 #include "rtmidi17/rtmidi17.hpp"
+#endif
 //HMIDIOUT midiDev;
 extern void ParseMidsFile(std::string filename);
 extern void StartMidiPlayback();
-rtmidi::midi_out midiOut;
+rtmidi::midi_out midiOut(libremidi::API::HAIKU_BMIDI2, "");
 extern bool eot;
 extern unsigned int devID;
 #ifdef BTRMID_STANDALONE
@@ -84,6 +90,11 @@ void SelectMidiDevice()
     midiOut.open_port(selection);
 }
 #ifdef BTRMID_STANDALONE
+
+void TerminateMidiPlayback()
+{
+
+}
 
 int main(int argc, char *argv[])
 {

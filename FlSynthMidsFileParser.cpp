@@ -4,13 +4,19 @@
 // FluidSynth interface based on the RtMidi17 interface.
 //
 
-#include <fluidsynth.h>
+#include <iterator>
 #include <string>
 #include <cstring>
 #include <vector>
 #include <chrono>
 #include <fstream>
 #include <iostream>
+#include <atomic>
+#include <thread>
+#include <AL/al.h>
+#include <AL/alc.h>
+#include <AL/alext.h>
+#include <fluidsynth.h>
 extern void ParseMidsFile(std::string filename);
 extern void StartMidiPlayback();
 fluid_synth_t* player;
@@ -65,6 +71,7 @@ bool shouldContinue = false;
 bool eot = false;
 int tempoPerBeat = 6000000;
 int timeDiv = 96;
+static std::atomic<bool> soundplaybackstopped;
 std::chrono::steady_clock curClock;
 std::string curFilename;
 //MIDI enums.
@@ -82,23 +89,60 @@ std::string& GetCurPlayingFilename()
 {
     return curFilename;
 }
+static ALuint midisource, midibuffer;
+static std::thread* SoundPlaybackThread = nullptr;
+void FlSynthSoundProc()
+{
+    float sampleData[(48000 / 50) * 2];
+
+    alGenSources(1, &midisource);
+    alGenBuffers(1, &midibuffer);
+    alSourcei(midisource, AL_BUFFER, midibuffer);
+    alSourcePlay(midisource);
+    while (!soundplaybackstopped)
+    {
+        auto time = curClock.now().time_since_epoch().count();
+        while ((curClock.now().time_since_epoch().count() - time ) <= ((1000 * 1000 * 1000) / 50))
+        {
+        }
+        fluid_synth_write_float(player, (48000 / 50), sampleData, 0, 2, sampleData, 1, 2);
+        alBufferData(midibuffer, AL_FORMAT_STEREO_FLOAT32, sampleData, sizeof(sampleData), 48000);
+    }
+    alSourceStop(midisource);
+    alSourcei(midisource, AL_BUFFER, 0);
+    alDeleteBuffers(1, &midibuffer);
+    alDeleteSources(1, &midisource);
+}
+void TerminateMidiPlayback()
+{
+    soundplaybackstopped = true;
+    SoundPlaybackThread->join();
+    delete SoundPlaybackThread;
+    delete_fluid_synth(player);
+    delete_fluid_settings(settings);
+}
 void SelectMidiDevice()
 {
     settings = new_fluid_settings();
     #if defined(__ANDROID__) || defined(ANDROID)
     fluid_settings_setstr(settings,"audio.driver","oboe");
+    #elif defined(__HAIKU__)
+    fluid_settings_setstr(settings,"audio.driver","mediakit");
+//    fluid_settings_setint(settings,"audio.period-size",1024);
+//    fluid_settings_setint(settings,"audio.periods", 1);
     #else
     fluid_settings_setstr(settings,"audio.driver","alsa");
     #endif
     player = new_fluid_synth(settings);
-    audioDriver = new_fluid_audio_driver(settings,player);
+//    audioDriver = new_fluid_audio_driver(settings,player);
     auto res = fluid_synth_sfload(player,"./soundfont.sf2",1); // This one's for the Unixers...
     if (res == FLUID_FAILED)
     {
         printf("Failed to load soundfont");
     }
-    sequencer = new_fluid_sequencer2(0);
-    seqId = fluid_sequencer_register_fluidsynth(sequencer,player);
+//    sequencer = new_fluid_sequencer2(0);
+//    seqId = fluid_sequencer_register_fluidsynth(sequencer,player);
+    SoundPlaybackThread = new std::thread(FlSynthSoundProc);
 
 }
 void SelectMidiDevice(int selection)

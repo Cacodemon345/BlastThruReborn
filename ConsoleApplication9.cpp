@@ -66,7 +66,7 @@ btr::Vector2i lastTouchPosition = btr::Vector2i(0,0);
 #ifdef BTR_USE_SDL
 namespace btr
 {
-    GPU_Renderer* context = nullptr;
+    SDL_Renderer* context = nullptr;
 }
 #endif
 #ifndef BTR_USE_SDL
@@ -299,6 +299,7 @@ int main(int argc, char *argv[])
     ini.SetBoolValue("bt.ini","gsimplesparks",simpleSparks);
     bool mididevselect = ini.GetBoolValue("bt.ini", "gmididevselect");
     isFullscreen = ini.GetBoolValue("bt.ini","gfullscreen");
+    InitOpenAL();
     if (!mididevselect)
     {
         SelectMidiDevice();
@@ -307,7 +308,6 @@ int main(int argc, char *argv[])
     }
     else
         SelectMidiDevice(ini.GetLongValue("bt.ini", "gmididevnum"));
-    InitOpenAL();
     vertvelpowerup = ini.GetBoolValue("bt.ini", "gvertvelpowerup");
     for (int i = 0; i < argc; i++)
     {
@@ -1967,6 +1967,9 @@ int main(int argc, char *argv[])
 #ifdef _WIN32
     midiStreamStop(midiDev);
     midiOutReset((HMIDIOUT)midiDev);
+#else
+    extern void TerminateMidiPlayback();
+    TerminateMidiPlayback();
 #endif
     delete window;
     delete magnetSprite;

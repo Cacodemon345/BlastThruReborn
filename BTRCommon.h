@@ -345,7 +345,7 @@ struct BTRFont
 		sprite.setColor(col);
 		for (int i = 0; i < chars.size(); i++)
 		{
-			if (font == FontType::BTR_FONTLARGE && !std::isdigit(chars[i],std::locale(""))) continue;
+			if (font == FontType::BTR_FONTLARGE && !std::isdigit(chars[i],std::locale("C"))) continue;
 			btr::Vector2i texPos;
 			texPos.x = charMaps[chars[i]].x;
 			texPos.y = charMaps[chars[i]].y;
