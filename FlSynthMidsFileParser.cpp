@@ -4,19 +4,14 @@
 // FluidSynth interface based on the RtMidi17 interface.
 //
 
-#include <iterator>
+#include <fluidsynth.h>
 #include <string>
 #include <cstring>
 #include <vector>
 #include <chrono>
 #include <fstream>
 #include <iostream>
-#include <atomic>
-#include <thread>
-#include <AL/al.h>
-#include <AL/alc.h>
-#include <AL/alext.h>
-#include <fluidsynth.h>
+
 extern void ParseMidsFile(std::string filename);
 extern void StartMidiPlayback();
 fluid_synth_t* player;
@@ -24,6 +19,15 @@ fluid_settings_t* settings;
 fluid_audio_driver_t* audioDriver;
 fluid_sequencer_t* sequencer;
 fluid_seq_id_t seqId;
+#ifdef __HAIKU__
+#include <os/MediaKit.h>
+static BSoundPlayer* sndplayer = nullptr;
+
+static void BufProc(void* cookie, void *buffer, size_t size, const media_raw_audio_format &format)
+{
+    fluid_synth_write_float(player, size / 8, buffer, 0, 2, buffer, 1, 2);
+}
+#endif
 extern bool eot;
 extern unsigned int devID;
 #ifdef BTRMID_STANDALONE
@@ -71,7 +75,6 @@ bool shouldContinue = false;
 bool eot = false;
 int tempoPerBeat = 6000000;
 int timeDiv = 96;
-static std::atomic<bool> soundplaybackstopped;
 std::chrono::steady_clock curClock;
 std::string curFilename;
 //MIDI enums.
@@ -89,61 +92,48 @@ std::string& GetCurPlayingFilename()
 {
     return curFilename;
 }
-static ALuint midisource, midibuffer;
-static std::thread* SoundPlaybackThread = nullptr;
-void FlSynthSoundProc()
-{
-    float sampleData[(48000 / 50) * 2];
 
-    alGenSources(1, &midisource);
-    alGenBuffers(1, &midibuffer);
-    alSourcei(midisource, AL_BUFFER, midibuffer);
-    alSourcePlay(midisource);
-    while (!soundplaybackstopped)
-    {
-        auto time = curClock.now().time_since_epoch().count();
-        while ((curClock.now().time_since_epoch().count() - time ) <= ((1000 * 1000 * 1000) / 50))
-        {
-        }
-        fluid_synth_write_float(player, (48000 / 50), sampleData, 0, 2, sampleData, 1, 2);
-        alBufferData(midibuffer, AL_FORMAT_STEREO_FLOAT32, sampleData, sizeof(sampleData), 48000);
-    }
-    alSourceStop(midisource);
-    alSourcei(midisource, AL_BUFFER, 0);
-    alDeleteBuffers(1, &midibuffer);
-    alDeleteSources(1, &midisource);
-}
 void TerminateMidiPlayback()
 {
-    soundplaybackstopped = true;
-    SoundPlaybackThread->join();
-    delete SoundPlaybackThread;
+#ifdef __HAIKU__
+    sndplayer->SetHasData(false);
+    sndplayer->Stop();
+    delete sndplayer;
+#else
+    delete_fluid_audio_driver(audioDriver);
+#endif
     delete_fluid_synth(player);
     delete_fluid_settings(settings);
 }
+
 void SelectMidiDevice()
 {
     settings = new_fluid_settings();
-    #if defined(__ANDROID__) || defined(ANDROID)
-    fluid_settings_setstr(settings,"audio.driver","oboe");
-    #elif defined(__HAIKU__)
-    fluid_settings_setstr(settings,"audio.driver","mediakit");
-//    fluid_settings_setint(settings,"audio.period-size",1024);
-//    fluid_settings_setint(settings,"audio.periods", 1);
-    #else
-    fluid_settings_setstr(settings,"audio.driver","alsa");
-    #endif
+    fluid_settings_setint(settings, "audio.period-size", 1024);
+    fluid_settings_setint(settings, "audio.periods", 1);
+    fluid_settings_setnum(settings, "synth.sample-rate", 48000);
     player = new_fluid_synth(settings);
-//    audioDriver = new_fluid_audio_driver(settings,player);
+#ifndef __HAIKU__
+    audioDriver = new_fluid_audio_driver(settings,player);
+#endif
     auto res = fluid_synth_sfload(player,"./soundfont.sf2",1); // This one's for the Unixers...
     if (res == FLUID_FAILED)
     {
         printf("Failed to load soundfont");
     }
-//    sequencer = new_fluid_sequencer2(0);
+ //   sequencer = new_fluid_sequencer2(0);
 //    seqId = fluid_sequencer_register_fluidsynth(sequencer,player);
-    SoundPlaybackThread = new std::thread(FlSynthSoundProc);
-
+#ifdef __HAIKU__
+    media_raw_audio_format format{};
+    format.frame_rate = 48000;
+    format.format = media_raw_audio_format::B_AUDIO_FLOAT;
+    format.buffer_size = 960 * 2 * 4;
+    format.byte_order = B_MEDIA_LITTLE_ENDIAN;
+    format.channel_count = 2;
+    sndplayer = new BSoundPlayer(&format, NULL, BufProc, NULL, nullptr);
+    sndplayer->Start();
+    sndplayer->SetHasData(true);
+#endif
 }
 void SelectMidiDevice(int selection)
 {
